@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat.supplier;
+package org.hisp.dhis.sms;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,32 +28,38 @@ package org.hisp.dhis.tracker.preheat.supplier;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.preheat.DetachUtils;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.util.SmsUtils;
+import org.junit.Test;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import static org.junit.Assert.*;
 
 /**
- * @author Luciano Fiandesio
+ * @author Zubair Asghar
  */
-@RequiredArgsConstructor
-@Component
-public class RelationshipTypeSupplier extends AbstractPreheatSupplier
+public class SmsUtilsTest
 {
-    @NonNull
-    private final IdentifiableObjectManager manager;
-
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
+    @Test
+    public void testSMSTextEncoding()
     {
-        preheat.put( TrackerIdentifier.UID,
-            DetachUtils.detach( RelationshipTypeMapper.INSTANCE, manager.getAll( RelationshipType.class ) ) );
+        assertEquals( "Hi+User", SmsUtils.encode( "Hi User" ) );
+        assertEquals( "Jeg+er+p%C3%A5+universitetet", SmsUtils.encode( "Jeg er på universitetet" ) );
+        assertEquals( "endelig+oppn%C3%A5+m%C3%A5let", SmsUtils.encode( "endelig oppnå målet" ) );
+        assertEquals( "%D8%B4%D9%83%D8%B1%D8%A7+%D9%84%D9%83%D9%85", SmsUtils.encode( "شكرا لكم" ) );
+        assertEquals( " ", SmsUtils.encode( " " ) );
+        assertNull( SmsUtils.encode( null ) );
+    }
+
+    @Test
+    public void testRemovePhoneNumberPrefix()
+    {
+        assertEquals( "4740123456", SmsUtils.removePhoneNumberPrefix( "004740123456" ) );
+        assertEquals( "4740123456", SmsUtils.removePhoneNumberPrefix( "+4740123456" ) );
+    }
+
+    @Test
+    public void testBase64Compression()
+    {
+        assertTrue( SmsUtils.isBase64( "c2FtcGxlIHNtcyB0ZXh0" ) );
+        assertFalse( SmsUtils.isBase64( "sample sms text" ) );
     }
 }
