@@ -188,12 +188,4 @@ public class DataItemServiceFacadeTest
 
         return new WebOptions( options );
     }
-
-    private WebOptions mockWebOptionsNoPagingNoFilter()
-    {
-        final Map<String, String> options = new HashMap<>( 0 );
-        options.put( PAGING, "false" );
-
-        return new WebOptions( options );
-    }
 }

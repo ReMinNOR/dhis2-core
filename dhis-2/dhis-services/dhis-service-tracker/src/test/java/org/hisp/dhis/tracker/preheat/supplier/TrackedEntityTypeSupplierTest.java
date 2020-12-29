@@ -1,30 +1,40 @@
 package org.hisp.dhis.tracker.preheat.supplier;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.cache.DefaultPreheatCacheService;
+import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.List;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.Mockito.when;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
  */
 public class TrackedEntityTypeSupplierTest {
 
-    @InjectMocks
     private TrackedEntityTypeSupplier supplier;
+
+    @Mock
+    private DhisConfigurationProvider conf;
+
+    @Mock
+    private Environment env;
 
     @Mock
     private IdentifiableObjectManager manager;
@@ -34,6 +44,13 @@ public class TrackedEntityTypeSupplierTest {
 
     private BeanRandomizer rnd = new BeanRandomizer();
 
+    @Before
+    public void setUp()
+    {
+        final PreheatCacheService cache = new DefaultPreheatCacheService( conf,  env );
+        supplier = new TrackedEntityTypeSupplier( manager, cache );
+        when( env.getActiveProfiles() ).thenReturn( new String[] {} );
+    }
     @Test
     public void verifySupplier()
     {
@@ -45,6 +62,6 @@ public class TrackedEntityTypeSupplierTest {
         TrackerPreheat preheat = new TrackerPreheat();
         this.supplier.preheatAdd( params, preheat );
 
-        assertThat( preheat.getAll( TrackerIdScheme.UID, TrackedEntityType.class ), hasSize( 5 ) );
+        assertThat( preheat.getAll( TrackedEntityType.class ), hasSize( 5 ) );
     }
 }
