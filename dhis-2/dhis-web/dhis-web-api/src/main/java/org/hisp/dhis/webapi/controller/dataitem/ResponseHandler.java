@@ -28,26 +28,6 @@ package org.hisp.dhis.webapi.controller.dataitem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.query.Pagination;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.service.LinkService;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.util.List;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.join;
 import static java.util.Collections.emptyList;
@@ -56,6 +36,31 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 import static org.hisp.dhis.node.NodeUtils.createPager;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.removePostFilters;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.fieldfilter.FieldFilterParams;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.query.Pagination;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.service.LinkService;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 /**
  * This class is responsible for handling the result and pagination nodes. This
@@ -83,7 +88,7 @@ class ResponseHandler
 
     private final CacheProvider cacheProvider;
 
-    private Cache<Long> PAGE_COUNTING_CACHE;
+    private Cache<Integer> PAGE_COUNTING_CACHE;
 
     ResponseHandler( final QueryService queryService, final LinkService linkService,
         final FieldFilterService fieldFilterService, final Environment environment, final CacheProvider cacheProvider )
@@ -102,7 +107,8 @@ class ResponseHandler
     }
 
     /**
-     * Appends the given dimensionalItemsFound (the collection of results) and fields to the rootNode.
+     * Appends the given dimensionalItemsFound (the collection of results) and
+     * fields to the rootNode.
      *
      * @param rootNode the main response root node
      * @param dimensionalItemsFound the collection of results
@@ -112,7 +118,7 @@ class ResponseHandler
         final List<DataItemViewObject> dimensionalItemsFound, final List<String> fields )
     {
         final CollectionNode collectionNode = fieldFilterService.toCollectionNode( DataItemViewObject.class,
-                new FieldFilterParams( dimensionalItemsFound, fields ) );
+            new FieldFilterParams( dimensionalItemsFound, fields ) );
         collectionNode.setName( "dataItems" );
         rootNode.addChild( collectionNode );
     }
@@ -143,7 +149,7 @@ class ResponseHandler
                 {
                     count += PAGE_COUNTING_CACHE.get(
                         createPageCountingCacheKey( currentUser, entity, filters, options ),
-                        p -> countEntityRowsTotal( entity, options, filters ) ).orElse( Long.valueOf( 0 ) );
+                        p -> countEntityRowsTotal( entity, options, filters ) ).orElse( 0 );
                 }
 
                 final Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
@@ -155,13 +161,27 @@ class ResponseHandler
         }
     }
 
-    private long countEntityRowsTotal( final Class<? extends BaseDimensionalItemObject> entity, final WebOptions options,
+    private int countEntityRowsTotal( final Class<? extends BaseDimensionalItemObject> entity, final WebOptions options,
         final List<String> filters )
     {
-        final Query query = queryService.getQueryFromUrl( entity, filters, emptyList(), new Pagination(),
-            options.getRootJunction() );
+        final Query query = queryService.getQueryFromUrl( entity, removePostFilters( filters ), emptyList(),
+            new Pagination(), options.getRootJunction() );
 
-        return queryService.count( query );
+        final List<BaseDimensionalItemObject> items = new ArrayList<>();
+
+        if ( entity.getSimpleName().equals( ProgramDataElementDimensionItem.class.getSimpleName() ) )
+        {
+            return items.size();
+        }
+        else if ( entity.getSimpleName()
+            .equals( ProgramTrackedEntityAttributeDimensionItem.class.getSimpleName() ) )
+        {
+            return items.size();
+        }
+        else
+        {
+            return (int) queryService.count( query );
+        }
     }
 
     private String createPageCountingCacheKey( final User currentUser,
@@ -175,7 +195,7 @@ class ResponseHandler
     void init()
     {
         // formatter:off
-        PAGE_COUNTING_CACHE = cacheProvider.newCacheBuilder( Long.class )
+        PAGE_COUNTING_CACHE = cacheProvider.newCacheBuilder( Integer.class )
             .forRegion( CACHE_DATA_ITEMS_PAGINATION )
             .expireAfterWrite( 5, MINUTES )
             .withInitialCapacity( 1000 )

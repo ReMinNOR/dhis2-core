@@ -34,34 +34,56 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.ValueType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode
 public class DataItemViewObject extends BaseDimensionalItemObject
 {
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private String name;
 
-    private List<String> reportMetrics = new ArrayList<>();
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private String displayName;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private String displayFormName;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private String uid;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private String code;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private DimensionItemType dimensionItemType;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private String programId;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private String combinedId;
 
     @JsonProperty
     @JacksonXmlProperty( localName = "reportMetrics", namespace = DXF_2_0 )
-    public List<String> getReportMetrics()
-    {
-        return reportMetrics;
-    }
+    private List<String> reportMetrics = new ArrayList<>();
 
-    public void setReportMetrics( final List<String> reportMetrics )
-    {
-        this.reportMetrics = reportMetrics;
-    }
-
-    public void addReportMetric( final String reportMetric )
-    {
-        if ( reportMetrics == null )
-        {
-            reportMetrics = new ArrayList<>();
-        }
-
-        reportMetrics.add( reportMetric );
-    }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private ValueType valueType;
 }
