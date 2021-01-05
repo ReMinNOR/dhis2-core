@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.db.migration.config;
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,13 +28,37 @@ package org.hisp.dhis.tracker.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.FlywayException;
+import org.flywaydb.core.api.configuration.Configuration;
+import org.flywaydb.core.api.output.MigrateResult;
+
 /**
- * The type of an issue.
+ * Customised Flyway to optionally run repair before migrate based on a flag.
+ * 
+ * @author Ameen Mohamed
  *
- * @Author Enrico Colasante
  */
-public enum IssueType
+public class DhisFlyway
+    extends
+    Flyway
 {
-    WARNING,
-    ERROR;
+    private boolean repairBeforeMigrate = false;
+
+    public DhisFlyway( Configuration configuration, boolean repairBeforeMigrate )
+    {
+        super( configuration );
+        this.repairBeforeMigrate = repairBeforeMigrate;
+    }
+
+    @Override
+    public MigrateResult migrate()
+        throws FlywayException
+    {
+        if ( repairBeforeMigrate )
+        {
+            super.repair();
+        }
+        return super.migrate();
+    }
 }
