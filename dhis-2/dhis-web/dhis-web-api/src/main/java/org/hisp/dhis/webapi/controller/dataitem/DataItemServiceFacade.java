@@ -38,7 +38,6 @@ import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.containsDimensionTypeFilter;
@@ -73,6 +72,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.dataitem.query.QueryExecutor;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -108,6 +108,8 @@ public class DataItemServiceFacade
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
+    
+    private final QueryExecutor queryExecutor;
 
     /**
      * This Map holds the allowed data types to be queried.
@@ -127,54 +129,19 @@ public class DataItemServiceFacade
 
     DataItemServiceFacade( final QueryService queryService,
         @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-        final CurrentUserService currentUserService, final AclService aclService )
+        final CurrentUserService currentUserService, final AclService aclService, final QueryExecutor queryExecutor )
     {
         checkNotNull( queryService );
         checkNotNull( jdbcTemplate );
         checkNotNull( currentUserService );
         checkNotNull( aclService );
+        checkNotNull( queryExecutor );
 
         this.queryService = queryService;
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
         this.currentUserService = currentUserService;
         this.aclService = aclService;
-    }
-
-    private String getProgramDataElementQueryWith( final boolean filterByValueType, final boolean filterByIlikeName )
-    {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT p.\"name\" AS program_name, p.uid AS program_uid, p.publicaccess AS program_public_access,"
-                + " de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
-                + " FROM programstagedataelement psde, dataelement de, programstage ps, program p"
-                + " WHERE p.programid = ps.programid AND psde.programstageid = ps.programstageid AND psde.dataelementid = de.dataelementid"
-                + " AND ("
-                + " ((p.publicaccess LIKE '__r%' OR p.publicaccess LIKE 'r%' OR p.publicaccess IS NULL)"
-                + " AND (de.publicaccess LIKE '__r%' OR de.publicaccess LIKE 'r%' OR de.publicaccess IS NULL))"
-                + " OR p.programid IN (SELECT pua.programid FROM programuseraccesses pua WHERE pua.useraccessid"
-                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR p.programid IN (SELECT puga.programid FROM programusergroupaccesses puga WHERE puga.usergroupaccessid"
-                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + " OR de.dataelementid IN (SELECT pua.dataelementid FROM dataelementuseraccesses pua"
-                + " WHERE pua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR de.dataelementid IN (SELECT puga.dataelementid FROM dataelementusergroupaccesses puga"
-                + " WHERE puga.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")");
-
-        if ( filterByIlikeName )
-        {
-            sql.append( "AND (p.\"name\" ILIKE :ilike OR de.\"name\" ILIKE :ilike)" );
-        }
-
-//        if ( filterByValueType )
-//        {
-//            sql.append( " AND (de.valuetype IN (:valueTypes))" );
-//        }
-
-        sql.append( " ORDER BY de.\"name\"" );
-
-        return sql.toString();
+        this.queryExecutor = queryExecutor;
     }
 
     private String getProgramAttributeQueryWith( final boolean filterByValueType, final boolean filterByIlikeName )
@@ -352,10 +319,10 @@ public class DataItemServiceFacade
                     boolean filterByIlikeName = false;
 
                     final String ilikeName = extractValueFromIlikeNameFilter( filters );
-                    
+
                     if ( isNotBlank( ilikeName ) )
                     {
-                        paramsMap.addValue( "ilike", wrap( ilikeName, "%" ) );
+                        paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
                         filterByIlikeName = true;
                     }
 
@@ -364,24 +331,9 @@ public class DataItemServiceFacade
 //                        paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
 //                        filterByValueType = true;
 //                    }
+                    
+                    queryExecutor.execute( entity, filters );
 
-                    final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
-                        getProgramDataElementQueryWith( filterByValueType, filterByIlikeName ), paramsMap );
-
-                    while ( rowSet.next() )
-                    {
-                        final DataItemViewObject viewItem = new DataItemViewObject();
-                        final ValueType valueType = ValueType.fromString( rowSet.getString( "valuetype" ) );
-
-                        viewItem.setName( rowSet.getString( "program_name" ) + SPACE + rowSet.getString( "name" ) );
-                        viewItem.setValueType( valueType );
-                        viewItem.setCombinedId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
-                        viewItem.setProgramId( rowSet.getString( "program_uid" ) );
-                        viewItem.setUid( rowSet.getString( "uid" ) );
-                        viewItem.setDimensionItemType( PROGRAM_DATA_ELEMENT );
-
-                        dataItemViewObjects.add( viewItem );
-                    }
                 }
                 else if ( isEquals( entity, ProgramTrackedEntityAttributeDimensionItem.class ) )
                 {

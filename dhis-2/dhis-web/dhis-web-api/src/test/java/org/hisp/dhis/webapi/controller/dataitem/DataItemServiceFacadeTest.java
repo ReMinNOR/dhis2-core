@@ -36,7 +36,6 @@ import static java.util.Collections.emptySet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
 import static org.hisp.dhis.query.Query.from;
@@ -66,6 +65,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.webapi.controller.dataitem.query.QueryExecutor;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Before;
 import org.junit.Rule;
@@ -88,6 +88,9 @@ public class DataItemServiceFacadeTest
     @Mock
     private AclService aclService;
 
+    @Mock
+    private QueryExecutor queryExecutor;
+
     @Rule
     public MockitoRule mockitoRule = rule();
 
@@ -96,7 +99,8 @@ public class DataItemServiceFacadeTest
     @Before
     public void setUp()
     {
-        dataItemServiceFacade = new DataItemServiceFacade( queryService, jdbcTemplate, currentUserService, aclService );
+        dataItemServiceFacade = new DataItemServiceFacade( queryService, jdbcTemplate, currentUserService, aclService,
+            queryExecutor );
     }
 
     @Test
