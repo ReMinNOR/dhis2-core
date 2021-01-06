@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
 
 import java.util.ArrayList;
@@ -69,16 +70,32 @@ public class IndicatorQuery implements DataItemQuery
                 + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
                 + ")" );
 
-        if ( paramsMap.hasValue( "ilikeName" ) )
+        if ( isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
-            sql.append( "AND (i.\"name\" ILIKE :ilikeName)" );
+            sql.append( " AND (i.\"name\" ILIKE :ilikeName)" );
         }
 
-        sql.append( " ORDER BY i.\"name\"" );
+        if ( paramsMap.hasValue( "nameOrder" ) && isNotEmpty( (String) paramsMap.getValue( "nameOrder" ) ) )
+        {
+            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
+            {
+                sql.append( " ORDER BY i.\"name\" ASC" );
+            }
+            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
+            {
+                sql.append( " ORDER BY i.\"name\" DESC" );
+            }
+        }
+
+        if ( paramsMap.hasValue( "maxRows" ) && (int) paramsMap.getValue( "maxRows" ) > 0 )
+        {
+            sql.append( " LIMIT :maxRows" );
+        }
 
         return sql.toString();
     }
 
+    @Override
     public List<DataItemViewObject> find( final MapSqlParameterSource paramsMap )
     {
         final List<DataItemViewObject> dataItemViewObjects = new ArrayList<>();
@@ -98,5 +115,11 @@ public class IndicatorQuery implements DataItemQuery
         }
 
         return dataItemViewObjects;
+    }
+
+    @Override
+    public int count( final MapSqlParameterSource paramsMap )
+    {
+        return 0;
     }
 }

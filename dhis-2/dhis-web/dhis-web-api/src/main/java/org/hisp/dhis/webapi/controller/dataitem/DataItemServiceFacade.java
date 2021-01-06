@@ -33,11 +33,8 @@ import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.apache.commons.lang3.StringUtils.wrap;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
-import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
-import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.containsDimensionTypeFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
@@ -46,7 +43,6 @@ import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.re
 import static org.hisp.dhis.webapi.controller.dataitem.helper.OrderingHelper.sort;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.slice;
 import static org.hisp.dhis.webapi.utils.PaginationUtils.NO_PAGINATION;
-import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -56,7 +52,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -70,13 +65,12 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.dataitem.query.QueryProvider;
+import org.hisp.dhis.webapi.controller.dataitem.query.QueryExecutor;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableMap;
@@ -102,12 +96,12 @@ public class DataItemServiceFacade
     private final QueryService queryService;
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-    
+
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
-    
-    private final QueryProvider queryProvider;
+
+    private final QueryExecutor queryExecutor;
 
     /**
      * This Map holds the allowed data types to be queried.
@@ -117,7 +111,6 @@ public class DataItemServiceFacade
         .<String, Class<? extends BaseDimensionalItemObject>> builder()
             .put( "INDICATOR", Indicator.class )
             .put( "DATA_ELEMENT", DataElement.class )
-            //.put( "DATA_ELEMENT_OPERAND", DataElementOperand.class )
             .put( "DATA_SET", DataSet.class )
             .put( "PROGRAM_INDICATOR", ProgramIndicator.class )
             .put( "PROGRAM_DATA_ELEMENT", ProgramDataElementDimensionItem.class )
@@ -127,19 +120,19 @@ public class DataItemServiceFacade
 
     DataItemServiceFacade( final QueryService queryService,
         @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-        final CurrentUserService currentUserService, final AclService aclService, final QueryProvider queryProvider)
+        final CurrentUserService currentUserService, final AclService aclService, final QueryExecutor queryExecutor )
     {
         checkNotNull( queryService );
         checkNotNull( jdbcTemplate );
         checkNotNull( currentUserService );
         checkNotNull( aclService );
-        checkNotNull(queryProvider);
+        checkNotNull( queryExecutor );
 
         this.queryService = queryService;
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
         this.currentUserService = currentUserService;
         this.aclService = aclService;
-        this.queryProvider = queryProvider;
+        this.queryExecutor = queryExecutor;
     }
 
     /**
@@ -171,124 +164,44 @@ public class DataItemServiceFacade
                     continue;
                 }
 
-                if ( isEquals( entity, ProgramDataElementDimensionItem.class ) )
+                // Populate query params map.
+                final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
+                    user.getId() );
+
+                final String ilikeName = extractValueFromIlikeNameFilter( filters );
+
+                if ( isNotBlank( ilikeName ) )
                 {
-                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
-                        user.getId() );
-
-                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
-
-                    if ( isNotBlank( ilikeName ) )
-                    {
-                        paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
-                    }
-
-//                    if ( containsValueTypeFilter( filters ) )
-//                    {
-//                        paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
-//                    }
-
-                    dataItemViewObjects.addAll( queryProvider.getProgramDataElementDimensionQuery().find( paramsMap ) );
+                    paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
                 }
-                else if ( isEquals( entity, ProgramTrackedEntityAttributeDimensionItem.class ) )
+
+                // if ( containsValueTypeFilter( filters ) )
+                // {
+                // paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters )
+                // );
+                // filterByValueType = true;
+                // }
+
+                // Set ordering
+                if ( orderParams != null && isNotEmpty( orderParams.getOrders() ) )
                 {
-                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
-                        user.getId() );
+                    final Set<String> orders = orderParams.getOrders();
 
-                    boolean filterByValueType = false;
-//                    boolean filterByIlikeName = false;
-
-                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
-
-                    if ( isNotBlank( ilikeName ) )
+                    for ( final String order : orders )
                     {
-                        paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
-//                        filterByIlikeName = true;
+                        final String[] array = order.split( ":" );
+
+                        paramsMap.addValue( trimToEmpty( array[0] ).concat( "Order" ), array[1] );
                     }
-                    
-//                    if ( containsValueTypeFilter( filters ) )
-//                    {
-//                        paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
-//                        filterByValueType = true;
-//                    }
-
-                    dataItemViewObjects.addAll( queryProvider.getProgramAttributeQuery().find( paramsMap ) );
                 }
-                else if ( isEquals( entity, ProgramIndicator.class ) )
-                {
-                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
-                        user.getId() );
 
-//                       boolean filterByIlikeName = false;
-
-                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
-
-                    if ( isNotBlank( ilikeName ) )
-                    {
-                        paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
-//                        filterByIlikeName = true;
-                    }
-
-                    dataItemViewObjects.addAll( queryProvider.getProgramIndicatorQuery().find( paramsMap ) );
+                // Calculate pagination
+                if ( options.hasPaging() ) {
+                    final int maxLimit = options.getPage() * options.getPageSize();
+                    paramsMap.addValue( "maxRows", maxLimit );
                 }
-                else if ( isEquals( entity, DataSet.class ) )
-                {
-                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
-                        user.getId() );
 
-                    //boolean filterByIlikeName = false;
-
-                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
-
-                    if ( isNotBlank( ilikeName ) )
-                    {
-                        paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
-                        //filterByIlikeName = true;
-                    }
-
-                    dataItemViewObjects.addAll( queryProvider.getDataSetQuery().find( paramsMap ) );
-                }
-                else if ( isEquals( entity, Indicator.class ) )
-                {
-                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
-                        user.getId() );
-
-                    //boolean filterByIlikeName = false;
-
-                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
-
-                    if ( isNotBlank( ilikeName ) )
-                    {
-                        paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
-                        //filterByIlikeName = true;
-                    }
-
-                    dataItemViewObjects.addAll( queryProvider.getIndicatorQuery().find( paramsMap ) );
-                }
-                else if ( isEquals( entity, DataElement.class ) )
-                {
-                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
-                        user.getId() );
-
-                    boolean filterByValueType = false;
-                    boolean filterByIlikeName = false;
-
-                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
-
-                    if ( isNotBlank( ilikeName ) )
-                    {
-                        paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
-                        filterByIlikeName = true;
-                    }
-
-//                    if ( containsValueTypeFilter( filters ) )
-//                    {
-//                        paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
-//                        filterByValueType = true;
-//                    }
-
-                    dataItemViewObjects.addAll( queryProvider.getDataElementQuery().find( paramsMap ) );
-                }
+                dataItemViewObjects.addAll( queryExecutor.executeFor( entity, paramsMap ) );
             }
 
             // In memory sorting
@@ -301,16 +214,7 @@ public class DataItemServiceFacade
         return dataItemViewObjects;
     }
 
-    private boolean isEquals( final Class<? extends BaseDimensionalItemObject> entity,
-        final Class<? extends BaseDimensionalItemObject> other )
-    {
-        notNull( entity, "The entity must not be null" );
-        notNull( entity, "The other must not be null" );
-
-        return entity.getSimpleName().equals( other.getSimpleName() );
-    }
-
-     /**
+    /**
      * This method returns a set of BaseDimensionalItemObject's based on the
      * provided filters. It will also remove, from the filters, the objects found.
      *
@@ -373,7 +277,7 @@ public class DataItemServiceFacade
         final Pagination pagination = options.hasPaging()
             ? new Pagination( PAGINATION_FIRST_RESULT, maxLimit )
             : NO_PAGINATION;
-        
+
         final Query query = queryService.getQueryFromUrl( entity, removePostFilters( filters ), emptyList(),
             pagination, options.getRootJunction() );
         query.setDefaultOrder();

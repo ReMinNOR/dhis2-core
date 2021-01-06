@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 
 import java.util.ArrayList;
@@ -78,9 +79,9 @@ public class ProgramAttributeQuery implements DataItemQuery
                 + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
                 + ")" );
 
-        if ( paramsMap.hasValue( "ilikeName" ) )
+        if ( paramsMap.hasValue( "ilikeName" ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
-            sql.append( "AND (p.\"name\" ILIKE :ilikeName OR t.\"name\" ILIKE :ilikeName)" );
+            sql.append( " AND (p.\"name\" ILIKE :ilikeName OR t.\"name\" ILIKE :ilikeName)" );
         }
 
         // if ( filterByValueType )
@@ -88,7 +89,22 @@ public class ProgramAttributeQuery implements DataItemQuery
         // sql.append( " AND (t.valuetype IN (:valueTypes))" );
         // }
 
-        sql.append( " ORDER BY t.\"name\"" );
+        if ( paramsMap.hasValue( "nameOrder" ) && isNotEmpty( (String) paramsMap.getValue( "nameOrder" ) ) )
+        {
+            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
+            {
+                sql.append( " ORDER BY t.\"name\" ASC" );
+            }
+            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
+            {
+                sql.append( " ORDER BY t.\"name\" DESC" );
+            }
+        }
+
+        if ( paramsMap.hasValue( "maxRows" ) && (int) paramsMap.getValue( "maxRows" ) > 0 )
+        {
+            sql.append( " LIMIT :maxRows" );
+        }
 
         return sql.toString();
     }
@@ -116,5 +132,11 @@ public class ProgramAttributeQuery implements DataItemQuery
         }
 
         return dataItemViewObjects;
+    }
+
+    @Override
+    public int count( final MapSqlParameterSource paramsMap )
+    {
+        return 0;
     }
 }

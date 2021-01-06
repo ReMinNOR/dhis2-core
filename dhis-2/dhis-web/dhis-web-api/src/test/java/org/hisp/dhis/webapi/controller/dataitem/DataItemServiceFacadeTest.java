@@ -65,7 +65,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.webapi.controller.dataitem.query.QueryProvider;
+import org.hisp.dhis.webapi.controller.dataitem.query.QueryExecutor;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Before;
 import org.junit.Rule;
@@ -89,7 +89,7 @@ public class DataItemServiceFacadeTest
     private AclService aclService;
 
     @Mock
-    private QueryProvider queryProvider;
+    private QueryExecutor queryExecutor;
 
     @Rule
     public MockitoRule mockitoRule = rule();
@@ -100,7 +100,7 @@ public class DataItemServiceFacadeTest
     public void setUp()
     {
         dataItemServiceFacade = new DataItemServiceFacade( queryService, jdbcTemplate, currentUserService, aclService,
-            queryProvider);
+            queryExecutor);
     }
 
     @Test

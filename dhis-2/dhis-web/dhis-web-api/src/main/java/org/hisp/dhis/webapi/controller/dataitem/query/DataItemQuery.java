@@ -36,4 +36,6 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 public interface DataItemQuery
 {
     List<DataItemViewObject> find( MapSqlParameterSource paramsMap );
+
+    int count( MapSqlParameterSource paramsMap );
 }

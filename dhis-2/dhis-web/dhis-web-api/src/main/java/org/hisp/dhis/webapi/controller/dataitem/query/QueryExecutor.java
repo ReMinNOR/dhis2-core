@@ -28,6 +28,20 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.Collections.emptyList;
+import static org.springframework.util.Assert.notNull;
+
+import java.util.List;
+
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.webapi.controller.dataitem.DataItemViewObject;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
 import lombok.Getter;
@@ -36,7 +50,7 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 @Getter
-public class QueryProvider
+public class QueryExecutor
 {
     private final ProgramDataElementDimensionQuery programDataElementDimensionQuery;
 
@@ -49,4 +63,44 @@ public class QueryProvider
     private final IndicatorQuery indicatorQuery;
 
     private final DataElementQuery dataElementQuery;
+
+    public List<DataItemViewObject> executeFor( final Class<? extends BaseDimensionalItemObject> entity,
+        final MapSqlParameterSource paramsMap )
+    {
+        if ( isEquals( entity, ProgramDataElementDimensionItem.class ) )
+        {
+            return getProgramDataElementDimensionQuery().find( paramsMap );
+        }
+        else if ( isEquals( entity, ProgramTrackedEntityAttributeDimensionItem.class ) )
+        {
+            return getProgramAttributeQuery().find( paramsMap );
+        }
+        else if ( isEquals( entity, ProgramIndicator.class ) )
+        {
+            return getProgramIndicatorQuery().find( paramsMap );
+        }
+        else if ( isEquals( entity, DataSet.class ) )
+        {
+            return getDataSetQuery().find( paramsMap );
+        }
+        else if ( isEquals( entity, Indicator.class ) )
+        {
+            return getIndicatorQuery().find( paramsMap );
+        }
+        else if ( isEquals( entity, DataElement.class ) )
+        {
+            return getDataElementQuery().find( paramsMap );
+        }
+
+        return emptyList();
+    }
+
+    private boolean isEquals( final Class<? extends BaseDimensionalItemObject> entity,
+        final Class<? extends BaseDimensionalItemObject> other )
+    {
+        notNull( entity, "The entity must not be null" );
+        notNull( entity, "The other must not be null" );
+
+        return entity.getSimpleName().equals( other.getSimpleName() );
+    }
 }
