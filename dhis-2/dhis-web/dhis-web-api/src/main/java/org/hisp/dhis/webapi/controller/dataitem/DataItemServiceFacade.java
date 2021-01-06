@@ -32,12 +32,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.containsDimensionTypeFilter;
@@ -72,7 +70,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.dataitem.query.QueryExecutor;
+import org.hisp.dhis.webapi.controller.dataitem.query.QueryProvider;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -109,7 +107,7 @@ public class DataItemServiceFacade
 
     private final AclService aclService;
     
-    private final QueryExecutor queryExecutor;
+    private final QueryProvider queryProvider;
 
     /**
      * This Map holds the allowed data types to be queried.
@@ -129,156 +127,19 @@ public class DataItemServiceFacade
 
     DataItemServiceFacade( final QueryService queryService,
         @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-        final CurrentUserService currentUserService, final AclService aclService, final QueryExecutor queryExecutor )
+        final CurrentUserService currentUserService, final AclService aclService, final QueryProvider queryProvider)
     {
         checkNotNull( queryService );
         checkNotNull( jdbcTemplate );
         checkNotNull( currentUserService );
         checkNotNull( aclService );
-        checkNotNull( queryExecutor );
+        checkNotNull(queryProvider);
 
         this.queryService = queryService;
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
         this.currentUserService = currentUserService;
         this.aclService = aclService;
-        this.queryExecutor = queryExecutor;
-    }
-
-    private String getProgramAttributeQueryWith( final boolean filterByValueType, final boolean filterByIlikeName )
-    {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT p.\"name\" AS program_name, p.uid AS program_uid, t.\"name\" AS name, t.uid AS uid, t.valuetype"
-                + " AS valuetype FROM program_attributes pa, trackedentityattribute t, program p"
-                + " WHERE pa.programid = p.programid AND pa.trackedentityattributeid = t.trackedentityattributeid"
-                + " AND ("
-                + " ((p.publicaccess LIKE '__r%' OR p.publicaccess LIKE 'r%' OR p.publicaccess IS NULL)"
-                + " AND (t.publicaccess LIKE '__r%' OR t.publicaccess LIKE 'r%' OR t.publicaccess IS NULL))"
-                + " OR p.programid IN (SELECT pua.programid FROM programuseraccesses pua WHERE pua.useraccessid"
-                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR p.programid IN (SELECT puga.programid FROM programusergroupaccesses puga WHERE puga.usergroupaccessid"
-                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + " OR t.trackedentityattributeid IN (SELECT taua.trackedentityattributeid FROM trackedentityattributeuseraccesses taua"
-                + " WHERE taua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR t.trackedentityattributeid IN (SELECT tagua.trackedentityattributeid FROM trackedentityattributeusergroupaccesses tagua"
-                + " WHERE tagua.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid "
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
-
-        if ( filterByIlikeName )
-        {
-            sql.append( "AND (p.\"name\" ILIKE :ilike OR t.\"name\" ILIKE :ilike)" );
-        }
-
-//        if ( filterByValueType )
-//        {
-//            sql.append( " AND (t.valuetype IN (:valueTypes))" );
-//        }
-
-        sql.append( " ORDER BY t.\"name\"" );
-
-        return sql.toString();
-    }
-
-    private String getDataElementQueryWith( final boolean filterByValueType, final boolean filterByIlikeName )
-    {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
-                + " FROM dataelement de"
-                + " WHERE ("
-                + " (de.publicaccess LIKE '__r%' OR de.publicaccess LIKE 'r%' OR de.publicaccess IS NULL)"
-                + " OR de.dataelementid IN (SELECT deua.dataelementid FROM dataelementuseraccesses deua WHERE deua.useraccessid"
-                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR de.dataelementid IN (SELECT deuga.dataelementid FROM dataelementusergroupaccesses deuga WHERE deuga.usergroupaccessid"
-                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
-
-        if ( filterByIlikeName )
-        {
-            sql.append( "AND (de.\"name\" ILIKE :ilike)" );
-        }
-
-//        if ( filterByValueType )
-//        {
-//            sql.append( " AND (de.valuetype IN (:valueTypes))" );
-//        }
-
-        sql.append( " ORDER BY de.\"name\"" );
-
-        return sql.toString();
-    }
-    
-    private String getDateSetQuery( final boolean filterByIlikeName )
-    {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT ds.\"name\" AS name, ds.uid AS uid"
-                + " FROM dataset ds WHERE"
-                + "("
-                + " (ds.publicaccess LIKE '__r%' OR ds.publicaccess LIKE 'r%' OR ds.publicaccess IS NULL)"
-                + " OR ds.datasetid IN (SELECT dsua.datasetid FROM datasetuseraccesses dsua WHERE dsua.useraccessid"
-                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR ds.datasetid IN (SELECT dsuga.datasetid FROM datasetusergroupaccesses dsuga WHERE dsuga.usergroupaccessid"
-                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
-
-        if ( filterByIlikeName )
-        {
-            sql.append( "AND (ds.\"name\" ILIKE :ilike)" );
-        }
-
-        sql.append( " ORDER BY ds.\"name\"" );
-
-        return sql.toString();
-    }
-
-    private String getProgramIndicatorQuery( final boolean filterByIlikeName )
-    {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT pi.\"name\" AS name, pi.uid AS uid"
-                + " FROM programindicator pi WHERE"
-                + "("
-                + " (pi.publicaccess LIKE '__r%' OR pi.publicaccess LIKE 'r%' OR pi.publicaccess IS NULL)"
-                + " OR pi.programindicatorid IN (SELECT piua.programindicatorid FROM programindicatoruseraccesses piua"
-                + " WHERE piua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR pi.programindicatorid IN (SELECT piuga.programindicatorid FROM programindicatorusergroupaccesses piuga"
-                + " WHERE piuga.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
-
-        if ( filterByIlikeName )
-        {
-            sql.append( "AND (pi.\"name\" ILIKE :ilike)" );
-        }
-
-        sql.append( " ORDER BY pi.\"name\"" );
-
-        return sql.toString();
-    }
-
-    private String getIndicatorQuery( final boolean filterByIlikeName )
-    {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT i.\"name\" AS name, i.uid AS uid"
-                + " FROM indicator i WHERE"
-                + "("
-                + " (i.publicaccess LIKE '__r%' OR i.publicaccess LIKE 'r%' OR i.publicaccess IS NULL)"
-                + " OR i.indicatorid IN (SELECT iua.indicatorid FROM indicatoruseraccesses iua"
-                + " WHERE iua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR i.indicatorid IN (SELECT iuga.indicatorid FROM indicatorusergroupaccesses iuga"
-                + " WHERE iuga.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
-
-        if ( filterByIlikeName )
-        {
-            sql.append( "AND (i.\"name\" ILIKE :ilike)" );
-        }
-
-        sql.append( " ORDER BY i.\"name\"" );
-
-        return sql.toString();
+        this.queryProvider = queryProvider;
     }
 
     /**
@@ -315,6 +176,100 @@ public class DataItemServiceFacade
                     final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
                         user.getId() );
 
+                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
+
+                    if ( isNotBlank( ilikeName ) )
+                    {
+                        paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
+                    }
+
+//                    if ( containsValueTypeFilter( filters ) )
+//                    {
+//                        paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
+//                    }
+
+                    dataItemViewObjects.addAll( queryProvider.getProgramDataElementDimensionQuery().find( paramsMap ) );
+                }
+                else if ( isEquals( entity, ProgramTrackedEntityAttributeDimensionItem.class ) )
+                {
+                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
+                        user.getId() );
+
+                    boolean filterByValueType = false;
+//                    boolean filterByIlikeName = false;
+
+                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
+
+                    if ( isNotBlank( ilikeName ) )
+                    {
+                        paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
+//                        filterByIlikeName = true;
+                    }
+                    
+//                    if ( containsValueTypeFilter( filters ) )
+//                    {
+//                        paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
+//                        filterByValueType = true;
+//                    }
+
+                    dataItemViewObjects.addAll( queryProvider.getProgramAttributeQuery().find( paramsMap ) );
+                }
+                else if ( isEquals( entity, ProgramIndicator.class ) )
+                {
+                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
+                        user.getId() );
+
+//                       boolean filterByIlikeName = false;
+
+                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
+
+                    if ( isNotBlank( ilikeName ) )
+                    {
+                        paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
+//                        filterByIlikeName = true;
+                    }
+
+                    dataItemViewObjects.addAll( queryProvider.getProgramIndicatorQuery().find( paramsMap ) );
+                }
+                else if ( isEquals( entity, DataSet.class ) )
+                {
+                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
+                        user.getId() );
+
+                    //boolean filterByIlikeName = false;
+
+                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
+
+                    if ( isNotBlank( ilikeName ) )
+                    {
+                        paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
+                        //filterByIlikeName = true;
+                    }
+
+                    dataItemViewObjects.addAll( queryProvider.getDataSetQuery().find( paramsMap ) );
+                }
+                else if ( isEquals( entity, Indicator.class ) )
+                {
+                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
+                        user.getId() );
+
+                    //boolean filterByIlikeName = false;
+
+                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
+
+                    if ( isNotBlank( ilikeName ) )
+                    {
+                        paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
+                        //filterByIlikeName = true;
+                    }
+
+                    dataItemViewObjects.addAll( queryProvider.getIndicatorQuery().find( paramsMap ) );
+                }
+                else if ( isEquals( entity, DataElement.class ) )
+                {
+                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
+                        user.getId() );
+
                     boolean filterByValueType = false;
                     boolean filterByIlikeName = false;
 
@@ -331,180 +286,8 @@ public class DataItemServiceFacade
 //                        paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
 //                        filterByValueType = true;
 //                    }
-                    
-                    queryExecutor.execute( entity, filters );
 
-                }
-                else if ( isEquals( entity, ProgramTrackedEntityAttributeDimensionItem.class ) )
-                {
-                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
-                        user.getId() );
-
-                    boolean filterByValueType = false;
-                    boolean filterByIlikeName = false;
-
-                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
-
-                    if ( isNotBlank( ilikeName ) )
-                    {
-                        paramsMap.addValue( "ilike", wrap( ilikeName, "%" ) );
-                        filterByIlikeName = true;
-                    }
-                    
-//                    if ( containsValueTypeFilter( filters ) )
-//                    {
-//                        paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
-//                        filterByValueType = true;
-//                    }
-
-                    final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
-                        getProgramAttributeQueryWith( filterByValueType, filterByIlikeName ), paramsMap );
-
-                    while ( rowSet.next() )
-                    {
-                        final DataItemViewObject viewItem = new DataItemViewObject();
-                        final ValueType valueType = ValueType.fromString( rowSet.getString( "valuetype" ) );
-
-                        viewItem.setName( rowSet.getString( "program_name" ) + SPACE + rowSet.getString( "name" ) );
-                        viewItem.setValueType( valueType );
-                        viewItem.setCombinedId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
-                        viewItem.setProgramId( rowSet.getString( "program_uid" ) );
-                        viewItem.setUid( rowSet.getString( "uid" ) );
-                        viewItem.setDimensionItemType( PROGRAM_ATTRIBUTE );
-
-                        dataItemViewObjects.add( viewItem );
-                    }
-                }
-                else if ( isEquals( entity, ProgramIndicator.class ) )
-                {
-                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
-                        user.getId() );
-
-                       boolean filterByIlikeName = false;
-
-                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
-
-                    if ( isNotBlank( ilikeName ) )
-                    {
-                        paramsMap.addValue( "ilike", wrap( ilikeName, "%" ) );
-                        filterByIlikeName = true;
-                    }
-
-                    final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
-                        getProgramIndicatorQuery( filterByIlikeName ), paramsMap );
-
-                    while ( rowSet.next() )
-                    {
-                        final DataItemViewObject viewItem = new DataItemViewObject();
-
-                        viewItem.setName( rowSet.getString( "name" ) );
-                        viewItem.setUid( rowSet.getString( "uid" ) );
-                        viewItem.setDimensionItemType( PROGRAM_INDICATOR );
-
-                        dataItemViewObjects.add( viewItem );
-                    }
-                }
-                else if ( isEquals( entity, DataSet.class ) )
-                {
-                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
-                        user.getId() );
-
-                    boolean filterByIlikeName = false;
-
-                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
-
-                    if ( isNotBlank( ilikeName ) )
-                    {
-                        paramsMap.addValue( "ilike", wrap( ilikeName, "%" ) );
-                        filterByIlikeName = true;
-                    }
-
-                    final SqlRowSet rowSet = namedParameterJdbcTemplate
-                        .queryForRowSet( getDateSetQuery( filterByIlikeName ), paramsMap );
-
-                    while ( rowSet.next() )
-                    {
-                        final DataItemViewObject viewItem = new DataItemViewObject();
-
-                        viewItem.setName( rowSet.getString( "name" ) );
-                        viewItem.setUid( rowSet.getString( "uid" ) );
-                        viewItem.setDimensionItemType( REPORTING_RATE );
-
-                        // Setting the dimension type to REPORTING_RATE, for all DataSet object.
-                        for ( final String metric : METRICS )
-                        {
-                            viewItem.getReportMetrics().add( viewItem.getDisplayFormName() + " (" + metric + ")" );
-                        }
-
-                        dataItemViewObjects.add( viewItem );
-                    }
-                }
-                else if ( isEquals( entity, Indicator.class ) )
-                {
-                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
-                        user.getId() );
-
-                    boolean filterByIlikeName = false;
-
-                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
-
-                    if ( isNotBlank( ilikeName ) )
-                    {
-                        paramsMap.addValue( "ilike", wrap( ilikeName, "%" ) );
-                        filterByIlikeName = true;
-                    }
-
-                    final SqlRowSet rowSet = namedParameterJdbcTemplate
-                        .queryForRowSet( getIndicatorQuery( filterByIlikeName ), paramsMap );
-                    
-                    while ( rowSet.next() )
-                    {
-                        final DataItemViewObject viewItem = new DataItemViewObject();
-
-                        viewItem.setName( rowSet.getString( "name" ) );
-                        viewItem.setUid( rowSet.getString( "uid" ) );
-                        viewItem.setDimensionItemType( INDICATOR );
-
-                        dataItemViewObjects.add( viewItem );
-                    }
-                }
-                else if ( isEquals( entity, DataElement.class ) )
-                {
-                    final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
-                        user.getId() );
-
-                    boolean filterByValueType = false;
-                    boolean filterByIlikeName = false;
-
-                    final String ilikeName = extractValueFromIlikeNameFilter( filters );
-
-                    if ( isNotBlank( ilikeName ) )
-                    {
-                        paramsMap.addValue( "ilike", wrap( ilikeName, "%" ) );
-                        filterByIlikeName = true;
-                    }
-
-//                    if ( containsValueTypeFilter( filters ) )
-//                    {
-//                        paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
-//                        filterByValueType = true;
-//                    }
-
-                    final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
-                        getDataElementQueryWith( filterByValueType, filterByIlikeName ), paramsMap );
-
-                    while ( rowSet.next() )
-                    {
-                        final DataItemViewObject viewItem = new DataItemViewObject();
-                        final ValueType valueType = ValueType.fromString( rowSet.getString( "valuetype" ) );
-
-                        viewItem.setName( rowSet.getString( "name" ) );
-                        viewItem.setValueType( valueType );
-                        viewItem.setUid( rowSet.getString( "uid" ) );
-                        viewItem.setDimensionItemType( DATA_ELEMENT );
-
-                        dataItemViewObjects.add( viewItem );
-                    }
+                    dataItemViewObjects.addAll( queryProvider.getDataElementQuery().find( paramsMap ) );
                 }
             }
 

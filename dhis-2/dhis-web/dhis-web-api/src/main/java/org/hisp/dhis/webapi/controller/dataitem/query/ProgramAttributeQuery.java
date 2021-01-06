@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,50 +45,50 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProgramDataElementDimensionQuery implements DataItemQuery
+public class ProgramAttributeQuery implements DataItemQuery
 {
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public ProgramDataElementDimensionQuery( @Qualifier( "readOnlyJdbcTemplate" ) final JdbcTemplate jdbcTemplate )
+    public ProgramAttributeQuery( @Qualifier( "readOnlyJdbcTemplate" )
+    final JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
 
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
     }
 
-    private String getProgramDataElementQueryWith( final MapSqlParameterSource paramsMap )
+    private String getProgramAttributeQueryWith( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT p.\"name\" AS program_name, p.uid AS program_uid, p.publicaccess AS program_public_access,"
-                + " de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
-                + " FROM programstagedataelement psde, dataelement de, programstage ps, program p"
-                + " WHERE p.programid = ps.programid AND psde.programstageid = ps.programstageid AND psde.dataelementid = de.dataelementid"
+            "SELECT p.\"name\" AS program_name, p.uid AS program_uid, t.\"name\" AS name, t.uid AS uid, t.valuetype"
+                + " AS valuetype FROM program_attributes pa, trackedentityattribute t, program p"
+                + " WHERE pa.programid = p.programid AND pa.trackedentityattributeid = t.trackedentityattributeid"
                 + " AND ("
                 + " ((p.publicaccess LIKE '__r%' OR p.publicaccess LIKE 'r%' OR p.publicaccess IS NULL)"
-                + " AND (de.publicaccess LIKE '__r%' OR de.publicaccess LIKE 'r%' OR de.publicaccess IS NULL))"
+                + " AND (t.publicaccess LIKE '__r%' OR t.publicaccess LIKE 'r%' OR t.publicaccess IS NULL))"
                 + " OR p.programid IN (SELECT pua.programid FROM programuseraccesses pua WHERE pua.useraccessid"
                 + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
                 + " OR p.programid IN (SELECT puga.programid FROM programusergroupaccesses puga WHERE puga.usergroupaccessid"
                 + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
                 + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + " OR de.dataelementid IN (SELECT pua.dataelementid FROM dataelementuseraccesses pua"
-                + " WHERE pua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR de.dataelementid IN (SELECT puga.dataelementid FROM dataelementusergroupaccesses puga"
-                + " WHERE puga.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
+                + " OR t.trackedentityattributeid IN (SELECT taua.trackedentityattributeid FROM trackedentityattributeuseraccesses taua"
+                + " WHERE taua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
+                + " OR t.trackedentityattributeid IN (SELECT tagua.trackedentityattributeid FROM trackedentityattributeusergroupaccesses tagua"
+                + " WHERE tagua.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid "
                 + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
                 + ")" );
 
         if ( paramsMap.hasValue( "ilikeName" ) )
         {
-            sql.append( "AND (p.\"name\" ILIKE :ilikeName OR de.\"name\" ILIKE :ilikeName)" );
+            sql.append( "AND (p.\"name\" ILIKE :ilikeName OR t.\"name\" ILIKE :ilikeName)" );
         }
 
         // if ( filterByValueType )
         // {
-        // sql.append( " AND (de.valuetype IN (:valueTypes))" );
+        // sql.append( " AND (t.valuetype IN (:valueTypes))" );
         // }
 
-        sql.append( " ORDER BY de.\"name\"" );
+        sql.append( " ORDER BY t.\"name\"" );
 
         return sql.toString();
     }
@@ -97,8 +97,8 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
     {
         final List<DataItemViewObject> dataItemViewObjects = new ArrayList<>();
 
-        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( getProgramDataElementQueryWith( paramsMap ),
-            paramsMap );
+        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
+            getProgramAttributeQueryWith( paramsMap ), paramsMap );
 
         while ( rowSet.next() )
         {
@@ -110,7 +110,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
             viewItem.setCombinedId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );
             viewItem.setUid( rowSet.getString( "uid" ) );
-            viewItem.setDimensionItemType( PROGRAM_DATA_ELEMENT );
+            viewItem.setDimensionItemType( PROGRAM_ATTRIBUTE );
 
             dataItemViewObjects.add( viewItem );
         }
