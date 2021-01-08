@@ -44,12 +44,10 @@ import org.hisp.dhis.webapi.controller.dataitem.DataItemViewObject;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-@Getter
 public class QueryExecutor
 {
     private final ProgramDataElementDimensionQuery programDataElementDimensionQuery;
@@ -64,35 +62,66 @@ public class QueryExecutor
 
     private final DataElementQuery dataElementQuery;
 
-    public List<DataItemViewObject> executeFor( final Class<? extends BaseDimensionalItemObject> entity,
+    public List<DataItemViewObject> find( final Class<? extends BaseDimensionalItemObject> entity,
         final MapSqlParameterSource paramsMap )
     {
         if ( isEquals( entity, ProgramDataElementDimensionItem.class ) )
         {
-            return getProgramDataElementDimensionQuery().find( paramsMap );
+            return programDataElementDimensionQuery.find( paramsMap );
         }
         else if ( isEquals( entity, ProgramTrackedEntityAttributeDimensionItem.class ) )
         {
-            return getProgramAttributeQuery().find( paramsMap );
+            return programAttributeQuery.find( paramsMap );
         }
         else if ( isEquals( entity, ProgramIndicator.class ) )
         {
-            return getProgramIndicatorQuery().find( paramsMap );
+            return programIndicatorQuery.find( paramsMap );
         }
         else if ( isEquals( entity, DataSet.class ) )
         {
-            return getDataSetQuery().find( paramsMap );
+            return dataSetQuery.find( paramsMap );
         }
         else if ( isEquals( entity, Indicator.class ) )
         {
-            return getIndicatorQuery().find( paramsMap );
+            return indicatorQuery.find( paramsMap );
         }
         else if ( isEquals( entity, DataElement.class ) )
         {
-            return getDataElementQuery().find( paramsMap );
+            return dataElementQuery.find( paramsMap );
         }
 
         return emptyList();
+    }
+
+    public int count( final Class<? extends BaseDimensionalItemObject> entity,
+        final MapSqlParameterSource paramsMap )
+    {
+        if ( isEquals( entity, ProgramDataElementDimensionItem.class ) )
+        {
+            return programDataElementDimensionQuery.count( paramsMap );
+        }
+        else if ( isEquals( entity, ProgramTrackedEntityAttributeDimensionItem.class ) )
+        {
+            return programAttributeQuery.count( paramsMap );
+        }
+        else if ( isEquals( entity, ProgramIndicator.class ) )
+        {
+            return programIndicatorQuery.count( paramsMap );
+        }
+        else if ( isEquals( entity, DataSet.class ) )
+        {
+            return dataSetQuery.count( paramsMap );
+        }
+        else if ( isEquals( entity, Indicator.class ) )
+        {
+            return indicatorQuery.count( paramsMap );
+        }
+        else if ( isEquals( entity, DataElement.class ) )
+        {
+            return dataElementQuery.count( paramsMap );
+        }
+
+        return 0;
     }
 
     private boolean isEquals( final Class<? extends BaseDimensionalItemObject> entity,

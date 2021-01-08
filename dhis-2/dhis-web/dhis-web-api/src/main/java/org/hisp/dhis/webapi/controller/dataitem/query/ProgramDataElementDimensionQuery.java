@@ -80,7 +80,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                 + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
                 + ")" );
 
-        if ( isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
+        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
             sql.append( " AND (p.\"name\" ILIKE :ilikeName OR de.\"name\" ILIKE :ilikeName)" );
         }
@@ -90,7 +90,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
         // sql.append( " AND (de.valuetype IN (:valueTypes))" );
         // }
 
-        if ( paramsMap.hasValue( "nameOrder" ) && isNotEmpty( (String) paramsMap.getValue( "nameOrder" ) ) )
+        if ( hasParam( "nameOrder", paramsMap ) )
         {
             if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
             {
@@ -102,9 +102,9 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
             }
         }
 
-        if ( paramsMap.hasValue( "maxRows" ) && (int) paramsMap.getValue( "maxRows" ) > 0 )
+        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
-            sql.append( " LIMIT :maxRows" );
+            sql.append( " LIMIT :maxLimit" );
         }
 
         return sql.toString();
@@ -138,6 +138,35 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
     @Override
     public int count( final MapSqlParameterSource paramsMap )
     {
-        return 0;
+        final StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(DISTINCT de.uid)"
+                + " FROM programstagedataelement psde, dataelement de, programstage ps, program p"
+                + " WHERE p.programid = ps.programid AND psde.programstageid = ps.programstageid AND psde.dataelementid = de.dataelementid"
+                + " AND ("
+                + " ((p.publicaccess LIKE '__r%' OR p.publicaccess LIKE 'r%' OR p.publicaccess IS NULL)"
+                + " AND (de.publicaccess LIKE '__r%' OR de.publicaccess LIKE 'r%' OR de.publicaccess IS NULL))"
+                + " OR p.programid IN (SELECT pua.programid FROM programuseraccesses pua WHERE pua.useraccessid"
+                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
+                + " OR p.programid IN (SELECT puga.programid FROM programusergroupaccesses puga WHERE puga.usergroupaccessid"
+                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
+                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
+                + " OR de.dataelementid IN (SELECT pua.dataelementid FROM dataelementuseraccesses pua"
+                + " WHERE pua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
+                + " OR de.dataelementid IN (SELECT puga.dataelementid FROM dataelementusergroupaccesses puga"
+                + " WHERE puga.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
+                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
+                + ")" );
+
+        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
+        {
+            sql.append( " AND (p.\"name\" ILIKE :ilikeName OR de.\"name\" ILIKE :ilikeName)" );
+        }
+
+        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
+        {
+            sql.append( " LIMIT :maxLimit" );
+        }
+
+        return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
     }
 }

@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
+import static org.hisp.dhis.common.ValueType.NUMBER;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,12 +71,12 @@ public class IndicatorQuery implements DataItemQuery
                 + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
                 + ")" );
 
-        if ( isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
+        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
             sql.append( " AND (i.\"name\" ILIKE :ilikeName)" );
         }
 
-        if ( paramsMap.hasValue( "nameOrder" ) && isNotEmpty( (String) paramsMap.getValue( "nameOrder" ) ) )
+        if ( hasParam( "nameOrder", paramsMap ) )
         {
             if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
             {
@@ -87,9 +88,9 @@ public class IndicatorQuery implements DataItemQuery
             }
         }
 
-        if ( paramsMap.hasValue( "maxRows" ) && (int) paramsMap.getValue( "maxRows" ) > 0 )
+        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
-            sql.append( " LIMIT :maxRows" );
+            sql.append( " LIMIT :maxLimit" );
         }
 
         return sql.toString();
@@ -111,6 +112,10 @@ public class IndicatorQuery implements DataItemQuery
             viewItem.setUid( rowSet.getString( "uid" ) );
             viewItem.setDimensionItemType( INDICATOR );
 
+            // Specific case where we have to force a vale type. Indicators don't have a
+            // value type but they always evaluate to numbers.
+            viewItem.setValueType( NUMBER );
+
             dataItemViewObjects.add( viewItem );
         }
 
@@ -120,6 +125,28 @@ public class IndicatorQuery implements DataItemQuery
     @Override
     public int count( final MapSqlParameterSource paramsMap )
     {
-        return 0;
+        final StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(DISTINCT i.uid)"
+                + " FROM indicator i WHERE"
+                + "("
+                + " (i.publicaccess LIKE '__r%' OR i.publicaccess LIKE 'r%' OR i.publicaccess IS NULL)"
+                + " OR i.indicatorid IN (SELECT iua.indicatorid FROM indicatoruseraccesses iua"
+                + " WHERE iua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
+                + " OR i.indicatorid IN (SELECT iuga.indicatorid FROM indicatorusergroupaccesses iuga"
+                + " WHERE iuga.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
+                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
+                + ")" );
+
+        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
+        {
+            sql.append( " AND (i.\"name\" ILIKE :ilikeName)" );
+        }
+
+        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
+        {
+            sql.append( " LIMIT :maxLimit" );
+        }
+
+        return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
     }
 }

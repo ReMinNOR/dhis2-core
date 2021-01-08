@@ -38,4 +38,9 @@ public interface DataItemQuery
     List<DataItemViewObject> find( MapSqlParameterSource paramsMap );
 
     int count( MapSqlParameterSource paramsMap );
+
+    default boolean hasParam( final String paramName, final MapSqlParameterSource paramsMap )
+    {
+        return paramsMap.hasValue( paramName );
+    }
 }

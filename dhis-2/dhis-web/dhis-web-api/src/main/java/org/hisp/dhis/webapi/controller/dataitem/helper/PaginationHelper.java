@@ -36,6 +36,7 @@ import java.util.List;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.webapi.controller.dataitem.DataItemViewObject;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
  * Helper class responsible for providing pagination capabilities on top of data
@@ -82,5 +83,20 @@ public class PaginationHelper
         }
 
         return itemViewObjects;
+    }
+
+    /**
+     * Sets the limit of items to be fetched IF paging is enabled. The max limit is set into the paramsMap.
+     *
+     * @param options the source of pagination params
+     * @param paramsMap the map that will receive the max limit param (maxLimit)
+     */
+    public static void setMaxResultsWhenPaging( final WebOptions options, final MapSqlParameterSource paramsMap )
+    {
+        if ( options.hasPaging() )
+        {
+            final int maxLimit = options.getPage() * options.getPageSize();
+            paramsMap.addValue( "maxLimit", maxLimit );
+        }
     }
 }

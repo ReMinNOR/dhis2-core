@@ -28,32 +28,6 @@ package org.hisp.dhis.webapi.controller.dataitem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.cache.CacheBuilder;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.service.LinkService;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
-import org.springframework.core.env.Environment;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static java.lang.String.valueOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -75,10 +49,36 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.cache.CacheBuilder;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.dataitem.query.QueryExecutor;
+import org.hisp.dhis.webapi.service.LinkService;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoRule;
+import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+
 public class ResponseHandlerTest
 {
     @Mock
-    private QueryService queryService;
+    private QueryExecutor queryExecutor;
 
     @Mock
     private LinkService linkService;
@@ -100,7 +100,7 @@ public class ResponseHandlerTest
     @Before
     public void setUp()
     {
-        responseHandler = new ResponseHandler( queryService, linkService, fieldFilterService, environment,
+        responseHandler = new ResponseHandler( queryExecutor, linkService, fieldFilterService, environment,
             cacheProvider );
     }
 
@@ -206,7 +206,7 @@ public class ResponseHandlerTest
         assertThat( anyRootNode.getName(), is( equalTo( "any" ) ) );
         assertThat( anyRootNode.getChildren(), is( empty() ) );
         verify( linkService, never() ).generatePagerLinks( any( Pager.class ), anyString() );
-        verify( queryService, never() ).count( any( Query.class ) );
+        verify( queryExecutor, never() ).count( any( Class.class ), any( MapSqlParameterSource.class ) );
     }
 
     private WebOptions mockWebOptions( final int pageSize, final int pageNumber )

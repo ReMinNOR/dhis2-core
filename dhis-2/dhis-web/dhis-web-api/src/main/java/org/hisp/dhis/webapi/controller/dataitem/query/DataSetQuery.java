@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
+import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,12 +70,12 @@ public class DataSetQuery implements DataItemQuery
                 + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
                 + ")" );
 
-        if ( isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
+        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
             sql.append( " AND (ds.\"name\" ILIKE :ilikeName)" );
         }
 
-        if ( paramsMap.hasValue( "nameOrder" ) && isNotEmpty( (String) paramsMap.getValue( "nameOrder" ) ) )
+        if ( hasParam( "nameOrder", paramsMap ) )
         {
             if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
             {
@@ -87,9 +87,9 @@ public class DataSetQuery implements DataItemQuery
             }
         }
 
-        if ( paramsMap.hasValue( "maxRows" ) && (int) paramsMap.getValue( "maxRows" ) > 0 )
+        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
-            sql.append( " LIMIT :maxRows" );
+            sql.append( " LIMIT :maxLimit" );
         }
 
         return sql.toString();
@@ -109,7 +109,7 @@ public class DataSetQuery implements DataItemQuery
 
             viewItem.setName( rowSet.getString( "name" ) );
             viewItem.setUid( rowSet.getString( "uid" ) );
-            viewItem.setDimensionItemType( PROGRAM_INDICATOR );
+            viewItem.setDimensionItemType( REPORTING_RATE );
 
             dataItemViewObjects.add( viewItem );
         }
@@ -120,6 +120,28 @@ public class DataSetQuery implements DataItemQuery
     @Override
     public int count( final MapSqlParameterSource paramsMap )
     {
-        return 0;
+        final StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(DISTINCT ds.uid)"
+                + " FROM dataset ds WHERE"
+                + "("
+                + " (ds.publicaccess LIKE '__r%' OR ds.publicaccess LIKE 'r%' OR ds.publicaccess IS NULL)"
+                + " OR ds.datasetid IN (SELECT dsua.datasetid FROM datasetuseraccesses dsua WHERE dsua.useraccessid"
+                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
+                + " OR ds.datasetid IN (SELECT dsuga.datasetid FROM datasetusergroupaccesses dsuga WHERE dsuga.usergroupaccessid"
+                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
+                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
+                + ")" );
+
+        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
+        {
+            sql.append( " AND (ds.\"name\" ILIKE :ilikeName)" );
+        }
+
+        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
+        {
+            sql.append( " LIMIT :maxLimit" );
+        }
+
+        return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
     }
 }

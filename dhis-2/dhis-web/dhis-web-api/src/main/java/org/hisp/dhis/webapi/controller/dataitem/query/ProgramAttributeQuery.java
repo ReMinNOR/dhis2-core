@@ -89,7 +89,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         // sql.append( " AND (t.valuetype IN (:valueTypes))" );
         // }
 
-        if ( paramsMap.hasValue( "nameOrder" ) && isNotEmpty( (String) paramsMap.getValue( "nameOrder" ) ) )
+        if ( hasParam( "nameOrder", paramsMap ) )
         {
             if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
             {
@@ -101,9 +101,9 @@ public class ProgramAttributeQuery implements DataItemQuery
             }
         }
 
-        if ( paramsMap.hasValue( "maxRows" ) && (int) paramsMap.getValue( "maxRows" ) > 0 )
+        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
-            sql.append( " LIMIT :maxRows" );
+            sql.append( " LIMIT :maxLimit" );
         }
 
         return sql.toString();
@@ -137,6 +137,35 @@ public class ProgramAttributeQuery implements DataItemQuery
     @Override
     public int count( final MapSqlParameterSource paramsMap )
     {
-        return 0;
+        final StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(DISTINCT t.uid)"
+                + " FROM program_attributes pa, trackedentityattribute t, program p"
+                + " WHERE pa.programid = p.programid AND pa.trackedentityattributeid = t.trackedentityattributeid"
+                + " AND ("
+                + " ((p.publicaccess LIKE '__r%' OR p.publicaccess LIKE 'r%' OR p.publicaccess IS NULL)"
+                + " AND (t.publicaccess LIKE '__r%' OR t.publicaccess LIKE 'r%' OR t.publicaccess IS NULL))"
+                + " OR p.programid IN (SELECT pua.programid FROM programuseraccesses pua WHERE pua.useraccessid"
+                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
+                + " OR p.programid IN (SELECT puga.programid FROM programusergroupaccesses puga WHERE puga.usergroupaccessid"
+                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
+                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
+                + " OR t.trackedentityattributeid IN (SELECT taua.trackedentityattributeid FROM trackedentityattributeuseraccesses taua"
+                + " WHERE taua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
+                + " OR t.trackedentityattributeid IN (SELECT tagua.trackedentityattributeid FROM trackedentityattributeusergroupaccesses tagua"
+                + " WHERE tagua.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid "
+                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
+                + ")" );
+
+        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
+        {
+            sql.append( " AND (p.\"name\" ILIKE :ilikeName OR t.\"name\" ILIKE :ilikeName)" );
+        }
+
+        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
+        {
+            sql.append( " LIMIT :maxLimit" );
+        }
+
+        return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
     }
 }

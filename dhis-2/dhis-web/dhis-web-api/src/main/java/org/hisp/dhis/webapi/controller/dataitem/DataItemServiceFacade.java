@@ -30,19 +30,15 @@ package org.hisp.dhis.webapi.controller.dataitem;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.newHashSet;
-import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.containsDimensionTypeFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractValueFromIlikeNameFilter;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.removePostFilters;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFiltering;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.OrderingHelper.setOrdering;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.OrderingHelper.sort;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.setMaxResultsWhenPaging;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.slice;
-import static org.hisp.dhis.webapi.utils.PaginationUtils.NO_PAGINATION;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -59,18 +55,12 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.query.Pagination;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.dataitem.query.QueryExecutor;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableMap;
@@ -93,10 +83,6 @@ public class DataItemServiceFacade
     private final Set<String> METRICS = newHashSet( "Actual reports", "Actual reports on time", "Expected reports",
         "Reporting rate", "Reporting rate on time" );
 
-    private final QueryService queryService;
-
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
@@ -118,18 +104,13 @@ public class DataItemServiceFacade
             .build();
     // @formatter:on
 
-    DataItemServiceFacade( final QueryService queryService,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-        final CurrentUserService currentUserService, final AclService aclService, final QueryExecutor queryExecutor )
+    DataItemServiceFacade( final CurrentUserService currentUserService, final AclService aclService,
+        final QueryExecutor queryExecutor )
     {
-        checkNotNull( queryService );
-        checkNotNull( jdbcTemplate );
         checkNotNull( currentUserService );
         checkNotNull( aclService );
         checkNotNull( queryExecutor );
 
-        this.queryService = queryService;
-        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
         this.currentUserService = currentUserService;
         this.aclService = aclService;
         this.queryExecutor = queryExecutor;
@@ -164,44 +145,18 @@ public class DataItemServiceFacade
                     continue;
                 }
 
-                // Populate query params map.
+                // Defining the query params map, and setting the common params.
                 final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
                     user.getId() );
 
-                final String ilikeName = extractValueFromIlikeNameFilter( filters );
+                setFiltering( filters, paramsMap );
 
-                if ( isNotBlank( ilikeName ) )
-                {
-                    paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
-                }
+                setOrdering( orderParams, paramsMap );
 
-                // if ( containsValueTypeFilter( filters ) )
-                // {
-                // paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters )
-                // );
-                // filterByValueType = true;
-                // }
+                setMaxResultsWhenPaging( options, paramsMap );
 
-                // Set ordering
-                if ( orderParams != null && isNotEmpty( orderParams.getOrders() ) )
-                {
-                    final Set<String> orders = orderParams.getOrders();
-
-                    for ( final String order : orders )
-                    {
-                        final String[] array = order.split( ":" );
-
-                        paramsMap.addValue( trimToEmpty( array[0] ).concat( "Order" ), array[1] );
-                    }
-                }
-
-                // Calculate pagination
-                if ( options.hasPaging() ) {
-                    final int maxLimit = options.getPage() * options.getPageSize();
-                    paramsMap.addValue( "maxRows", maxLimit );
-                }
-
-                dataItemViewObjects.addAll( queryExecutor.executeFor( entity, paramsMap ) );
+                // TODO: Add new sharing settings queries. See DefaultAclStore.java
+                dataItemViewObjects.addAll( queryExecutor.find( entity, paramsMap ) );
             }
 
             // In memory sorting
@@ -270,18 +225,20 @@ public class DataItemServiceFacade
      * @throws org.hisp.dhis.query.QueryParserException if errors occur during the
      *         query creation
      */
-    private Query buildQueryForEntity( final Class<? extends BaseDimensionalItemObject> entity,
-        final List<String> filters, final WebOptions options )
-    {
-        final int maxLimit = options.getPage() * options.getPageSize();
-        final Pagination pagination = options.hasPaging()
-            ? new Pagination( PAGINATION_FIRST_RESULT, maxLimit )
-            : NO_PAGINATION;
-
-        final Query query = queryService.getQueryFromUrl( entity, removePostFilters( filters ), emptyList(),
-            pagination, options.getRootJunction() );
-        query.setDefaultOrder();
-
-        return query;
-    }
+    // private Query buildQueryForEntity( final Class<? extends
+    // BaseDimensionalItemObject> entity,
+    // final List<String> filters, final WebOptions options )
+    // {
+    // final int maxLimit = options.getPage() * options.getPageSize();
+    // final Pagination pagination = options.hasPaging()
+    // ? new Pagination( PAGINATION_FIRST_RESULT, maxLimit )
+    // : NO_PAGINATION;
+    //
+    // final Query query = queryService.getQueryFromUrl( entity, removePostFilters(
+    // filters ), emptyList(),
+    // pagination, options.getRootJunction() );
+    // query.setDefaultOrder();
+    //
+    // return query;
+    // }
 }

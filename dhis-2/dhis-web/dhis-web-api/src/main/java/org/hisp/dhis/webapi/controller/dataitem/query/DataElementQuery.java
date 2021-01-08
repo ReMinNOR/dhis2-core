@@ -71,7 +71,7 @@ public class DataElementQuery implements DataItemQuery
                 + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
                 + ")" );
 
-        if ( isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
+        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
             sql.append( " AND (de.\"name\" ILIKE :ilikeName)" );
         }
@@ -81,7 +81,7 @@ public class DataElementQuery implements DataItemQuery
         // sql.append( " AND (de.valuetype IN (:valueTypes))" );
         // }
 
-        if ( paramsMap.hasValue( "nameOrder" ) && isNotEmpty( (String) paramsMap.getValue( "nameOrder" ) ) )
+        if ( hasParam( "nameOrder", paramsMap ) )
         {
             if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
             {
@@ -93,9 +93,9 @@ public class DataElementQuery implements DataItemQuery
             }
         }
 
-        if ( paramsMap.hasValue( "maxRows" ) && (int) paramsMap.getValue( "maxRows" ) > 0 )
+        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
-            sql.append( " LIMIT :maxRows" );
+            sql.append( " LIMIT :maxLimit" );
         }
 
         return sql.toString();
@@ -128,6 +128,28 @@ public class DataElementQuery implements DataItemQuery
     @Override
     public int count( final MapSqlParameterSource paramsMap )
     {
-        return 0;
+        final StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(DISTINCT de.uid)"
+                + " FROM dataelement de"
+                + " WHERE ("
+                + " (de.publicaccess LIKE '__r%' OR de.publicaccess LIKE 'r%' OR de.publicaccess IS NULL)"
+                + " OR de.dataelementid IN (SELECT deua.dataelementid FROM dataelementuseraccesses deua WHERE deua.useraccessid"
+                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
+                + " OR de.dataelementid IN (SELECT deuga.dataelementid FROM dataelementusergroupaccesses deuga WHERE deuga.usergroupaccessid"
+                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
+                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
+                + ")" );
+
+        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
+        {
+            sql.append( " AND (de.\"name\" ILIKE :ilikeName)" );
+        }
+
+        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
+        {
+            sql.append( " LIMIT :maxLimit" );
+        }
+
+        return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
     }
 }
