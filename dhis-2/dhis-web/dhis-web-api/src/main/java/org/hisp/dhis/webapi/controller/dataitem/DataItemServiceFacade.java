@@ -133,23 +133,23 @@ public class DataItemServiceFacade
     {
         List<DataItemViewObject> dataItemViewObjects = new ArrayList<>();
 
-        final User user = currentUserService.getCurrentUser();
+        final User currentUser = currentUserService.getCurrentUser();
 
         if ( isNotEmpty( targetEntities ) )
         {
             // Retrieving all items for each entity type.
             for ( final Class<? extends BaseDimensionalItemObject> entity : targetEntities )
             {
-                if ( !aclService.canRead( user, entity ) )
+                if ( !aclService.canRead( currentUser, entity ) )
                 {
                     continue;
                 }
 
                 // Defining the query params map, and setting the common params.
-                final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
-                    user.getId() );
+                final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userUid",
+                    currentUser.getUid() );
 
-                setFiltering( filters, paramsMap );
+                setFiltering( filters, paramsMap, currentUser );
 
                 setOrdering( orderParams, paramsMap );
 

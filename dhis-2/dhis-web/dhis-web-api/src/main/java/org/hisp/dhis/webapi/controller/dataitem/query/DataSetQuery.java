@@ -60,15 +60,9 @@ public class DataSetQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder(
             "SELECT ds.\"name\" AS name, ds.uid AS uid"
-                + " FROM dataset ds WHERE"
-                + "("
-                + " (ds.publicaccess LIKE '__r%' OR ds.publicaccess LIKE 'r%' OR ds.publicaccess IS NULL)"
-                + " OR ds.datasetid IN (SELECT dsua.datasetid FROM datasetuseraccesses dsua WHERE dsua.useraccessid"
-                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR ds.datasetid IN (SELECT dsuga.datasetid FROM datasetusergroupaccesses dsuga WHERE dsuga.usergroupaccessid"
-                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
+                + " FROM dataset ds"
+                + " WHERE"
+                + sharingConditions( "ds", paramsMap ) );
 
         if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
@@ -122,15 +116,9 @@ public class DataSetQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder(
             "SELECT COUNT(DISTINCT ds.uid)"
-                + " FROM dataset ds WHERE"
-                + "("
-                + " (ds.publicaccess LIKE '__r%' OR ds.publicaccess LIKE 'r%' OR ds.publicaccess IS NULL)"
-                + " OR ds.datasetid IN (SELECT dsua.datasetid FROM datasetuseraccesses dsua WHERE dsua.useraccessid"
-                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR ds.datasetid IN (SELECT dsuga.datasetid FROM datasetusergroupaccesses dsuga WHERE dsuga.usergroupaccessid"
-                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
+                + " FROM dataset ds"
+                + " WHERE"
+                + sharingConditions( "ds", paramsMap ) );
 
         if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {

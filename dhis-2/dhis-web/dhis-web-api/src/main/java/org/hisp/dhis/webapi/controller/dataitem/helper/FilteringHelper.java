@@ -28,6 +28,8 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.lang.String.join;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.contains;
@@ -52,6 +54,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -280,8 +283,10 @@ public class FilteringHelper
      *
      * @param filters the source of filtering params
      * @param paramsMap the map that will receive the filtering params
+     * @param currentUser the current user logged
      */
-    public static void setFiltering( final List<String> filters, final MapSqlParameterSource paramsMap )
+    public static void setFiltering( final List<String> filters, final MapSqlParameterSource paramsMap,
+        final User currentUser )
     {
         final String ilikeName = extractValueFromIlikeNameFilter( filters );
 
@@ -297,6 +302,16 @@ public class FilteringHelper
         // );
         // filterByValueType = true;
         // }
+
+        // Add user group filtering, when present
+        if ( currentUser != null && CollectionUtils.isNotEmpty( currentUser.getGroups() ) )
+        {
+            final List<String> userGroupUids = currentUser.getGroups().stream()
+                .filter( group -> group != null )
+                .map( group -> group.getUid() )
+                .collect( toList() );
+            paramsMap.addValue( "userGroupUids", "{" + join( ",", userGroupUids ) + "}" );
+        }
     }
 
     private static String getValueTypeOrThrow( final String valueType )

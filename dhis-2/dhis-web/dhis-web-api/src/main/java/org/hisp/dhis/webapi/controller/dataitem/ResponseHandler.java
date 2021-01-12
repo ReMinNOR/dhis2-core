@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.dataitem;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.join;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.wrap;
@@ -43,6 +44,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -162,8 +164,8 @@ class ResponseHandler
         final List<String> filters, final User currentUser )
     {
         // Defining query params map and setting common params.
-        final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userId",
-            currentUser.getId() );
+        final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userUid",
+            currentUser.getUid() );
 
         final String ilikeName = extractValueFromIlikeNameFilter( filters );
 
@@ -178,6 +180,16 @@ class ResponseHandler
         // );
         // filterByValueType = true;
         // }
+
+        // Add user group filtering, when present
+        if ( currentUser != null && CollectionUtils.isNotEmpty( currentUser.getGroups() ) )
+        {
+            final List<String> userGroupUids = currentUser.getGroups().stream()
+                .filter( group -> group != null )
+                .map( group -> group.getUid() )
+                .collect( toList() );
+            paramsMap.addValue( "userGroupUids", "{" + join( ",", userGroupUids ) + "}" );
+        }
 
         // Calculate pagination
         if ( options.hasPaging() )

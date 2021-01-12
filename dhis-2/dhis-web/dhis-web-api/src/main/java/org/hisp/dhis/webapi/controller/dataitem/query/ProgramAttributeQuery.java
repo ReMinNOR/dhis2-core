@@ -61,23 +61,13 @@ public class ProgramAttributeQuery implements DataItemQuery
     private String getProgramAttributeQueryWith( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT p.\"name\" AS program_name, p.uid AS program_uid, t.\"name\" AS name, t.uid AS uid, t.valuetype"
-                + " AS valuetype FROM program_attributes pa, trackedentityattribute t, program p"
-                + " WHERE pa.programid = p.programid AND pa.trackedentityattributeid = t.trackedentityattributeid"
-                + " AND ("
-                + " ((p.publicaccess LIKE '__r%' OR p.publicaccess LIKE 'r%' OR p.publicaccess IS NULL)"
-                + " AND (t.publicaccess LIKE '__r%' OR t.publicaccess LIKE 'r%' OR t.publicaccess IS NULL))"
-                + " OR p.programid IN (SELECT pua.programid FROM programuseraccesses pua WHERE pua.useraccessid"
-                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR p.programid IN (SELECT puga.programid FROM programusergroupaccesses puga WHERE puga.usergroupaccessid"
-                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + " OR t.trackedentityattributeid IN (SELECT taua.trackedentityattributeid FROM trackedentityattributeuseraccesses taua"
-                + " WHERE taua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR t.trackedentityattributeid IN (SELECT tagua.trackedentityattributeid FROM trackedentityattributeusergroupaccesses tagua"
-                + " WHERE tagua.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid "
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
+            "SELECT p.\"name\" AS program_name, p.uid AS program_uid, t.\"name\" AS name, t.uid AS uid,"
+                + " t.valuetype AS valuetype"
+                + " FROM trackedentityattribute t"
+                + " JOIN program_attributes pa ON pa.trackedentityattributeid = t.trackedentityattributeid"
+                + " JOIN program p ON pa.programid = p.programid"
+                + " WHERE"
+                + sharingConditions( "p", "t", paramsMap ) );
 
         if ( paramsMap.hasValue( "ilikeName" ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
@@ -88,6 +78,8 @@ public class ProgramAttributeQuery implements DataItemQuery
         // {
         // sql.append( " AND (t.valuetype IN (:valueTypes))" );
         // }
+
+        sql.append( " GROUP BY p.name, p.uid, t.name, t.uid, t.valuetype" );
 
         if ( hasParam( "nameOrder", paramsMap ) )
         {
@@ -138,23 +130,12 @@ public class ProgramAttributeQuery implements DataItemQuery
     public int count( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT COUNT(DISTINCT t.uid)"
-                + " FROM program_attributes pa, trackedentityattribute t, program p"
-                + " WHERE pa.programid = p.programid AND pa.trackedentityattributeid = t.trackedentityattributeid"
-                + " AND ("
-                + " ((p.publicaccess LIKE '__r%' OR p.publicaccess LIKE 'r%' OR p.publicaccess IS NULL)"
-                + " AND (t.publicaccess LIKE '__r%' OR t.publicaccess LIKE 'r%' OR t.publicaccess IS NULL))"
-                + " OR p.programid IN (SELECT pua.programid FROM programuseraccesses pua WHERE pua.useraccessid"
-                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR p.programid IN (SELECT puga.programid FROM programusergroupaccesses puga WHERE puga.usergroupaccessid"
-                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + " OR t.trackedentityattributeid IN (SELECT taua.trackedentityattributeid FROM trackedentityattributeuseraccesses taua"
-                + " WHERE taua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR t.trackedentityattributeid IN (SELECT tagua.trackedentityattributeid FROM trackedentityattributeusergroupaccesses tagua"
-                + " WHERE tagua.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid "
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
+            "SELECT COUNT(DISTINCT (p.uid, t.uid))"
+                + " FROM trackedentityattribute t"
+                + " JOIN program_attributes pa ON pa.trackedentityattributeid = t.trackedentityattributeid"
+                + " JOIN program p ON pa.programid = p.programid"
+                + " WHERE"
+                + sharingConditions( "p", "t", paramsMap ) );
 
         if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {

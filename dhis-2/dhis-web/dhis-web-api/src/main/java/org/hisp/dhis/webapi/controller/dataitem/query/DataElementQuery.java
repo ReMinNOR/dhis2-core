@@ -62,14 +62,8 @@ public class DataElementQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder(
             "SELECT de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
                 + " FROM dataelement de"
-                + " WHERE ("
-                + " (de.publicaccess LIKE '__r%' OR de.publicaccess LIKE 'r%' OR de.publicaccess IS NULL)"
-                + " OR de.dataelementid IN (SELECT deua.dataelementid FROM dataelementuseraccesses deua WHERE deua.useraccessid"
-                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR de.dataelementid IN (SELECT deuga.dataelementid FROM dataelementusergroupaccesses deuga WHERE deuga.usergroupaccessid"
-                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
+                + " WHERE"
+                + sharingConditions( "de", paramsMap ) );
 
         if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
@@ -131,14 +125,8 @@ public class DataElementQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder(
             "SELECT COUNT(DISTINCT de.uid)"
                 + " FROM dataelement de"
-                + " WHERE ("
-                + " (de.publicaccess LIKE '__r%' OR de.publicaccess LIKE 'r%' OR de.publicaccess IS NULL)"
-                + " OR de.dataelementid IN (SELECT deua.dataelementid FROM dataelementuseraccesses deua WHERE deua.useraccessid"
-                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR de.dataelementid IN (SELECT deuga.dataelementid FROM dataelementusergroupaccesses deuga WHERE deuga.usergroupaccessid"
-                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
+                + " WHERE"
+                + sharingConditions( "de", paramsMap ) );
 
         if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {

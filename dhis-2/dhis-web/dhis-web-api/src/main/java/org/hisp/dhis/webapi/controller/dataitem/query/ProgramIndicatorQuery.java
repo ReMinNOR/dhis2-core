@@ -61,15 +61,9 @@ public class ProgramIndicatorQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder(
             "SELECT pi.\"name\" AS name, pi.uid AS uid"
-                + " FROM programindicator pi WHERE"
-                + "("
-                + " (pi.publicaccess LIKE '__r%' OR pi.publicaccess LIKE 'r%' OR pi.publicaccess IS NULL)"
-                + " OR pi.programindicatorid IN (SELECT piua.programindicatorid FROM programindicatoruseraccesses piua"
-                + " WHERE piua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR pi.programindicatorid IN (SELECT piuga.programindicatorid FROM programindicatorusergroupaccesses piuga"
-                + " WHERE piuga.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
+                + " FROM programindicator pi"
+                + " WHERE"
+                + sharingConditions( "pi", paramsMap ) );
 
         if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
@@ -127,15 +121,9 @@ public class ProgramIndicatorQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder(
             "SELECT COUNT(DISTINCT pi.uid)"
-                + " FROM programindicator pi WHERE"
-                + "("
-                + " (pi.publicaccess LIKE '__r%' OR pi.publicaccess LIKE 'r%' OR pi.publicaccess IS NULL)"
-                + " OR pi.programindicatorid IN (SELECT piua.programindicatorid FROM programindicatoruseraccesses piua"
-                + " WHERE piua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR pi.programindicatorid IN (SELECT piuga.programindicatorid FROM programindicatorusergroupaccesses piuga"
-                + " WHERE piuga.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
+                + " FROM programindicator pi"
+                + " WHERE"
+                + sharingConditions( "pi", paramsMap ) );
 
         if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {

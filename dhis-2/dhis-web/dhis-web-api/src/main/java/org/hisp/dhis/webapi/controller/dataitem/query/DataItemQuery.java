@@ -28,6 +28,9 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_GROUPS_ACCESS;
+import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_IDS;
+
 import java.util.List;
 
 import org.hisp.dhis.webapi.controller.dataitem.DataItemViewObject;
@@ -42,5 +45,88 @@ public interface DataItemQuery
     default boolean hasParam( final String paramName, final MapSqlParameterSource paramsMap )
     {
         return paramsMap.hasValue( paramName );
+    }
+
+    default String sharingConditions( final String tableAlias, final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder conditions = new StringBuilder();
+
+        conditions
+            .append( publicAccessCondition( tableAlias ) )
+            .append( " OR " )
+            .append( ownerAccessCondition( tableAlias ) )
+            .append( " OR " )
+            .append( userAccessCondition( tableAlias ) );
+
+        if ( hasParam( "userGroupUids", paramsMap ) )
+        {
+            conditions.append( " OR (" + userGroupAccessCondition( tableAlias ) + ")" );
+        }
+
+        return conditions.toString();
+    }
+
+    default String sharingConditions( final String tableAlias1, final String tableAlias2,
+        final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder conditions = new StringBuilder();
+
+        conditions
+            .append( "(" ) // Table 1 conditions
+            .append( publicAccessCondition( tableAlias1 ) )
+            .append( " OR " )
+            .append( ownerAccessCondition( tableAlias1 ) )
+            .append( " OR " )
+            .append( userAccessCondition( tableAlias1 ) )
+            .append( ")" ) // Table 1 conditions end
+            .append( " AND (" ) // Table 2 conditions
+            .append( publicAccessCondition( tableAlias2 ) )
+            .append( " OR " )
+            .append( ownerAccessCondition( tableAlias2 ) )
+            .append( " OR " )
+            .append( userAccessCondition( tableAlias2 ) )
+            .append( ")" ); // Table 2 conditions end
+
+        if ( hasParam( "userGroupUids", paramsMap ) )
+        {
+            conditions.append( " OR (" );
+
+            // Program group access checks
+            conditions.append( userGroupAccessCondition( tableAlias1 ) );
+
+            // DataElement access checks
+            conditions.append( " AND " + userGroupAccessCondition( tableAlias2 ) );
+
+            // Closing OR condition
+            conditions.append( ")" );
+        }
+
+        return conditions.toString();
+    }
+
+    default String ownerAccessCondition( final String tableAlias )
+    {
+        return "(jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') IS NULL OR "
+            + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') = 'null' OR "
+            + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') = :userUid)";
+    }
+
+    default String publicAccessCondition( final String tableAlias )
+    {
+        return "(jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') IS NULL OR "
+            + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') = 'null' OR "
+            + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') LIKE 'r%')";
+    }
+
+    default String userAccessCondition( final String tableAlias )
+    {
+        return "(jsonb_has_user_id(" + tableAlias + ".sharing, :userUid) = TRUE "
+            + "AND jsonb_check_user_access(" + tableAlias + ".sharing, :userUid, 'r%') = TRUE)";
+    }
+
+    default String userGroupAccessCondition( final String tableAlias )
+    {
+        return "(" + HAS_USER_GROUP_IDS + "(" + tableAlias + ".sharing, :userGroupUids) = TRUE " +
+            "AND " + CHECK_USER_GROUPS_ACCESS + "(" + tableAlias + ".sharing, 'r%', :userGroupUids) = TRUE)";
     }
 }

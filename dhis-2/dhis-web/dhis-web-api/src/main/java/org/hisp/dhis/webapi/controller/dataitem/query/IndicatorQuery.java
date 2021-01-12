@@ -61,15 +61,9 @@ public class IndicatorQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder(
             "SELECT i.\"name\" AS name, i.uid AS uid"
-                + " FROM indicator i WHERE"
-                + "("
-                + " (i.publicaccess LIKE '__r%' OR i.publicaccess LIKE 'r%' OR i.publicaccess IS NULL)"
-                + " OR i.indicatorid IN (SELECT iua.indicatorid FROM indicatoruseraccesses iua"
-                + " WHERE iua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR i.indicatorid IN (SELECT iuga.indicatorid FROM indicatorusergroupaccesses iuga"
-                + " WHERE iuga.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
+                + " FROM indicator i"
+                + " WHERE"
+                + sharingConditions( "i", paramsMap ) );
 
         if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
@@ -127,16 +121,9 @@ public class IndicatorQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder(
             "SELECT COUNT(DISTINCT i.uid)"
-                + " FROM indicator i WHERE"
-                + "("
-                + " (i.publicaccess LIKE '__r%' OR i.publicaccess LIKE 'r%' OR i.publicaccess IS NULL)"
-                + " OR i.indicatorid IN (SELECT iua.indicatorid FROM indicatoruseraccesses iua"
-                + " WHERE iua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR i.indicatorid IN (SELECT iuga.indicatorid FROM indicatorusergroupaccesses iuga"
-                + " WHERE iuga.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
-
+                + " FROM indicator i"
+                + " WHERE"
+                + sharingConditions( "i", paramsMap ) );
         if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
             sql.append( " AND (i.\"name\" ILIKE :ilikeName)" );

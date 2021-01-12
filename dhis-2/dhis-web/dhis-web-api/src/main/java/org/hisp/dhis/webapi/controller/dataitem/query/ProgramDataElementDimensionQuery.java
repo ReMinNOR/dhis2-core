@@ -61,24 +61,14 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
     private String getProgramDataElementQueryWith( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT p.\"name\" AS program_name, p.uid AS program_uid, p.publicaccess AS program_public_access,"
+            "SELECT p.\"name\" AS program_name, p.uid AS program_uid,"
                 + " de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
-                + " FROM programstagedataelement psde, dataelement de, programstage ps, program p"
-                + " WHERE p.programid = ps.programid AND psde.programstageid = ps.programstageid AND psde.dataelementid = de.dataelementid"
-                + " AND ("
-                + " ((p.publicaccess LIKE '__r%' OR p.publicaccess LIKE 'r%' OR p.publicaccess IS NULL)"
-                + " AND (de.publicaccess LIKE '__r%' OR de.publicaccess LIKE 'r%' OR de.publicaccess IS NULL))"
-                + " OR p.programid IN (SELECT pua.programid FROM programuseraccesses pua WHERE pua.useraccessid"
-                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR p.programid IN (SELECT puga.programid FROM programusergroupaccesses puga WHERE puga.usergroupaccessid"
-                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + " OR de.dataelementid IN (SELECT pua.dataelementid FROM dataelementuseraccesses pua"
-                + " WHERE pua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR de.dataelementid IN (SELECT puga.dataelementid FROM dataelementusergroupaccesses puga"
-                + " WHERE puga.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
+                + " FROM dataelement de"
+                + " JOIN programstagedataelement psde ON psde.dataelementid = de.dataelementid"
+                + " JOIN programstage ps ON psde.programstageid = ps.programstageid"
+                + " JOIN program p ON p.programid = ps.programid"
+                + " WHERE"
+                + sharingConditions( "p", "de", paramsMap ) );
 
         if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
@@ -89,6 +79,8 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
         // {
         // sql.append( " AND (de.valuetype IN (:valueTypes))" );
         // }
+
+        sql.append( " GROUP BY p.name, p.uid, de.name, de.uid, de.valuetype" );
 
         if ( hasParam( "nameOrder", paramsMap ) )
         {
@@ -139,23 +131,13 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
     public int count( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT COUNT(DISTINCT de.uid)"
-                + " FROM programstagedataelement psde, dataelement de, programstage ps, program p"
-                + " WHERE p.programid = ps.programid AND psde.programstageid = ps.programstageid AND psde.dataelementid = de.dataelementid"
-                + " AND ("
-                + " ((p.publicaccess LIKE '__r%' OR p.publicaccess LIKE 'r%' OR p.publicaccess IS NULL)"
-                + " AND (de.publicaccess LIKE '__r%' OR de.publicaccess LIKE 'r%' OR de.publicaccess IS NULL))"
-                + " OR p.programid IN (SELECT pua.programid FROM programuseraccesses pua WHERE pua.useraccessid"
-                + " IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR p.programid IN (SELECT puga.programid FROM programusergroupaccesses puga WHERE puga.usergroupaccessid"
-                + " IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + " OR de.dataelementid IN (SELECT pua.dataelementid FROM dataelementuseraccesses pua"
-                + " WHERE pua.useraccessid IN (SELECT useraccessid FROM useraccess WHERE access LIKE '__r%' AND useraccess.userid = :userId))"
-                + " OR de.dataelementid IN (SELECT puga.dataelementid FROM dataelementusergroupaccesses puga"
-                + " WHERE puga.usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE access LIKE '__r%' AND usergroupid"
-                + " IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :userId)))"
-                + ")" );
+            "SELECT COUNT(DISTINCT (p.uid, de.uid))"
+                + " FROM dataelement de"
+                + " JOIN programstagedataelement psde ON psde.dataelementid = de.dataelementid"
+                + " JOIN programstage ps ON psde.programstageid = ps.programstageid"
+                + " JOIN program p ON p.programid = ps.programid"
+                + " WHERE"
+                + sharingConditions( "p", "de", paramsMap ) );
 
         if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
