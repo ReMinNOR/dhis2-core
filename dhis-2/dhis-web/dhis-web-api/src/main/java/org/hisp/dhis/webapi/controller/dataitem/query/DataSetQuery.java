@@ -61,25 +61,13 @@ public class DataSetQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder(
             "SELECT ds.\"name\" AS name, ds.uid AS uid"
                 + " FROM dataset ds"
-                + " WHERE"
-                + sharingConditions( "ds", paramsMap ) );
+                + " WHERE ("
+                + sharingConditions( "ds", paramsMap )
+                + ")" );
 
-        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            sql.append( " AND (ds.\"name\" ILIKE :ilikeName)" );
-        }
+        sql.append( filtering( "ds", paramsMap ) );
 
-        if ( hasParam( "nameOrder", paramsMap ) )
-        {
-            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                sql.append( " ORDER BY ds.\"name\" ASC" );
-            }
-            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                sql.append( " ORDER BY ds.\"name\" DESC" );
-            }
-        }
+        sql.append( ordering( "ds", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
@@ -117,13 +105,11 @@ public class DataSetQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder(
             "SELECT COUNT(DISTINCT ds.uid)"
                 + " FROM dataset ds"
-                + " WHERE"
-                + sharingConditions( "ds", paramsMap ) );
+                + " WHERE ("
+                + sharingConditions( "ds", paramsMap )
+                + ")" );
 
-        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            sql.append( " AND (ds.\"name\" ILIKE :ilikeName)" );
-        }
+        sql.append( filtering( "ds", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {

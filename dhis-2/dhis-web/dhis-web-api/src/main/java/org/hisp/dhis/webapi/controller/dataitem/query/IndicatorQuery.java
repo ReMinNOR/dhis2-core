@@ -62,25 +62,13 @@ public class IndicatorQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder(
             "SELECT i.\"name\" AS name, i.uid AS uid"
                 + " FROM indicator i"
-                + " WHERE"
-                + sharingConditions( "i", paramsMap ) );
+                + " WHERE ("
+                + sharingConditions( "i", paramsMap )
+                + ")" );
 
-        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            sql.append( " AND (i.\"name\" ILIKE :ilikeName)" );
-        }
+        sql.append( filtering( "i", paramsMap ) );
 
-        if ( hasParam( "nameOrder", paramsMap ) )
-        {
-            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                sql.append( " ORDER BY i.\"name\" ASC" );
-            }
-            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                sql.append( " ORDER BY i.\"name\" DESC" );
-            }
-        }
+        sql.append( ordering( "i", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
@@ -122,12 +110,11 @@ public class IndicatorQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder(
             "SELECT COUNT(DISTINCT i.uid)"
                 + " FROM indicator i"
-                + " WHERE"
-                + sharingConditions( "i", paramsMap ) );
-        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            sql.append( " AND (i.\"name\" ILIKE :ilikeName)" );
-        }
+                + " WHERE ("
+                + sharingConditions( "i", paramsMap )
+                + ")" );
+
+        sql.append( filtering( "i", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {

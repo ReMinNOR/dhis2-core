@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 
 import java.util.ArrayList;
@@ -62,30 +61,13 @@ public class DataElementQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder(
             "SELECT de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
                 + " FROM dataelement de"
-                + " WHERE"
-                + sharingConditions( "de", paramsMap ) );
+                + " WHERE ("
+                + sharingConditions( "de", paramsMap )
+                + ")" );
 
-        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            sql.append( " AND (de.\"name\" ILIKE :ilikeName)" );
-        }
+        sql.append( filtering( "de", paramsMap ) );
 
-        // if ( filterByValueType )
-        // {
-        // sql.append( " AND (de.valuetype IN (:valueTypes))" );
-        // }
-
-        if ( hasParam( "nameOrder", paramsMap ) )
-        {
-            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                sql.append( " ORDER BY de.\"name\" ASC" );
-            }
-            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                sql.append( " ORDER BY de.\"name\" DESC" );
-            }
-        }
+        sql.append( ordering( "de", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
@@ -125,13 +107,11 @@ public class DataElementQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder(
             "SELECT COUNT(DISTINCT de.uid)"
                 + " FROM dataelement de"
-                + " WHERE"
-                + sharingConditions( "de", paramsMap ) );
+                + " WHERE ("
+                + sharingConditions( "de", paramsMap )
+                + ")" );
 
-        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            sql.append( " AND (de.\"name\" ILIKE :ilikeName)" );
-        }
+        sql.append( filtering( "de", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {

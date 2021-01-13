@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_GROUPS_ACCESS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_IDS;
 
@@ -129,4 +130,63 @@ public interface DataItemQuery
         return "(" + HAS_USER_GROUP_IDS + "(" + tableAlias + ".sharing, :userGroupUids) = TRUE " +
             "AND " + CHECK_USER_GROUPS_ACCESS + "(" + tableAlias + ".sharing, 'r%', :userGroupUids) = TRUE)";
     }
+
+    default String ordering( final String tableAlias, final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder ordering = new StringBuilder();
+
+        if ( hasParam( "nameOrder", paramsMap ) )
+        {
+            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
+            {
+                ordering.append( " ORDER BY " + tableAlias + ".\"name\" ASC" );
+            }
+            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
+            {
+                ordering.append( " ORDER BY " + tableAlias + ".\"name\" DESC" );
+            }
+        }
+
+        return ordering.toString();
+    }
+
+    default String filtering( final String tableAlias, final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder filtering = new StringBuilder();
+
+        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
+        {
+            filtering.append( " AND (" + tableAlias + ".\"name\" ILIKE :ilikeName)" );
+        }
+
+        // TODO: MAIKEL: Still keep type?
+        // if ( filterByValueType )
+        // {
+        // sql.append( " AND (de.valuetype IN (:valueTypes))" );
+        // }
+
+        return filtering.toString();
+    }
+
+    default String filtering( final String tableAlias1, final String tableAlias2, final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder filtering = new StringBuilder();
+
+        if ( paramsMap.hasValue( "ilikeName" ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
+        {
+            filtering.append( " AND (" + tableAlias1 + ".\"name\" ILIKE :ilikeName OR " + tableAlias2
+                + ".\"name\" ILIKE :ilikeName)" );
+        }
+
+        // TODO: MAIKEL: Still keep type?
+        // if ( filterByValueType )
+        // {
+        // sql.append( " AND (de.valuetype IN (:valueTypes))" );
+        // }
+
+        return filtering.toString();
+    }
+
+
+
 }

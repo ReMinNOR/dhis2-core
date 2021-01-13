@@ -66,8 +66,9 @@ public class ProgramAttributeQuery implements DataItemQuery
                 + " FROM trackedentityattribute t"
                 + " JOIN program_attributes pa ON pa.trackedentityattributeid = t.trackedentityattributeid"
                 + " JOIN program p ON pa.programid = p.programid"
-                + " WHERE"
-                + sharingConditions( "p", "t", paramsMap ) );
+                + " WHERE ("
+                + sharingConditions( "p", "t", paramsMap )
+                + ")" );
 
         if ( paramsMap.hasValue( "ilikeName" ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
         {
@@ -79,19 +80,9 @@ public class ProgramAttributeQuery implements DataItemQuery
         // sql.append( " AND (t.valuetype IN (:valueTypes))" );
         // }
 
-        sql.append( " GROUP BY p.name, p.uid, t.name, t.uid, t.valuetype" );
+        sql.append( " GROUP BY p.\"name\", p.uid, t.\"name\", t.uid, t.valuetype" );
 
-        if ( hasParam( "nameOrder", paramsMap ) )
-        {
-            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                sql.append( " ORDER BY t.\"name\" ASC" );
-            }
-            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                sql.append( " ORDER BY t.\"name\" DESC" );
-            }
-        }
+        sql.append( ordering( "p", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
@@ -134,13 +125,11 @@ public class ProgramAttributeQuery implements DataItemQuery
                 + " FROM trackedentityattribute t"
                 + " JOIN program_attributes pa ON pa.trackedentityattributeid = t.trackedentityattributeid"
                 + " JOIN program p ON pa.programid = p.programid"
-                + " WHERE"
-                + sharingConditions( "p", "t", paramsMap ) );
+                + " WHERE ("
+                + sharingConditions( "p", "t", paramsMap )
+                + ")" );
 
-        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            sql.append( " AND (p.\"name\" ILIKE :ilikeName OR t.\"name\" ILIKE :ilikeName)" );
-        }
+        sql.append( filtering( "p", "t", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {

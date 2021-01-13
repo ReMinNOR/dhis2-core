@@ -67,32 +67,20 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                 + " JOIN programstagedataelement psde ON psde.dataelementid = de.dataelementid"
                 + " JOIN programstage ps ON psde.programstageid = ps.programstageid"
                 + " JOIN program p ON p.programid = ps.programid"
-                + " WHERE"
-                + sharingConditions( "p", "de", paramsMap ) );
+                + " WHERE ("
+                + sharingConditions( "p", "de", paramsMap )
+                + ")" );
 
-        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            sql.append( " AND (p.\"name\" ILIKE :ilikeName OR de.\"name\" ILIKE :ilikeName)" );
-        }
+        sql.append( filtering( "p", "de", paramsMap ) );
 
         // if ( filterByValueType )
         // {
         // sql.append( " AND (de.valuetype IN (:valueTypes))" );
         // }
 
-        sql.append( " GROUP BY p.name, p.uid, de.name, de.uid, de.valuetype" );
+        sql.append( " GROUP BY p.\"name\", p.uid, de.\"name\", de.uid, de.valuetype" );
 
-        if ( hasParam( "nameOrder", paramsMap ) )
-        {
-            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                sql.append( " ORDER BY de.\"name\" ASC" );
-            }
-            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                sql.append( " ORDER BY de.\"name\" DESC" );
-            }
-        }
+        sql.append( ordering( "p", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
@@ -136,13 +124,11 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                 + " JOIN programstagedataelement psde ON psde.dataelementid = de.dataelementid"
                 + " JOIN programstage ps ON psde.programstageid = ps.programstageid"
                 + " JOIN program p ON p.programid = ps.programid"
-                + " WHERE"
-                + sharingConditions( "p", "de", paramsMap ) );
+                + " WHERE ("
+                + sharingConditions( "p", "de", paramsMap )
+                + ")" );
 
-        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            sql.append( " AND (p.\"name\" ILIKE :ilikeName OR de.\"name\" ILIKE :ilikeName)" );
-        }
+        sql.append( filtering( "p", "de", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {

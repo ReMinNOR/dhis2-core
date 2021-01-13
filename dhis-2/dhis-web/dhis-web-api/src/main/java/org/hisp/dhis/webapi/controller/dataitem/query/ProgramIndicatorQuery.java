@@ -62,25 +62,13 @@ public class ProgramIndicatorQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder(
             "SELECT pi.\"name\" AS name, pi.uid AS uid"
                 + " FROM programindicator pi"
-                + " WHERE"
-                + sharingConditions( "pi", paramsMap ) );
+                + " WHERE ("
+                + sharingConditions( "pi", paramsMap )
+                + ")" );
 
-        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            sql.append( " AND (pi.\"name\" ILIKE :ilikeName)" );
-        }
+        sql.append( filtering( "pi", paramsMap ) );
 
-        if ( hasParam( "nameOrder", paramsMap ) )
-        {
-            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                sql.append( " ORDER BY pi.\"name\" ASC" );
-            }
-            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                sql.append( " ORDER BY pi.\"name\" DESC" );
-            }
-        }
+        sql.append( ordering( "pi", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
@@ -122,13 +110,11 @@ public class ProgramIndicatorQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder(
             "SELECT COUNT(DISTINCT pi.uid)"
                 + " FROM programindicator pi"
-                + " WHERE"
-                + sharingConditions( "pi", paramsMap ) );
+                + " WHERE ("
+                + sharingConditions( "pi", paramsMap )
+                + ")" );
 
-        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            sql.append( " AND (pi.\"name\" ILIKE :ilikeName)" );
-        }
+        sql.append( filtering( "pi", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
