@@ -41,13 +41,15 @@ import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.collections4.comparators.ComparatorChain;
 import org.apache.commons.collections4.comparators.NullComparator;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.webapi.controller.dataitem.DataItemViewObject;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
  * Helper class responsible for providing sorting capabilities.
+ *
+ * @author maikel arabori
  */
 public class OrderingHelper
 {
@@ -63,11 +65,11 @@ public class OrderingHelper
      * @param dimensionalItems
      * @param sortingParams
      */
-    public static void sort(final List<DataItemViewObject> dimensionalItems, final OrderParams sortingParams )
+    public static void sort( final List<DataItem> dimensionalItems, final OrderParams sortingParams )
     {
         if ( sortingParams != null && isNotEmpty( dimensionalItems ) )
         {
-            final ComparatorChain<DataItemViewObject> chainOfComparators = new ComparatorChain<>();
+            final ComparatorChain<DataItem> chainOfComparators = new ComparatorChain<>();
             final Set<String> orderingPairs = sortingParams.getOrders();
 
             if ( sortingParams != null && isNotEmpty( orderingPairs ) )
@@ -103,14 +105,14 @@ public class OrderingHelper
         }
     }
 
-    private static Comparator<DataItemViewObject> getComparator( final String orderingParam )
+    private static Comparator<DataItem> getComparator( final String orderingParam )
     {
         final String[] orderingAttributes = split( orderingParam, ":" );
         final boolean hasValidOrderingAttributes = orderingAttributes != null & orderingAttributes.length == 2;
 
         if ( hasValidOrderingAttributes )
         {
-            final BeanComparator<DataItemViewObject> comparator = new BeanComparator(
+            final BeanComparator<DataItem> comparator = new BeanComparator(
                 orderingAttributes[ORDERING_ATTRIBUTE], new NullComparator<>( true ) );
 
             if ( DESC.equals( orderingAttributes[ORDERING_VALUE] ) )

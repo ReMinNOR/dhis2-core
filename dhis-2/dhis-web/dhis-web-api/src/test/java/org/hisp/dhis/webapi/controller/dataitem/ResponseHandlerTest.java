@@ -58,6 +58,7 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
@@ -109,9 +110,9 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final DataItemViewObject anyDataItemViewObject = new DataItemViewObject();
-        anyDataItemViewObject.setName( "any" );
-        final List<DataItemViewObject> anyDimensionalItems = singletonList( anyDataItemViewObject );
+        final DataItem anyDataItem = new DataItem();
+        anyDataItem.setName( "any" );
+        final List<DataItem> anyDimensionalItems = singletonList(anyDataItem);
         final List<String> anyFields = singletonList( "any" );
         final CollectionNode anyCollectionNode = new CollectionNode( "any" );
 

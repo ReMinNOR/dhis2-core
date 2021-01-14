@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.webapi.controller.dataitem.DataItemViewObject;
+import org.hisp.dhis.dataitem.DataItem;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -65,9 +65,14 @@ public class DataElementQuery implements DataItemQuery
                 + sharingConditions( "de", paramsMap )
                 + ")" );
 
-        sql.append( filtering( "de", paramsMap ) );
+        sql.append( commonFiltering( "de", paramsMap ) );
 
-        sql.append( ordering( "de", paramsMap ) );
+        if ( hasParam( "valueTypes", paramsMap ) && paramsMap.getValue( "valueTypes" ) != null )
+        {
+            sql.append( " AND (de.valuetype IN (:valueTypes))" );
+        }
+
+        sql.append( commonOrdering( "de", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
@@ -78,27 +83,28 @@ public class DataElementQuery implements DataItemQuery
     }
 
     @Override
-    public List<DataItemViewObject> find( final MapSqlParameterSource paramsMap )
+    public List<DataItem> find( final MapSqlParameterSource paramsMap )
     {
-        final List<DataItemViewObject> dataItemViewObjects = new ArrayList<>();
+        final List<DataItem> dataItems = new ArrayList<>();
 
         final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
             getDataElementQueryWith( paramsMap ), paramsMap );
 
         while ( rowSet.next() )
         {
-            final DataItemViewObject viewItem = new DataItemViewObject();
+            final DataItem viewItem = new DataItem();
             final ValueType valueType = ValueType.fromString( rowSet.getString( "valuetype" ) );
 
             viewItem.setName( rowSet.getString( "name" ) );
             viewItem.setValueType( valueType );
-            viewItem.setUid( rowSet.getString( "uid" ) );
+            viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType() );
+            viewItem.setId( rowSet.getString( "uid" ) );
             viewItem.setDimensionItemType( DATA_ELEMENT );
 
-            dataItemViewObjects.add( viewItem );
+            dataItems.add( viewItem );
         }
 
-        return dataItemViewObjects;
+        return dataItems;
     }
 
     @Override
@@ -111,7 +117,12 @@ public class DataElementQuery implements DataItemQuery
                 + sharingConditions( "de", paramsMap )
                 + ")" );
 
-        sql.append( filtering( "de", paramsMap ) );
+        sql.append( commonFiltering( "de", paramsMap ) );
+
+        if ( hasParam( "valueTypes", paramsMap ) && paramsMap.getValue( "valueTypes" ) != null )
+        {
+            sql.append( " AND (de.valuetype IN (:valueTypes))" );
+        }
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {

@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.feedback.ErrorCode.E3012;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
+import static org.hisp.dhis.schema.descriptors.DataItemSchemaDescriptor.API_ENDPOINT;
 import static org.springframework.http.HttpStatus.FOUND;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -47,6 +48,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.node.Preset;
@@ -69,13 +71,15 @@ import lombok.extern.slf4j.Slf4j;
  * dimensional items based on the provided URL params and filters.
  *
  * It should expose only query methods.
+ *
+ * @author maikel arabori
  */
 @Slf4j
 @ApiVersion( { DEFAULT, ALL } )
 @RestController
 public class DataItemQueryController
 {
-    static final String API_RESOURCE_PATH = "/dataItems";
+    static final String API_RESOURCE_PATH = API_ENDPOINT;
 
     private static final String FIELDS = "fields";
 
@@ -163,11 +167,12 @@ public class DataItemQueryController
         checkAuthorization( currentUser, targetEntities );
 
         // Retrieving the data items based on the input params.
-        final List<DataItemViewObject> dimensionalItems = dataItemServiceFacade.retrieveDataItemEntities(
+        final List<DataItem> dimensionalItems = dataItemServiceFacade.retrieveDataItemEntities(
             targetEntities, filters, options, orderParams );
 
         // Creating the response node.
         final RootNode rootNode = createMetadata();
+
         responseHandler.addResultsToNode( rootNode, dimensionalItems, fields );
         responseHandler.addPaginationToNode( rootNode, new ArrayList<>( targetEntities ), currentUser, options,
             filters );

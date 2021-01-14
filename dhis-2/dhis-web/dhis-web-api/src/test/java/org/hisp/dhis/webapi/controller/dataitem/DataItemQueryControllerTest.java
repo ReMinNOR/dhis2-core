@@ -54,6 +54,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.node.types.RootNode;
@@ -103,7 +104,7 @@ public class DataItemQueryControllerTest
         final User anyUser = new User();
         final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
             singletonList( Indicator.class ) );
-        final List<DataItemViewObject> itemsFound = singletonList( new DataItemViewObject() );
+        final List<DataItem> itemsFound = singletonList( new DataItem() );
 
         // When
         when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
@@ -131,7 +132,7 @@ public class DataItemQueryControllerTest
         final User anyUser = new User();
         final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
             singletonList( Indicator.class ) );
-        final List<DataItemViewObject> itemsFound = emptyList();
+        final List<DataItem> itemsFound = emptyList();
 
         // When
         when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );

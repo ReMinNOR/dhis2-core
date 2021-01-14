@@ -31,16 +31,22 @@ package org.hisp.dhis.webapi.controller.dataitem;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.join;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.wrap;
+import static org.hisp.dhis.common.ValueType.getAggregatables;
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 import static org.hisp.dhis.node.NodeUtils.createPager;
+import static org.hisp.dhis.schema.descriptors.DataItemSchemaDescriptor.NAMESPACE;
+import static org.hisp.dhis.schema.descriptors.DataItemSchemaDescriptor.PLURAL;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.containsValueTypeFilter;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractAllValueTypesFromFilters;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractValueFromIlikeNameFilter;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
@@ -49,6 +55,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -71,6 +78,8 @@ import org.springframework.stereotype.Component;
  * IMPORTANT: This cache should be removed once we have a new centralized
  * caching solution in place. At that stage, the new solution should be
  * favoured.
+ *
+ * @author maikel arabori
  */
 @Component
 class ResponseHandler
@@ -114,11 +123,11 @@ class ResponseHandler
      * @param fields the list of fields to be returned
      */
     void addResultsToNode( final RootNode rootNode,
-        final List<DataItemViewObject> dimensionalItemsFound, final List<String> fields )
+        final List<DataItem> dimensionalItemsFound, final List<String> fields )
     {
-        final CollectionNode collectionNode = fieldFilterService.toCollectionNode( DataItemViewObject.class,
-            new FieldFilterParams( dimensionalItemsFound, fields ) );
-        collectionNode.setName( "dataItems" );
+        final CollectionNode collectionNode = fieldFilterService.toConcreteClassCollectionNode( DataItem.class,
+            new FieldFilterParams( dimensionalItemsFound, fields ), PLURAL, NAMESPACE );
+
         rootNode.addChild( collectionNode );
     }
 
@@ -163,10 +172,11 @@ class ResponseHandler
     private int countEntityRowsTotal( final Class<? extends BaseDimensionalItemObject> entity, final WebOptions options,
         final List<String> filters, final User currentUser )
     {
-        // Defining query params map and setting common params.
+        // Defining query params map and setting common params
         final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userUid",
             currentUser.getUid() );
 
+        // TODO: MAIKEL: Extract filter methods
         final String ilikeName = extractValueFromIlikeNameFilter( filters );
 
         if ( isNotBlank( ilikeName ) )
@@ -174,24 +184,30 @@ class ResponseHandler
             paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
         }
 
-        // if ( containsValueTypeFilter( filters ) )
-        // {
-        // paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters )
-        // );
-        // filterByValueType = true;
-        // }
+        // TODO: MAIKEL: Add validation for value types. Allow only filtering using the Aggregatable Value Types.
+        // TODO: MAIKEL: Centralize the filters? So can be reused by the ServiceFacade?
+        if ( containsValueTypeFilter( filters ) )
+        {
+            paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
+        }
+        else
+        {
+            // Includes all value types.
+            paramsMap.addValue( "valueTypes",
+                getAggregatables().stream().map( type -> type.name() ).collect( toSet() ) );
+        }
 
-        // Add user group filtering, when present
+        // Add user group filtering, when present.
         if ( currentUser != null && CollectionUtils.isNotEmpty( currentUser.getGroups() ) )
         {
-            final List<String> userGroupUids = currentUser.getGroups().stream()
+            final Set<String> userGroupUids = currentUser.getGroups().stream()
                 .filter( group -> group != null )
                 .map( group -> group.getUid() )
-                .collect( toList() );
+                .collect( toSet() );
             paramsMap.addValue( "userGroupUids", "{" + join( ",", userGroupUids ) + "}" );
         }
 
-        // Calculate pagination
+        // Calculate pagination.
         if ( options.hasPaging() )
         {
             final int maxLimit = options.getPage() * options.getPageSize();

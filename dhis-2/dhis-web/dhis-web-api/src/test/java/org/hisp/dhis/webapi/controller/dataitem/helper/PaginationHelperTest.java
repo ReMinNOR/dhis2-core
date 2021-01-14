@@ -44,7 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.webapi.controller.dataitem.DataItemViewObject;
+import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Test;
 
@@ -59,10 +59,10 @@ public class PaginationHelperTest
         final int totalOfItems = 13;
 
         final WebOptions theWebOptions = mockWebOptions( pageSize, firstPage );
-        final List<DataItemViewObject> anyDimensionalItems = mockDimensionalItems( totalOfItems );
+        final List<DataItem> anyDimensionalItems = mockDimensionalItems( totalOfItems );
 
         // When
-        final List<DataItemViewObject> resultingList = slice( theWebOptions,
+        final List<DataItem> resultingList = slice( theWebOptions,
             anyDimensionalItems );
 
         // Then
@@ -78,10 +78,10 @@ public class PaginationHelperTest
         final int totalOfItems = 13;
 
         final WebOptions theWebOptions = mockWebOptions( pageSize, secondPage );
-        final List<DataItemViewObject> anyDimensionalItems = mockDimensionalItems( totalOfItems );
+        final List<DataItem> anyDimensionalItems = mockDimensionalItems( totalOfItems );
 
         // When
-        final List<DataItemViewObject> resultingList = slice( theWebOptions,
+        final List<DataItem> resultingList = slice( theWebOptions,
             anyDimensionalItems );
 
         // Then
@@ -97,10 +97,10 @@ public class PaginationHelperTest
         final int totalOfItems = 13;
 
         final WebOptions theWebOptions = mockWebOptions( pageSize, lastPage );
-        final List<DataItemViewObject> anyDimensionalItems = mockDimensionalItems( totalOfItems );
+        final List<DataItem> anyDimensionalItems = mockDimensionalItems( totalOfItems );
 
         // When
-        final List<DataItemViewObject> resultingList = slice( theWebOptions,
+        final List<DataItem> resultingList = slice( theWebOptions,
             anyDimensionalItems );
 
         // Then
@@ -116,7 +116,7 @@ public class PaginationHelperTest
         final int totalOfItems = 13;
 
         final WebOptions theWebOptions = mockWebOptions( pageSize, lastPage );
-        final List<DataItemViewObject> anyDimensionalItems = mockDimensionalItems( totalOfItems );
+        final List<DataItem> anyDimensionalItems = mockDimensionalItems( totalOfItems );
 
         // When
         assertThrows( "Page size must be greater than zero.", IllegalStateException.class,
@@ -131,10 +131,10 @@ public class PaginationHelperTest
         final int lastPage = 3;
 
         final WebOptions theWebOptions = mockWebOptions( pageSize, lastPage );
-        final List<DataItemViewObject> emptyDimensionalItems = emptyList();
+        final List<DataItem> emptyDimensionalItems = emptyList();
 
         // When
-        final List<DataItemViewObject> resultingList = slice( theWebOptions, emptyDimensionalItems );
+        final List<DataItem> resultingList = slice( theWebOptions, emptyDimensionalItems );
 
         // Then
         assertThat( resultingList, is( emptyDimensionalItems ) );
@@ -149,7 +149,7 @@ public class PaginationHelperTest
         final int currentPage = 0;
 
         final WebOptions theWebOptions = mockWebOptions( pageSize, currentPage );
-        final List<DataItemViewObject> emptyDimensionalItems = emptyList();
+        final List<DataItem> emptyDimensionalItems = emptyList();
 
         // When
         assertThrows( "Current page must be greater than zero.", IllegalStateException.class,
@@ -166,17 +166,16 @@ public class PaginationHelperTest
         return new WebOptions( options );
     }
 
-    private List<DataItemViewObject> mockDimensionalItems( final int totalOfItems )
+    private List<DataItem> mockDimensionalItems(final int totalOfItems )
     {
-        final List<DataItemViewObject> dataItemEntities = new ArrayList<>( 0 );
+        final List<DataItem> dataItemEntities = new ArrayList<>( 0 );
 
         for ( int i = 0; i < totalOfItems; i++ )
         {
-            final DataItemViewObject dataItemViewObject = new DataItemViewObject();
-            dataItemViewObject.setName( "d-" + i );
-            dataItemViewObject.setCode( "d-" + i );
-            dataItemViewObject.setUid( "d-" + i );
-            dataItemEntities.add( dataItemViewObject );
+            final DataItem dataItem = new DataItem();
+            dataItem.setName( "d-" + i );
+            dataItem.setUid( "d-" + i );
+            dataItemEntities.add(dataItem);
         }
 
         return dataItemEntities;

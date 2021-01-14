@@ -1,4 +1,4 @@
-package org.hisp.dhis.fieldfilter;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -28,43 +28,31 @@ package org.hisp.dhis.fieldfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dataitem.DataItem;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
-import java.util.Arrays;
-import java.util.List;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface FieldFilterService
+public class DataItemSchemaDescriptor
+    implements
+    SchemaDescriptor
 {
-    List<String> SHARING_FIELDS = Arrays.asList(
-        "!user", "!publicAccess", "!userGroupAccesses", "!userAccesses", "!externalAccess", "!sharing" );
+    public static final String SINGULAR = "dataItem";
 
-    /**
-     * Perform inclusion/exclusion on a list of objects.
-     */
-    ComplexNode toComplexNode( FieldFilterParams params );
+    public static final String PLURAL = "dataItems";
 
-    /**
-     * Perform inclusion/exclusion on a list of objects.
-     */
-    CollectionNode toCollectionNode( Class<?> wrapper, FieldFilterParams params );
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
-    /**
-     * This method will build and return a CollectionNode based on the given parameters.
-     * This method works with POJO/DTO without nested objects. It's main goal is to handle
-     * simple view objects and DTOs that do not have a real schema and/or that are not persisted.
-     * This method doesn't evaluates any complex logic based on Schema, sharing or access details.
-     * Its goal is simply to return back a CollectionNode based on the concrete "klass" and its direct attributes.
-     *
-     * @param klass
-     * @param params
-     * @param collectionName
-     * @param namespace
-     * @return
-     */
-    CollectionNode toConcreteClassCollectionNode( Class<?> klass, FieldFilterParams params, String collectionName,
-        String namespace );
+    public static final String NAMESPACE = DXF_2_0;
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( DataItem.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+
+        return schema;
+    }
 }

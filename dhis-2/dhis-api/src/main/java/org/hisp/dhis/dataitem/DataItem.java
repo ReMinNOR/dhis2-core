@@ -1,7 +1,7 @@
-package org.hisp.dhis.webapi.controller.dataitem;
+package org.hisp.dhis.dataitem;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,22 +30,24 @@ package org.hisp.dhis.webapi.controller.dataitem;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.ValueType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
 @EqualsAndHashCode
-public class DataItemViewObject extends BaseDimensionalItemObject
+@NoArgsConstructor
+@JacksonXmlRootElement( localName = "dataItem", namespace = DXF_2_0 )
+public class DataItem implements Serializable
 {
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
@@ -57,15 +59,7 @@ public class DataItemViewObject extends BaseDimensionalItemObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String displayFormName;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String uid;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String code;
+    private String id;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
@@ -80,10 +74,10 @@ public class DataItemViewObject extends BaseDimensionalItemObject
     private String combinedId;
 
     @JsonProperty
-    @JacksonXmlProperty( localName = "reportMetrics", namespace = DXF_2_0 )
-    private List<String> reportMetrics = new ArrayList<>();
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private ValueType valueType;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private ValueType valueType;
+    private ValueType simplifiedValueType;
 }

@@ -44,8 +44,6 @@ import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.HashMap;
@@ -55,11 +53,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.query.Junction.Type;
-import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
@@ -113,7 +110,7 @@ public class DataItemServiceFacadeTest
 //            any( Pagination.class ), any( Type.class ) ) ).thenReturn( anyQuery );
 //        when( (List<BaseDimensionalItemObject>) queryService.query( any( Query.class ) ) )
 //            .thenReturn( expectedItemsFound );
-        final List<DataItemViewObject> actualDimensionalItems = dataItemServiceFacade
+        final List<DataItem> actualDimensionalItems = dataItemServiceFacade
             .retrieveDataItemEntities( anyTargetEntities, anyFilters, anyWebOptions, anyOrderParams );
 
         // Then
@@ -135,7 +132,7 @@ public class DataItemServiceFacadeTest
         final Query anyQuery = from( new Schema( Indicator.class, "indicator", "indicators" ) );
 
         // When
-        final List<DataItemViewObject> actualDimensionalItems = dataItemServiceFacade
+        final List<DataItem> actualDimensionalItems = dataItemServiceFacade
             .retrieveDataItemEntities( anyTargetEntities, anyFilters, anyWebOptions, anyOrderParams );
 
         // Then

@@ -34,13 +34,15 @@ import static org.springframework.util.Assert.state;
 import java.util.List;
 
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.webapi.controller.dataitem.DataItemViewObject;
+import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
  * Helper class responsible for providing pagination capabilities on top of data
  * item objects.
+ *
+ * @author maikel arabori
  */
 public class PaginationHelper
 {
@@ -52,15 +54,15 @@ public class PaginationHelper
      * @param itemViewObjects
      * @return the list of "sliced" items
      */
-    public static List<DataItemViewObject> slice( final WebOptions options,
-        List<DataItemViewObject> itemViewObjects )
+    public static List<DataItem> slice( final WebOptions options,
+        List<DataItem> itemViewObjects )
     {
         state( options.getPage() > 0, "Current page must be greater than zero." );
         state( options.getPageSize() > 0, "Page size must be greater than zero." );
 
         if ( options.hasPaging() && isNotEmpty( itemViewObjects ) )
         {
-            // Pagination input
+            // Pagination input.
             final int currentPage = options.getPage();
             final int totalOfElements = itemViewObjects.size();
             final int maxElementsPerPage = options.getPageSize();
@@ -77,7 +79,7 @@ public class PaginationHelper
             }
             else
             {
-                // This is the last page
+                // This is the last page.
                 itemViewObjects = itemViewObjects.subList( pager.getOffset(), totalOfElements );
             }
         }
@@ -86,7 +88,8 @@ public class PaginationHelper
     }
 
     /**
-     * Sets the limit of items to be fetched IF paging is enabled. The max limit is set into the paramsMap.
+     * Sets the limit of items to be fetched IF paging is enabled. The max limit is
+     * set into the paramsMap.
      *
      * @param options the source of pagination params
      * @param paramsMap the map that will receive the max limit param (maxLimit)

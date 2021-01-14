@@ -29,17 +29,19 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
  */
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_GROUPS_ACCESS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_IDS;
 
 import java.util.List;
+import java.util.Set;
 
-import org.hisp.dhis.webapi.controller.dataitem.DataItemViewObject;
+import org.hisp.dhis.dataitem.DataItem;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 public interface DataItemQuery
 {
-    List<DataItemViewObject> find( MapSqlParameterSource paramsMap );
+    List<DataItem> find( MapSqlParameterSource paramsMap );
 
     int count( MapSqlParameterSource paramsMap );
 
@@ -131,7 +133,7 @@ public interface DataItemQuery
             "AND " + CHECK_USER_GROUPS_ACCESS + "(" + tableAlias + ".sharing, 'r%', :userGroupUids) = TRUE)";
     }
 
-    default String ordering( final String tableAlias, final MapSqlParameterSource paramsMap )
+    default String commonOrdering( final String tableAlias, final MapSqlParameterSource paramsMap )
     {
         final StringBuilder ordering = new StringBuilder();
 
@@ -150,7 +152,7 @@ public interface DataItemQuery
         return ordering.toString();
     }
 
-    default String filtering( final String tableAlias, final MapSqlParameterSource paramsMap )
+    default String commonFiltering( final String tableAlias, final MapSqlParameterSource paramsMap )
     {
         final StringBuilder filtering = new StringBuilder();
 
@@ -159,16 +161,11 @@ public interface DataItemQuery
             filtering.append( " AND (" + tableAlias + ".\"name\" ILIKE :ilikeName)" );
         }
 
-        // TODO: MAIKEL: Still keep type?
-        // if ( filterByValueType )
-        // {
-        // sql.append( " AND (de.valuetype IN (:valueTypes))" );
-        // }
-
         return filtering.toString();
     }
 
-    default String filtering( final String tableAlias1, final String tableAlias2, final MapSqlParameterSource paramsMap )
+    default String commonFiltering( final String tableAlias1, final String tableAlias2,
+        final MapSqlParameterSource paramsMap )
     {
         final StringBuilder filtering = new StringBuilder();
 
@@ -178,15 +175,21 @@ public interface DataItemQuery
                 + ".\"name\" ILIKE :ilikeName)" );
         }
 
-        // TODO: MAIKEL: Still keep type?
-        // if ( filterByValueType )
-        // {
-        // sql.append( " AND (de.valuetype IN (:valueTypes))" );
-        // }
-
         return filtering.toString();
     }
 
+    default boolean skipNumberValueType( final MapSqlParameterSource paramsMap )
+    {
+        if ( hasParam( "valueTypes", paramsMap ) && paramsMap.getValue( "valueTypes" ) != null )
+        {
+            final Set<String> valueTypeNames = (Set<String>) paramsMap.getValue( "valueTypes" );
 
+            // Skip WHEN the value type list does NOT contain a NUMBER type.
+            // This is specific for Indicator's types, as they don't have a value type, but
+            // are always interpreted as NUMBER.
+            return !valueTypeNames.contains( NUMBER.name() );
+        }
 
+        return false;
+    }
 }

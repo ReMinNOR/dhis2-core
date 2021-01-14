@@ -35,12 +35,12 @@ import java.util.List;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.webapi.controller.dataitem.DataItemViewObject;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
@@ -62,7 +62,8 @@ public class QueryExecutor
 
     private final DataElementQuery dataElementQuery;
 
-    public List<DataItemViewObject> find( final Class<? extends BaseDimensionalItemObject> entity,
+    // TODO: MAIKEL: Check if there is a way to avoid this if/elses.
+    public List<DataItem> find( final Class<? extends BaseDimensionalItemObject> entity,
         final MapSqlParameterSource paramsMap )
     {
         if ( isEquals( entity, ProgramDataElementDimensionItem.class ) )
@@ -93,6 +94,7 @@ public class QueryExecutor
         return emptyList();
     }
 
+    // TODO: MAIKEL: Check if there is a way to avoid this if/elses.
     public int count( final Class<? extends BaseDimensionalItemObject> entity,
         final MapSqlParameterSource paramsMap )
     {

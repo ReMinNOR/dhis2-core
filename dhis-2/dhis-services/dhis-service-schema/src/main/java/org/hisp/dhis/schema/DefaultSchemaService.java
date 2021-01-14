@@ -89,6 +89,7 @@ public class DefaultSchemaService
         add( new DataElementOperandSchemaDescriptor() ).
         add( new DataElementSchemaDescriptor() ).
         add( new DataEntryFormSchemaDescriptor() ).
+        add( new DataItemSchemaDescriptor() ).
         add( new DataSetSchemaDescriptor() ).
         add( new DataSetElementSchemaDescriptor() ).
         add( new DataSetNotificationTemplateSchemaDescriptor() ).

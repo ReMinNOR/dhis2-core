@@ -29,14 +29,13 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.webapi.controller.dataitem.DataItemViewObject;
+import org.hisp.dhis.dataitem.DataItem;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -66,9 +65,9 @@ public class IndicatorQuery implements DataItemQuery
                 + sharingConditions( "i", paramsMap )
                 + ")" );
 
-        sql.append( filtering( "i", paramsMap ) );
+        sql.append( commonFiltering( "i", paramsMap ) );
 
-        sql.append( ordering( "i", paramsMap ) );
+        sql.append( commonOrdering( "i", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
@@ -79,34 +78,50 @@ public class IndicatorQuery implements DataItemQuery
     }
 
     @Override
-    public List<DataItemViewObject> find( final MapSqlParameterSource paramsMap )
+    public List<DataItem> find( final MapSqlParameterSource paramsMap )
     {
-        final List<DataItemViewObject> dataItemViewObjects = new ArrayList<>();
+        final List<DataItem> dataItems = new ArrayList<>();
 
-        final SqlRowSet rowSet = namedParameterJdbcTemplate
-            .queryForRowSet( getIndicatorQuery( paramsMap ), paramsMap );
+        // Very specific case, for Indicator objects, needed to handle filter by value type NUMBER.
+        // When the value type filter does not have a NUMBER type, we should not execute this query.
+        // It returns an empty instead.
+        if ( skipNumberValueType( paramsMap ) )
+        {
+            return dataItems;
+        }
+
+        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( getIndicatorQuery( paramsMap ), paramsMap );
 
         while ( rowSet.next() )
         {
-            final DataItemViewObject viewItem = new DataItemViewObject();
+            final DataItem viewItem = new DataItem();
 
             viewItem.setName( rowSet.getString( "name" ) );
-            viewItem.setUid( rowSet.getString( "uid" ) );
+            viewItem.setId( rowSet.getString( "uid" ) );
             viewItem.setDimensionItemType( INDICATOR );
 
             // Specific case where we have to force a vale type. Indicators don't have a
             // value type but they always evaluate to numbers.
             viewItem.setValueType( NUMBER );
+            viewItem.setSimplifiedValueType( NUMBER );
 
-            dataItemViewObjects.add( viewItem );
+            dataItems.add( viewItem );
         }
 
-        return dataItemViewObjects;
+        return dataItems;
     }
 
     @Override
     public int count( final MapSqlParameterSource paramsMap )
     {
+        // Very specific case, for Indicator objects, needed to handle filter by value type NUMBER.
+        // When the value type filter does not have a NUMBER type, we should not execute this query.
+        // It returns ZERO instead.
+        if ( skipNumberValueType( paramsMap ) )
+        {
+            return 0;
+        }
+
         final StringBuilder sql = new StringBuilder(
             "SELECT COUNT(DISTINCT i.uid)"
                 + " FROM indicator i"
@@ -114,7 +129,7 @@ public class IndicatorQuery implements DataItemQuery
                 + sharingConditions( "i", paramsMap )
                 + ")" );
 
-        sql.append( filtering( "i", paramsMap ) );
+        sql.append( commonFiltering( "i", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {

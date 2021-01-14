@@ -29,13 +29,12 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.webapi.controller.dataitem.DataItemViewObject;
+import org.hisp.dhis.dataitem.DataItem;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -65,9 +64,9 @@ public class DataSetQuery implements DataItemQuery
                 + sharingConditions( "ds", paramsMap )
                 + ")" );
 
-        sql.append( filtering( "ds", paramsMap ) );
+        sql.append( commonFiltering( "ds", paramsMap ) );
 
-        sql.append( ordering( "ds", paramsMap ) );
+        sql.append( commonOrdering( "ds", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
@@ -78,25 +77,25 @@ public class DataSetQuery implements DataItemQuery
     }
 
     @Override
-    public List<DataItemViewObject> find( final MapSqlParameterSource paramsMap )
+    public List<DataItem> find( final MapSqlParameterSource paramsMap )
     {
-        final List<DataItemViewObject> dataItemViewObjects = new ArrayList<>();
+        final List<DataItem> dataItems = new ArrayList<>();
 
         final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
             getDateSetQuery( paramsMap ), paramsMap );
 
         while ( rowSet.next() )
         {
-            final DataItemViewObject viewItem = new DataItemViewObject();
+            final DataItem viewItem = new DataItem();
 
             viewItem.setName( rowSet.getString( "name" ) );
-            viewItem.setUid( rowSet.getString( "uid" ) );
+            viewItem.setId( rowSet.getString( "uid" ) );
             viewItem.setDimensionItemType( REPORTING_RATE );
 
-            dataItemViewObjects.add( viewItem );
+            dataItems.add( viewItem );
         }
 
-        return dataItemViewObjects;
+        return dataItems;
     }
 
     @Override
@@ -109,7 +108,7 @@ public class DataSetQuery implements DataItemQuery
                 + sharingConditions( "ds", paramsMap )
                 + ")" );
 
-        sql.append( filtering( "ds", paramsMap ) );
+        sql.append( commonFiltering( "ds", paramsMap ) );
 
         if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {

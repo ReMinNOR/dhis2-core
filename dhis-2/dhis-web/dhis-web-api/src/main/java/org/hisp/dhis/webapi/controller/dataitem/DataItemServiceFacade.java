@@ -49,6 +49,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
@@ -73,15 +74,17 @@ import lombok.extern.slf4j.Slf4j;
  * service layer either. In other words, these set of methods sit between the
  * controller and service layers. The main goal is to alleviate the controller
  * layer.
+ *
+ * @author maikel arabori
  */
 @Slf4j
 @Component
 public class DataItemServiceFacade
 {
-    private final int PAGINATION_FIRST_RESULT = 0;
-
-    private final Set<String> METRICS = newHashSet( "Actual reports", "Actual reports on time", "Expected reports",
-        "Reporting rate", "Reporting rate on time" );
+//    private final int PAGINATION_FIRST_RESULT = 0;
+//
+//    private final Set<String> METRICS = newHashSet( "Actual reports", "Actual reports on time", "Expected reports",
+//        "Reporting rate", "Reporting rate on time" );
 
     private final CurrentUserService currentUserService;
 
@@ -127,11 +130,11 @@ public class DataItemServiceFacade
      * @param options request options
      * @return the consolidated collection of entities found.
      */
-    List<DataItemViewObject> retrieveDataItemEntities(
+    List<DataItem> retrieveDataItemEntities(
         final Set<Class<? extends BaseDimensionalItemObject>> targetEntities, final List<String> filters,
         final WebOptions options, final OrderParams orderParams )
     {
-        List<DataItemViewObject> dataItemViewObjects = new ArrayList<>();
+        List<DataItem> dataItems = new ArrayList<>();
 
         final User currentUser = currentUserService.getCurrentUser();
 
@@ -156,17 +159,17 @@ public class DataItemServiceFacade
                 setMaxResultsWhenPaging( options, paramsMap );
 
                 // TODO: Add new sharing settings queries. See DefaultAclStore.java
-                dataItemViewObjects.addAll( queryExecutor.find( entity, paramsMap ) );
+                dataItems.addAll( queryExecutor.find( entity, paramsMap ) );
             }
 
-            // In memory sorting
-            sort( dataItemViewObjects, orderParams );
+            // In memory sorting.
+            sort( dataItems, orderParams );
 
             // In memory pagination.
-            dataItemViewObjects = slice( options, dataItemViewObjects );
+            dataItems = slice( options, dataItems );
         }
 
-        return dataItemViewObjects;
+        return dataItems;
     }
 
     /**
@@ -214,31 +217,4 @@ public class DataItemServiceFacade
 
         return targetedEntities;
     }
-
-    /**
-     * This method will build a Query object based on the provided arguments.
-     * 
-     * @param entity the BaseDimensionalItemObject class to be queried.
-     * @param filters request filters
-     * @param options request options
-     * @return the built query
-     * @throws org.hisp.dhis.query.QueryParserException if errors occur during the
-     *         query creation
-     */
-    // private Query buildQueryForEntity( final Class<? extends
-    // BaseDimensionalItemObject> entity,
-    // final List<String> filters, final WebOptions options )
-    // {
-    // final int maxLimit = options.getPage() * options.getPageSize();
-    // final Pagination pagination = options.hasPaging()
-    // ? new Pagination( PAGINATION_FIRST_RESULT, maxLimit )
-    // : NO_PAGINATION;
-    //
-    // final Query query = queryService.getQueryFromUrl( entity, removePostFilters(
-    // filters ), emptyList(),
-    // pagination, options.getRootJunction() );
-    // query.setDefaultOrder();
-    //
-    // return query;
-    // }
 }

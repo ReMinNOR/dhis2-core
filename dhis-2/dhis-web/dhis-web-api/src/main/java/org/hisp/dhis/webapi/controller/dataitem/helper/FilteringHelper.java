@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  */
 
 import static java.lang.String.join;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.contains;
@@ -39,13 +39,15 @@ import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.apache.commons.lang3.StringUtils.wrap;
+import static org.hisp.dhis.common.ValueType.fromString;
+import static org.hisp.dhis.common.ValueType.getAggregatables;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2016;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -59,6 +61,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
  * Helper class responsible for reading and extracting the URL filters.
+ *
+ * @author maikel arabori
  */
 public class FilteringHelper
 {
@@ -222,33 +226,31 @@ public class FilteringHelper
      * @throws IllegalQueryException if the filter points to a non supported value
      *         type.
      */
-    // public static Set<String> extractAllValueTypesFromFilters( final List<String>
-    // filters )
-    // {
-    // final Set<String> valueTypes = new HashSet<>();
-    //
-    // final Iterator<String> iterator = filters.iterator();
-    //
-    // while ( iterator.hasNext() )
-    // {
-    // final String filter = iterator.next();
-    // final Set<String> multipleValueTypes = extractValueTypesFromInFilter( filter
-    // );
-    // final String singleValueType = extractValueTypeFromEqualFilter( filter );
-    //
-    // if ( CollectionUtils.isNotEmpty( multipleValueTypes ) )
-    // {
-    // valueTypes.addAll( multipleValueTypes );
-    // }
-    //
-    // if ( singleValueType != null )
-    // {
-    // valueTypes.add( singleValueType );
-    // }
-    // }
-    //
-    // return valueTypes;
-    // }
+    public static Set<String> extractAllValueTypesFromFilters( final List<String> filters )
+    {
+        final Set<String> valueTypes = new HashSet<>();
+
+        final Iterator<String> iterator = filters.iterator();
+
+        while ( iterator.hasNext() )
+        {
+            final String filter = iterator.next();
+            final Set<String> multipleValueTypes = extractValueTypesFromInFilter( filter );
+            final String singleValueType = extractValueTypeFromEqualFilter( filter );
+
+            if ( CollectionUtils.isNotEmpty( multipleValueTypes ) )
+            {
+                valueTypes.addAll( multipleValueTypes );
+            }
+
+            if ( singleValueType != null )
+            {
+                valueTypes.add( singleValueType );
+            }
+        }
+
+        return valueTypes;
+    }
 
     public static String extractValueFromIlikeNameFilter( final List<String> filters )
     {
@@ -295,21 +297,25 @@ public class FilteringHelper
             paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
         }
 
-        // TODO: Still filter by valueType? How?
-        // if ( containsValueTypeFilter( filters ) )
-        // {
-        // paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters )
-        // );
-        // filterByValueType = true;
-        // }
+        // TODO: MAIKEL: Allow only filtering using the Aggregatable Value Types. Add a validation.
+        if ( containsValueTypeFilter( filters ) )
+        {
+            paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
+        }
+        else
+        {
+            // Includes all value types.
+            paramsMap.addValue( "valueTypes",
+                getAggregatables().stream().map( type -> type.name() ).collect( toSet() ) );
+        }
 
-        // Add user group filtering, when present
+        // Add user group filtering, when present.
         if ( currentUser != null && CollectionUtils.isNotEmpty( currentUser.getGroups() ) )
         {
-            final List<String> userGroupUids = currentUser.getGroups().stream()
+            final Set<String> userGroupUids = currentUser.getGroups().stream()
                 .filter( group -> group != null )
                 .map( group -> group.getUid() )
-                .collect( toList() );
+                .collect( toSet() );
             paramsMap.addValue( "userGroupUids", "{" + join( ",", userGroupUids ) + "}" );
         }
     }
@@ -318,7 +324,7 @@ public class FilteringHelper
     {
         try
         {
-            return ValueType.fromString( valueType ).name();
+            return fromString( valueType ).name();
         }
         catch ( IllegalArgumentException e )
         {
@@ -355,21 +361,21 @@ public class FilteringHelper
      * @param filters
      * @return true if a value type filter is found, false otherwise.
      */
-    // public static boolean containsValueTypeFilter( final List<String> filters )
-    // {
-    // if ( CollectionUtils.isNotEmpty( filters ) )
-    // {
-    // for ( final String filter : filters )
-    // {
-    // if ( hasEqualsValueTypeFilter( filter ) || hasInValueTypeFilter( filter ) )
-    // {
-    // return true;
-    // }
-    // }
-    // }
-    //
-    // return false;
-    // }
+    public static boolean containsValueTypeFilter( final List<String> filters )
+    {
+        if ( CollectionUtils.isNotEmpty( filters ) )
+        {
+            for ( final String filter : filters )
+            {
+                if ( hasEqualsValueTypeFilter( filter ) || hasInValueTypeFilter( filter ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
     public static boolean hasEqualsValueTypeFilter( final String filter )
     {
@@ -384,21 +390,6 @@ public class FilteringHelper
     public static boolean hasIlikeNameFilter( final String filter )
     {
         return trimToEmpty( filter ).contains( ILIKE_NAME_FILTER_PREFIX );
-    }
-
-    public static List<String> removePostFilters( final List<String> filters )
-    {
-        final List<String> queryFilters = new ArrayList<>();
-
-        for ( final String filter : filters )
-        {
-            if ( !hasInValueTypeFilter( filter ) && !hasEqualsValueTypeFilter( filter ) )
-            {
-                queryFilters.add( filter );
-            }
-        }
-
-        return queryFilters;
     }
 
     private static boolean hasEqualsDimensionTypeFilter( final String filter )
