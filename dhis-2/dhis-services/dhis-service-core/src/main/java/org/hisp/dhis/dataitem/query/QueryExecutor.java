@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.dataitem.query;
+package org.hisp.dhis.dataitem.query;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -34,13 +34,7 @@ import static org.springframework.util.Assert.notNull;
 import java.util.List;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataitem.DataItem;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
@@ -50,77 +44,35 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class QueryExecutor
 {
-    private final ProgramDataElementDimensionQuery programDataElementDimensionQuery;
+    private final List<DataItemQuery> dataItemQueries;
 
-    private final ProgramAttributeQuery programAttributeQuery;
-
-    private final ProgramIndicatorQuery programIndicatorQuery;
-
-    private final DataSetQuery dataSetQuery;
-
-    private final IndicatorQuery indicatorQuery;
-
-    private final DataElementQuery dataElementQuery;
-
-    // TODO: MAIKEL: Check if there is a way to avoid this if/elses.
     public List<DataItem> find( final Class<? extends BaseDimensionalItemObject> entity,
         final MapSqlParameterSource paramsMap )
     {
-        if ( isEquals( entity, ProgramDataElementDimensionItem.class ) )
+        // Iterates through all implementations of DataItemQuery and execute the correct
+        // "find" for the respective "entity".
+        for ( final DataItemQuery dataItemQuery : dataItemQueries )
         {
-            return programDataElementDimensionQuery.find( paramsMap );
-        }
-        else if ( isEquals( entity, ProgramTrackedEntityAttributeDimensionItem.class ) )
-        {
-            return programAttributeQuery.find( paramsMap );
-        }
-        else if ( isEquals( entity, ProgramIndicator.class ) )
-        {
-            return programIndicatorQuery.find( paramsMap );
-        }
-        else if ( isEquals( entity, DataSet.class ) )
-        {
-            return dataSetQuery.find( paramsMap );
-        }
-        else if ( isEquals( entity, Indicator.class ) )
-        {
-            return indicatorQuery.find( paramsMap );
-        }
-        else if ( isEquals( entity, DataElement.class ) )
-        {
-            return dataElementQuery.find( paramsMap );
+            if ( isEquals( entity, dataItemQuery.getAssociatedEntity() ) )
+            {
+                return dataItemQuery.find( paramsMap );
+            }
         }
 
         return emptyList();
     }
 
-    // TODO: MAIKEL: Check if there is a way to avoid this if/elses.
     public int count( final Class<? extends BaseDimensionalItemObject> entity,
         final MapSqlParameterSource paramsMap )
     {
-        if ( isEquals( entity, ProgramDataElementDimensionItem.class ) )
+        // Iterates through all implementations of DataItemQuery and execute the correct
+        // "count" for the respective "entity".
+        for ( final DataItemQuery dataItemQuery : dataItemQueries )
         {
-            return programDataElementDimensionQuery.count( paramsMap );
-        }
-        else if ( isEquals( entity, ProgramTrackedEntityAttributeDimensionItem.class ) )
-        {
-            return programAttributeQuery.count( paramsMap );
-        }
-        else if ( isEquals( entity, ProgramIndicator.class ) )
-        {
-            return programIndicatorQuery.count( paramsMap );
-        }
-        else if ( isEquals( entity, DataSet.class ) )
-        {
-            return dataSetQuery.count( paramsMap );
-        }
-        else if ( isEquals( entity, Indicator.class ) )
-        {
-            return indicatorQuery.count( paramsMap );
-        }
-        else if ( isEquals( entity, DataElement.class ) )
-        {
-            return dataElementQuery.count( paramsMap );
+            if ( isEquals( entity, dataItemQuery.getAssociatedEntity() ) )
+            {
+                return dataItemQuery.count( paramsMap );
+            }
         }
 
         return 0;

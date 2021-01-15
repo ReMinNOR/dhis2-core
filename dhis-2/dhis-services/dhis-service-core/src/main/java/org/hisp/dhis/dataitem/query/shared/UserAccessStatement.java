@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.dataitem.query;
+package org.hisp.dhis.dataitem.query.shared;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -28,29 +28,19 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_GROUPS_ACCESS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_IDS;
 
-import java.util.List;
-import java.util.Set;
-
-import org.hisp.dhis.dataitem.DataItem;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
-public interface DataItemQuery
+/**
+ * This class held common user access SQL statements for data items.
+ *
+ * @author maikel arabori
+ */
+public class UserAccessStatement
 {
-    List<DataItem> find( MapSqlParameterSource paramsMap );
-
-    int count( MapSqlParameterSource paramsMap );
-
-    default boolean hasParam( final String paramName, final MapSqlParameterSource paramsMap )
-    {
-        return paramsMap.hasValue( paramName );
-    }
-
-    default String sharingConditions( final String tableAlias, final MapSqlParameterSource paramsMap )
+    public static String sharingConditions( final String tableAlias, final MapSqlParameterSource paramsMap )
     {
         final StringBuilder conditions = new StringBuilder();
 
@@ -61,7 +51,7 @@ public interface DataItemQuery
             .append( " OR " )
             .append( userAccessCondition( tableAlias ) );
 
-        if ( hasParam( "userGroupUids", paramsMap ) )
+        if ( paramsMap.hasValue( "userGroupUids" ) )
         {
             conditions.append( " OR (" + userGroupAccessCondition( tableAlias ) + ")" );
         }
@@ -69,7 +59,7 @@ public interface DataItemQuery
         return conditions.toString();
     }
 
-    default String sharingConditions( final String tableAlias1, final String tableAlias2,
+    public static String sharingConditions( final String tableAlias1, final String tableAlias2,
         final MapSqlParameterSource paramsMap )
     {
         final StringBuilder conditions = new StringBuilder();
@@ -90,7 +80,7 @@ public interface DataItemQuery
             .append( userAccessCondition( tableAlias2 ) )
             .append( ")" ); // Table 2 conditions end
 
-        if ( hasParam( "userGroupUids", paramsMap ) )
+        if ( paramsMap.hasValue( "userGroupUids" ) )
         {
             conditions.append( " OR (" );
 
@@ -107,89 +97,29 @@ public interface DataItemQuery
         return conditions.toString();
     }
 
-    default String ownerAccessCondition( final String tableAlias )
+    private static String ownerAccessCondition( final String tableAlias )
     {
         return "(jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') IS NULL OR "
             + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') = 'null' OR "
             + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') = :userUid)";
     }
 
-    default String publicAccessCondition( final String tableAlias )
+    private static String publicAccessCondition( final String tableAlias )
     {
         return "(jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') IS NULL OR "
             + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') = 'null' OR "
             + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') LIKE 'r%')";
     }
 
-    default String userAccessCondition( final String tableAlias )
+    private static String userAccessCondition( final String tableAlias )
     {
         return "(jsonb_has_user_id(" + tableAlias + ".sharing, :userUid) = TRUE "
             + "AND jsonb_check_user_access(" + tableAlias + ".sharing, :userUid, 'r%') = TRUE)";
     }
 
-    default String userGroupAccessCondition( final String tableAlias )
+    private static String userGroupAccessCondition( final String tableAlias )
     {
         return "(" + HAS_USER_GROUP_IDS + "(" + tableAlias + ".sharing, :userGroupUids) = TRUE " +
             "AND " + CHECK_USER_GROUPS_ACCESS + "(" + tableAlias + ".sharing, 'r%', :userGroupUids) = TRUE)";
-    }
-
-    default String commonOrdering( final String tableAlias, final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder ordering = new StringBuilder();
-
-        if ( hasParam( "nameOrder", paramsMap ) )
-        {
-            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                ordering.append( " ORDER BY " + tableAlias + ".\"name\" ASC" );
-            }
-            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
-            {
-                ordering.append( " ORDER BY " + tableAlias + ".\"name\" DESC" );
-            }
-        }
-
-        return ordering.toString();
-    }
-
-    default String commonFiltering( final String tableAlias, final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder filtering = new StringBuilder();
-
-        if ( hasParam( "ilikeName", paramsMap ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            filtering.append( " AND (" + tableAlias + ".\"name\" ILIKE :ilikeName)" );
-        }
-
-        return filtering.toString();
-    }
-
-    default String commonFiltering( final String tableAlias1, final String tableAlias2,
-        final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder filtering = new StringBuilder();
-
-        if ( paramsMap.hasValue( "ilikeName" ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            filtering.append( " AND (" + tableAlias1 + ".\"name\" ILIKE :ilikeName OR " + tableAlias2
-                + ".\"name\" ILIKE :ilikeName)" );
-        }
-
-        return filtering.toString();
-    }
-
-    default boolean skipNumberValueType( final MapSqlParameterSource paramsMap )
-    {
-        if ( hasParam( "valueTypes", paramsMap ) && paramsMap.getValue( "valueTypes" ) != null )
-        {
-            final Set<String> valueTypeNames = (Set<String>) paramsMap.getValue( "valueTypes" );
-
-            // Skip WHEN the value type list does NOT contain a NUMBER type.
-            // This is specific for Indicator's types, as they don't have a value type, but
-            // are always interpreted as NUMBER.
-            return !valueTypeNames.contains( NUMBER.name() );
-        }
-
-        return false;
     }
 }

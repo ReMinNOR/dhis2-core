@@ -105,6 +105,7 @@ public class OrderingHelper
         }
     }
 
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
     private static Comparator<DataItem> getComparator( final String orderingParam )
     {
         final String[] orderingAttributes = split( orderingParam, ":" );

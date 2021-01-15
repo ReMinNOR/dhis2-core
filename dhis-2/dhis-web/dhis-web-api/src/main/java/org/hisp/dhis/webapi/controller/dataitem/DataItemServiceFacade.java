@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.dataitem;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Sets.newHashSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.containsDimensionTypeFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
@@ -59,7 +58,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.dataitem.query.QueryExecutor;
+import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
@@ -81,10 +80,17 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class DataItemServiceFacade
 {
-//    private final int PAGINATION_FIRST_RESULT = 0;
-//
-//    private final Set<String> METRICS = newHashSet( "Actual reports", "Actual reports on time", "Expected reports",
-//        "Reporting rate", "Reporting rate on time" );
+
+    // TODO: MAIKEL: LIST of tasks
+    // 1) Move all common strings into constants.
+    // 2) Fix unit tests
+    // 3) Add general code comments
+
+    // private final int PAGINATION_FIRST_RESULT = 0;
+    //
+    // private final Set<String> METRICS = newHashSet( "Actual reports", "Actual
+    // reports on time", "Expected reports",
+    // "Reporting rate", "Reporting rate on time" );
 
     private final CurrentUserService currentUserService;
 
@@ -158,7 +164,6 @@ public class DataItemServiceFacade
 
                 setMaxResultsWhenPaging( options, paramsMap );
 
-                // TODO: Add new sharing settings queries. See DefaultAclStore.java
                 dataItems.addAll( queryExecutor.find( entity, paramsMap ) );
             }
 

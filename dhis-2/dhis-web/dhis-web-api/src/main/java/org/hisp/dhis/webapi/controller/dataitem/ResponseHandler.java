@@ -31,26 +31,18 @@ package org.hisp.dhis.webapi.controller.dataitem;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.join;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.wrap;
-import static org.hisp.dhis.common.ValueType.getAggregatables;
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 import static org.hisp.dhis.node.NodeUtils.createPager;
 import static org.hisp.dhis.schema.descriptors.DataItemSchemaDescriptor.NAMESPACE;
 import static org.hisp.dhis.schema.descriptors.DataItemSchemaDescriptor.PLURAL;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.containsValueTypeFilter;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractAllValueTypesFromFilters;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractValueFromIlikeNameFilter;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFiltering;
 
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -61,7 +53,7 @@ import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.dataitem.query.QueryExecutor;
+import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.core.env.Environment;
@@ -176,36 +168,7 @@ class ResponseHandler
         final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userUid",
             currentUser.getUid() );
 
-        // TODO: MAIKEL: Extract filter methods
-        final String ilikeName = extractValueFromIlikeNameFilter( filters );
-
-        if ( isNotBlank( ilikeName ) )
-        {
-            paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
-        }
-
-        // TODO: MAIKEL: Add validation for value types. Allow only filtering using the Aggregatable Value Types.
-        // TODO: MAIKEL: Centralize the filters? So can be reused by the ServiceFacade?
-        if ( containsValueTypeFilter( filters ) )
-        {
-            paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
-        }
-        else
-        {
-            // Includes all value types.
-            paramsMap.addValue( "valueTypes",
-                getAggregatables().stream().map( type -> type.name() ).collect( toSet() ) );
-        }
-
-        // Add user group filtering, when present.
-        if ( currentUser != null && CollectionUtils.isNotEmpty( currentUser.getGroups() ) )
-        {
-            final Set<String> userGroupUids = currentUser.getGroups().stream()
-                .filter( group -> group != null )
-                .map( group -> group.getUid() )
-                .collect( toSet() );
-            paramsMap.addValue( "userGroupUids", "{" + join( ",", userGroupUids ) + "}" );
-        }
+        setFiltering( filters, paramsMap, currentUser );
 
         // Calculate pagination.
         if ( options.hasPaging() )

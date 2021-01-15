@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.dataitem.query;
+package org.hisp.dhis.dataitem.query;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -29,13 +29,19 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
+import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
+import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
+import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.DataItem;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -44,11 +50,11 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DataElementQuery implements DataItemQuery
+public class ProgramDataElementDimensionQuery implements DataItemQuery
 {
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public DataElementQuery( @Qualifier( "readOnlyJdbcTemplate" )
+    public ProgramDataElementDimensionQuery( @Qualifier( "readOnlyJdbcTemplate" )
     final JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
@@ -56,25 +62,31 @@ public class DataElementQuery implements DataItemQuery
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
     }
 
-    private String getDataElementQueryWith( final MapSqlParameterSource paramsMap )
+    private String getProgramDataElementQueryWith( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
+            "SELECT p.\"name\" AS program_name, p.uid AS program_uid,"
+                + " de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
                 + " FROM dataelement de"
+                + " JOIN programstagedataelement psde ON psde.dataelementid = de.dataelementid"
+                + " JOIN programstage ps ON psde.programstageid = ps.programstageid"
+                + " JOIN program p ON p.programid = ps.programid"
                 + " WHERE ("
-                + sharingConditions( "de", paramsMap )
+                + sharingConditions( "p", "de", paramsMap )
                 + ")" );
 
-        sql.append( commonFiltering( "de", paramsMap ) );
+        sql.append( commonFiltering( "p", "de", paramsMap ) );
 
-        if ( hasParam( "valueTypes", paramsMap ) && paramsMap.getValue( "valueTypes" ) != null )
+        if ( paramsMap.hasValue( "valueTypes" ) && paramsMap.getValue( "valueTypes" ) != null )
         {
             sql.append( " AND (de.valuetype IN (:valueTypes))" );
         }
 
-        sql.append( commonOrdering( "de", paramsMap ) );
+        sql.append( " GROUP BY p.\"name\", p.uid, de.\"name\", de.uid, de.valuetype" );
 
-        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
+        sql.append( commonOrdering( "p", paramsMap ) );
+
+        if ( paramsMap.hasValue( "maxLimit" ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
             sql.append( " LIMIT :maxLimit" );
         }
@@ -82,24 +94,25 @@ public class DataElementQuery implements DataItemQuery
         return sql.toString();
     }
 
-    @Override
     public List<DataItem> find( final MapSqlParameterSource paramsMap )
     {
         final List<DataItem> dataItems = new ArrayList<>();
 
-        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
-            getDataElementQueryWith( paramsMap ), paramsMap );
+        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( getProgramDataElementQueryWith( paramsMap ),
+            paramsMap );
 
         while ( rowSet.next() )
         {
             final DataItem viewItem = new DataItem();
             final ValueType valueType = ValueType.fromString( rowSet.getString( "valuetype" ) );
 
-            viewItem.setName( rowSet.getString( "name" ) );
+            viewItem.setName( rowSet.getString( "program_name" ) + SPACE + rowSet.getString( "name" ) );
             viewItem.setValueType( valueType );
             viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType() );
+            viewItem.setCombinedId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
+            viewItem.setProgramId( rowSet.getString( "program_uid" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
-            viewItem.setDimensionItemType( DATA_ELEMENT );
+            viewItem.setDimensionItemType( PROGRAM_DATA_ELEMENT );
 
             dataItems.add( viewItem );
         }
@@ -111,24 +124,28 @@ public class DataElementQuery implements DataItemQuery
     public int count( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT COUNT(DISTINCT de.uid)"
+            "SELECT COUNT(DISTINCT (p.uid, de.uid))"
                 + " FROM dataelement de"
+                + " JOIN programstagedataelement psde ON psde.dataelementid = de.dataelementid"
+                + " JOIN programstage ps ON psde.programstageid = ps.programstageid"
+                + " JOIN program p ON p.programid = ps.programid"
                 + " WHERE ("
-                + sharingConditions( "de", paramsMap )
+                + sharingConditions( "p", "de", paramsMap )
                 + ")" );
 
-        sql.append( commonFiltering( "de", paramsMap ) );
+        sql.append( commonFiltering( "p", "de", paramsMap ) );
 
-        if ( hasParam( "valueTypes", paramsMap ) && paramsMap.getValue( "valueTypes" ) != null )
+        if ( paramsMap.hasValue( "valueTypes" ) && paramsMap.getValue( "valueTypes" ) != null )
         {
             sql.append( " AND (de.valuetype IN (:valueTypes))" );
         }
 
-        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
-        {
-            sql.append( " LIMIT :maxLimit" );
-        }
-
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
+    }
+
+    @Override
+    public Class<? extends BaseDimensionalItemObject> getAssociatedEntity()
+    {
+        return ProgramDataElementDimensionItem.class;
     }
 }

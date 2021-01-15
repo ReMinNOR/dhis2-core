@@ -65,7 +65,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.dataitem.query.QueryExecutor;
+import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Before;

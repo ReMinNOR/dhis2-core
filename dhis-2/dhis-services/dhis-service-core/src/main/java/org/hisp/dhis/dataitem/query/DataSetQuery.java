@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.dataitem.query;
+package org.hisp.dhis.dataitem.query;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -30,11 +30,16 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
+import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
+import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.dataitem.DataItem;
+import org.hisp.dhis.dataset.DataSet;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -68,7 +73,7 @@ public class DataSetQuery implements DataItemQuery
 
         sql.append( commonOrdering( "ds", paramsMap ) );
 
-        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
+        if ( paramsMap.hasValue( "maxLimit" ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
             sql.append( " LIMIT :maxLimit" );
         }
@@ -110,11 +115,12 @@ public class DataSetQuery implements DataItemQuery
 
         sql.append( commonFiltering( "ds", paramsMap ) );
 
-        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
-        {
-            sql.append( " LIMIT :maxLimit" );
-        }
-
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
+    }
+
+    @Override
+    public Class<? extends BaseDimensionalItemObject> getAssociatedEntity()
+    {
+        return DataSet.class;
     }
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  */
 
 import static java.lang.String.join;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -45,7 +46,6 @@ import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2016;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -297,10 +297,14 @@ public class FilteringHelper
             paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
         }
 
-        // TODO: MAIKEL: Allow only filtering using the Aggregatable Value Types. Add a validation.
         if ( containsValueTypeFilter( filters ) )
         {
-            paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
+            final Set<String> valueTypesFilter = extractAllValueTypesFromFilters( filters );
+
+            if ( valueTypeFilterHasOnlyAggregatableTypes( valueTypesFilter, filters ) )
+            {
+                paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
+            }
         }
         else
         {
@@ -329,7 +333,7 @@ public class FilteringHelper
         catch ( IllegalArgumentException e )
         {
             throw new IllegalQueryException(
-                new ErrorMessage( E2016, valueType, "valueType", Arrays.toString( ValueType.values() ) ) );
+                new ErrorMessage( E2016, valueType, "valueType", ValueType.getAggregatables() ) );
         }
     }
 
@@ -377,6 +381,33 @@ public class FilteringHelper
         return false;
     }
 
+    /**
+     * Simply checks if the given set of ValueType names contains a valid value type
+     * filter. Only aggregatable types are considered valid for this case.
+     *
+     * @param valueTypeNames
+     * @return true if a all value types are valid, false otherwise.
+     */
+    public static boolean valueTypeFilterHasOnlyAggregatableTypes( final Set<String> valueTypeNames,
+        final List<String> filters )
+    {
+        if ( CollectionUtils.isNotEmpty( valueTypeNames ) )
+        {
+            final List<String> aggregatableTypes = getAggregatables().stream().map( v -> v.name() ).collect( toList() );
+
+            for ( final String valueType : valueTypeNames )
+            {
+                if ( !aggregatableTypes.contains( valueType ) )
+                {
+                    throw new IllegalQueryException(
+                        new ErrorMessage( E2016, valueType, filters, ValueType.getAggregatables() ) );
+                }
+            }
+        }
+
+        return true;
+    }
+
     public static boolean hasEqualsValueTypeFilter( final String filter )
     {
         return trimToEmpty( filter ).contains( VALUE_TYPE_EQUAL_FILTER_PREFIX );
@@ -409,8 +440,7 @@ public class FilteringHelper
         if ( entity == null )
         {
             throw new IllegalQueryException(
-                new ErrorMessage( E2016, entityType, "dimensionItemType",
-                    Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) ) );
+                new ErrorMessage( E2016, entityType, "dimensionItemType", DATA_TYPE_ENTITY_MAP.keySet() ) );
         }
 
         return entity;

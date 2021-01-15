@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.dataitem.query;
+package org.hisp.dhis.dataitem.query;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -29,12 +29,17 @@ package org.hisp.dhis.webapi.controller.dataitem.query;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
-import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
+import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
+import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataitem.DataItem;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -44,11 +49,11 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProgramIndicatorQuery implements DataItemQuery
+public class DataElementQuery implements DataItemQuery
 {
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public ProgramIndicatorQuery( @Qualifier( "readOnlyJdbcTemplate" )
+    public DataElementQuery( @Qualifier( "readOnlyJdbcTemplate" )
     final JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
@@ -56,20 +61,25 @@ public class ProgramIndicatorQuery implements DataItemQuery
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
     }
 
-    private String getProgramIndicatorQuery( final MapSqlParameterSource paramsMap )
+    private String getDataElementQueryWith( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT pi.\"name\" AS name, pi.uid AS uid"
-                + " FROM programindicator pi"
+            "SELECT de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
+                + " FROM dataelement de"
                 + " WHERE ("
-                + sharingConditions( "pi", paramsMap )
+                + sharingConditions( "de", paramsMap )
                 + ")" );
 
-        sql.append( commonFiltering( "pi", paramsMap ) );
+        sql.append( commonFiltering( "de", paramsMap ) );
 
-        sql.append( commonOrdering( "pi", paramsMap ) );
+        if ( paramsMap.hasValue( "valueTypes" ) && paramsMap.getValue( "valueTypes" ) != null )
+        {
+            sql.append( " AND (de.valuetype IN (:valueTypes))" );
+        }
 
-        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
+        sql.append( commonOrdering( "de", paramsMap ) );
+
+        if ( paramsMap.hasValue( "maxLimit" ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
         {
             sql.append( " LIMIT :maxLimit" );
         }
@@ -77,33 +87,24 @@ public class ProgramIndicatorQuery implements DataItemQuery
         return sql.toString();
     }
 
+    @Override
     public List<DataItem> find( final MapSqlParameterSource paramsMap )
     {
         final List<DataItem> dataItems = new ArrayList<>();
 
-        // Very specific case, for Indicator objects, needed to handle filter by value type NUMBER.
-        // When the value type filter does not have a NUMBER type, we should not execute this query.
-        // It returns an empty instead.
-        if ( skipNumberValueType( paramsMap ) )
-        {
-            return dataItems;
-        }
-
         final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
-            getProgramIndicatorQuery( paramsMap ), paramsMap );
+            getDataElementQueryWith( paramsMap ), paramsMap );
 
         while ( rowSet.next() )
         {
             final DataItem viewItem = new DataItem();
+            final ValueType valueType = ValueType.fromString( rowSet.getString( "valuetype" ) );
 
             viewItem.setName( rowSet.getString( "name" ) );
+            viewItem.setValueType( valueType );
+            viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType() );
             viewItem.setId( rowSet.getString( "uid" ) );
-            viewItem.setDimensionItemType( PROGRAM_INDICATOR );
-
-            // Specific case where we have to force a vale type. Program Indicators don't
-            // have a value type but they always evaluate to numbers.
-            viewItem.setValueType( NUMBER );
-            viewItem.setSimplifiedValueType( NUMBER );
+            viewItem.setDimensionItemType( DATA_ELEMENT );
 
             dataItems.add( viewItem );
         }
@@ -114,28 +115,26 @@ public class ProgramIndicatorQuery implements DataItemQuery
     @Override
     public int count( final MapSqlParameterSource paramsMap )
     {
-        // Very specific case, for Indicator objects, needed to handle filter by value type NUMBER.
-        // When the value type filter does not have a NUMBER type, we should not execute this query.
-        // It returns ZERO.
-        if ( skipNumberValueType( paramsMap ) )
-        {
-            return 0;
-        }
-
         final StringBuilder sql = new StringBuilder(
-            "SELECT COUNT(DISTINCT pi.uid)"
-                + " FROM programindicator pi"
+            "SELECT COUNT(DISTINCT de.uid)"
+                + " FROM dataelement de"
                 + " WHERE ("
-                + sharingConditions( "pi", paramsMap )
+                + sharingConditions( "de", paramsMap )
                 + ")" );
 
-        sql.append( commonFiltering( "pi", paramsMap ) );
+        sql.append( commonFiltering( "de", paramsMap ) );
 
-        if ( hasParam( "maxLimit", paramsMap ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
+        if ( paramsMap.hasValue( "valueTypes" ) && paramsMap.getValue( "valueTypes" ) != null )
         {
-            sql.append( " LIMIT :maxLimit" );
+            sql.append( " AND (de.valuetype IN (:valueTypes))" );
         }
 
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
+    }
+
+    @Override
+    public Class<? extends BaseDimensionalItemObject> getAssociatedEntity()
+    {
+        return DataElement.class;
     }
 }

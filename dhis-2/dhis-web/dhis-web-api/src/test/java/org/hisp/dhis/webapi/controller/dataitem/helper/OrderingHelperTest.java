@@ -137,7 +137,7 @@ public class OrderingHelperTest
         {
             final DataItem dataItem = new DataItem();
             dataItem.setName( "d-" + i );
-            dataItem.setUid( "d-" + i );
+            dataItem.setId( "d-" + i );
             dataItemEntities.add(dataItem);
         }
 
