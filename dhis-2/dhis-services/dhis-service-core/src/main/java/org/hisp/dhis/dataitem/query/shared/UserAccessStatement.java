@@ -28,6 +28,8 @@ package org.hisp.dhis.dataitem.query.shared;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_GROUP_UIDS;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_ID;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_GROUPS_ACCESS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_IDS;
 
@@ -51,7 +53,7 @@ public class UserAccessStatement
             .append( " OR " )
             .append( userAccessCondition( tableAlias ) );
 
-        if ( paramsMap.hasValue( "userGroupUids" ) )
+        if ( paramsMap.hasValue( USER_GROUP_UIDS ) )
         {
             conditions.append( " OR (" + userGroupAccessCondition( tableAlias ) + ")" );
         }
@@ -80,7 +82,7 @@ public class UserAccessStatement
             .append( userAccessCondition( tableAlias2 ) )
             .append( ")" ); // Table 2 conditions end
 
-        if ( paramsMap.hasValue( "userGroupUids" ) )
+        if ( paramsMap.hasValue( USER_GROUP_UIDS ) )
         {
             conditions.append( " OR (" );
 
@@ -113,13 +115,13 @@ public class UserAccessStatement
 
     private static String userAccessCondition( final String tableAlias )
     {
-        return "(jsonb_has_user_id(" + tableAlias + ".sharing, :userUid) = TRUE "
-            + "AND jsonb_check_user_access(" + tableAlias + ".sharing, :userUid, 'r%') = TRUE)";
+        return "(jsonb_has_user_id(" + tableAlias + ".sharing, :" + USER_ID + ") = TRUE "
+            + "AND jsonb_check_user_access(" + tableAlias + ".sharing, :" + USER_ID + ", 'r%') = TRUE)";
     }
 
     private static String userGroupAccessCondition( final String tableAlias )
     {
-        return "(" + HAS_USER_GROUP_IDS + "(" + tableAlias + ".sharing, :userGroupUids) = TRUE " +
-            "AND " + CHECK_USER_GROUPS_ACCESS + "(" + tableAlias + ".sharing, 'r%', :userGroupUids) = TRUE)";
+        return "(" + HAS_USER_GROUP_IDS + "(" + tableAlias + ".sharing, :" + USER_GROUP_UIDS + ") = TRUE " +
+            "AND " + CHECK_USER_GROUPS_ACCESS + "(" + tableAlias + ".sharing, 'r%', :" + USER_GROUP_UIDS + ") = TRUE)";
     }
 }

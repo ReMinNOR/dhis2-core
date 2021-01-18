@@ -28,6 +28,8 @@ package org.hisp.dhis.dataitem.query.shared;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dataitem.query.DataItemQuery.NAME_ORDER;
+
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -37,17 +39,18 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class OrderingStatement
 {
+
     public static String commonOrdering( final String tableAlias, final MapSqlParameterSource paramsMap )
     {
         final StringBuilder ordering = new StringBuilder();
 
-        if ( paramsMap.hasValue( "nameOrder" ) )
+        if ( paramsMap.hasValue( NAME_ORDER ) )
         {
-            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
+            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( NAME_ORDER ) ) )
             {
                 ordering.append( " ORDER BY " + tableAlias + ".\"name\" ASC" );
             }
-            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( "nameOrder" ) ) )
+            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( NAME_ORDER ) ) )
             {
                 ordering.append( " ORDER BY " + tableAlias + ".\"name\" DESC" );
             }

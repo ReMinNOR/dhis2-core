@@ -31,6 +31,7 @@ package org.hisp.dhis.dataitem.query;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
 import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.dataitem.query.shared.CommonStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipNumberValueType;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
@@ -49,6 +50,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+/**
+ * This component is responsible for providing query capabilities on top of
+ * Indicators.
+ *
+ * @author maikel arabori
+ */
 @Component
 public class IndicatorQuery implements DataItemQuery
 {
@@ -75,10 +82,7 @@ public class IndicatorQuery implements DataItemQuery
 
         sql.append( commonOrdering( "i", paramsMap ) );
 
-        if ( paramsMap.hasValue( "maxLimit" ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
-        {
-            sql.append( " LIMIT :maxLimit" );
-        }
+        sql.append( maxLimit( paramsMap ) );
 
         return sql.toString();
     }

@@ -28,12 +28,15 @@ package org.hisp.dhis.dataitem.query.shared;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.ValueType.NUMBER;
-
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.ILIKE_NAME;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.VALUE_TYPES;
 
 import java.util.Set;
+
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
  * This class held common filtering SQL statements for data items.
@@ -46,9 +49,9 @@ public class FilteringStatement
     {
         final StringBuilder filtering = new StringBuilder();
 
-        if ( paramsMap.hasValue( "ilikeName" ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
+        if ( paramsMap.hasValue( ILIKE_NAME ) && isNotEmpty( (String) paramsMap.getValue( ILIKE_NAME ) ) )
         {
-            filtering.append( " AND (" + tableAlias + ".\"name\" ILIKE :ilikeName)" );
+            filtering.append( " AND (" + tableAlias + ".\"name\" ILIKE :" + ILIKE_NAME + ")" );
         }
 
         return filtering.toString();
@@ -59,20 +62,32 @@ public class FilteringStatement
     {
         final StringBuilder filtering = new StringBuilder();
 
-        if ( paramsMap.hasValue( "ilikeName" ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
+        if ( paramsMap.hasValue( ILIKE_NAME ) && isNotEmpty( (String) paramsMap.getValue( ILIKE_NAME ) ) )
         {
-            filtering.append( " AND (" + tableAlias1 + ".\"name\" ILIKE :ilikeName OR " + tableAlias2
-                + ".\"name\" ILIKE :ilikeName)" );
+            filtering.append( " AND (" + tableAlias1 + ".\"name\" ILIKE :" + ILIKE_NAME + " OR " + tableAlias2
+                + ".\"name\" ILIKE :" + ILIKE_NAME + ")" );
         }
 
         return filtering.toString();
     }
 
+    public static String valueTypeFiltering( final String tableAlias, final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder filtering = new StringBuilder();
+
+        if ( paramsMap.hasValue( VALUE_TYPES ) && paramsMap.getValue( VALUE_TYPES ) != null )
+        {
+            filtering.append( " AND (" + tableAlias + ".valuetype IN (:" + VALUE_TYPES + "))" );
+        }
+
+        return EMPTY;
+    }
+
     public static boolean skipNumberValueType( final MapSqlParameterSource paramsMap )
     {
-        if ( paramsMap.hasValue( "valueTypes" ) && paramsMap.getValue( "valueTypes" ) != null )
+        if ( paramsMap.hasValue( VALUE_TYPES ) && paramsMap.getValue( VALUE_TYPES ) != null )
         {
-            final Set<String> valueTypeNames = (Set<String>) paramsMap.getValue( "valueTypes" );
+            final Set<String> valueTypeNames = (Set<String>) paramsMap.getValue( VALUE_TYPES );
 
             // Skip WHEN the value type list does NOT contain a NUMBER type.
             // This is specific for Indicator's types, as they don't have a value type, but

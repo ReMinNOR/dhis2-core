@@ -42,6 +42,9 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.common.ValueType.getAggregatables;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.ILIKE_NAME;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_GROUP_UIDS;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.VALUE_TYPES;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2016;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
@@ -294,7 +297,7 @@ public class FilteringHelper
 
         if ( isNotBlank( ilikeName ) )
         {
-            paramsMap.addValue( "ilikeName", wrap( ilikeName, "%" ) );
+            paramsMap.addValue( ILIKE_NAME, wrap( ilikeName, "%" ) );
         }
 
         if ( containsValueTypeFilter( filters ) )
@@ -303,13 +306,13 @@ public class FilteringHelper
 
             if ( valueTypeFilterHasOnlyAggregatableTypes( valueTypesFilter, filters ) )
             {
-                paramsMap.addValue( "valueTypes", extractAllValueTypesFromFilters( filters ) );
+                paramsMap.addValue( VALUE_TYPES, extractAllValueTypesFromFilters( filters ) );
             }
         }
         else
         {
             // Includes all value types.
-            paramsMap.addValue( "valueTypes",
+            paramsMap.addValue( VALUE_TYPES,
                 getAggregatables().stream().map( type -> type.name() ).collect( toSet() ) );
         }
 
@@ -320,7 +323,7 @@ public class FilteringHelper
                 .filter( group -> group != null )
                 .map( group -> group.getUid() )
                 .collect( toSet() );
-            paramsMap.addValue( "userGroupUids", "{" + join( ",", userGroupUids ) + "}" );
+            paramsMap.addValue( USER_GROUP_UIDS, "{" + join( ",", userGroupUids ) + "}" );
         }
     }
 

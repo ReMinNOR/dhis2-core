@@ -79,7 +79,6 @@ public class OrderingHelperTest
         assertEquals( anyDimensionalItems, unchangedList );
     }
 
-    // TODO: MAIKEL: Fix
     @Test
     @Ignore
     public void sortWhenOrderParamsIsAsc()
@@ -89,7 +88,7 @@ public class OrderingHelperTest
         final OrderParams orderParams = new OrderParams( orderings );
         final List<DataItem> anyDimensionalItems = mockDimensionalItems( 2 );
         final List<DataItem> ascList = mockDimensionalItems( 2 );
-        // Collections.sort( ascList );
+        Collections.sort( ascList );
 
         // When
         sort( anyDimensionalItems, orderParams );

@@ -40,6 +40,12 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * This component is responsible for executing the respective data item query
+ * for a given entity.
+ * 
+ * @author maikel arabori
+ */
 @Component
 @RequiredArgsConstructor
 public class QueryExecutor

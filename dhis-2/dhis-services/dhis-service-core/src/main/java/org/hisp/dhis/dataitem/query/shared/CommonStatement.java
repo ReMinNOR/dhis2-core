@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataitem.query;
+package org.hisp.dhis.dataitem.query.shared;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -28,35 +28,25 @@ package org.hisp.dhis.dataitem.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.MAX_LIMIT;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.dataitem.DataItem;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
- * Interface responsible for providing the basic and necessary methods regarding
- * general data item queries.
+ * This class should hold common/general SQL statements used by data item queries.
  *
  * @author maikel arabori
  */
-public interface DataItemQuery
+public class CommonStatement
 {
-    String ILIKE_NAME = "ilikeName";
+    public static String maxLimit( final MapSqlParameterSource paramsMap )
+    {
+        if ( paramsMap.hasValue( MAX_LIMIT ) && (int) paramsMap.getValue( MAX_LIMIT ) > 0 )
+        {
+            return " LIMIT :" + MAX_LIMIT;
+        }
 
-    String VALUE_TYPES = "valueTypes";
-
-    String USER_GROUP_UIDS = "userGroupUids";
-
-    String USER_ID = "userUid";
-
-    String MAX_LIMIT = "maxLimit";
-
-    String NAME_ORDER = "nameOrder";
-
-    List<DataItem> find( MapSqlParameterSource paramsMap );
-
-    int count( MapSqlParameterSource paramsMap );
-
-    Class<? extends BaseDimensionalItemObject> getAssociatedEntity();
+        return EMPTY;
+    }
 }

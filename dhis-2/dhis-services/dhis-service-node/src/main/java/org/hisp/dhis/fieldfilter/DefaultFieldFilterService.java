@@ -29,6 +29,7 @@ package org.hisp.dhis.fieldfilter;
  */
 
 import static java.beans.Introspector.decapitalize;
+import static org.hisp.dhis.system.util.ReflectionUtils.invokeGetterMethod;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -326,7 +327,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 final Field field = klassInstance.getClass().getDeclaredField( originalName );
                 field.setAccessible( true );
 
-                final Object value = field.get( klassInstance );
+                final Object value = invokeGetterMethod(originalName, klassInstance);
 
                 if ( org.apache.commons.lang3.StringUtils.isNotBlank( rename ) )
                 {
@@ -337,7 +338,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                     complexNode.addChild( new SimpleNode( originalName, value ) );
                 }
             }
-            catch ( NoSuchFieldException | IllegalAccessException e )
+            catch ( NoSuchFieldException e )
             {
                 log.warn("Error reading attribute", e);
             }
@@ -384,7 +385,6 @@ public class DefaultFieldFilterService implements FieldFilterService
 
             if ( property == null || !property.isReadable() )
             {
-                // throw new FieldFilterException( fieldKey, schema );
                 log.debug( "Unknown field property `" + fieldKey + "`, available fields are " + schema.getPropertyMap().keySet() );
                 continue;
             }

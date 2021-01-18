@@ -28,12 +28,24 @@ package org.hisp.dhis.dataitem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static lombok.AccessLevel.NONE;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import static org.hisp.dhis.translation.TranslationProperty.NAME;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.translation.TranslationProperty;
+import org.hisp.dhis.user.UserSettingKey;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -41,13 +53,15 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "dataItem", namespace = DXF_2_0 )
-public class DataItem implements Serializable
+public class DataItem implements Serializable, Comparable<DataItem>
 {
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
@@ -55,6 +69,8 @@ public class DataItem implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @Getter( value = NONE )
+    @Setter( value = NONE )
     private String displayName;
 
     @JsonProperty
@@ -80,4 +96,85 @@ public class DataItem implements Serializable
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     private ValueType simplifiedValueType;
+
+    /**
+     * Set of available object translation, normally filtered by locale.
+     */
+    @Getter( value = NONE )
+    @Setter( value = NONE )
+    protected Set<Translation> translations = new HashSet<>();
+
+    /**
+     * Cache for object translations, where the cache key is a combination of locale
+     * and translation property, and value is the translated value.
+     */
+    @Getter( value = NONE )
+    @Setter( value = NONE )
+    protected Map<String, String> translationCache = new HashMap<>();
+
+    public String getDisplayName()
+    {
+        return getTranslation( NAME, getName() );
+    }
+
+    /**
+     * Returns a translated value for this object for the given property. The
+     * current locale is read from the user context.
+     *
+     * @param property the translation property.
+     * @param defaultValue the value to use if there are no translations.
+     * @return a translated value.
+     */
+    protected String getTranslation( TranslationProperty property, String defaultValue )
+    {
+        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
+
+        defaultValue = defaultValue != null ? defaultValue.trim() : null;
+
+        if ( locale == null || property == null )
+        {
+            return defaultValue;
+        }
+
+        loadTranslationsCacheIfEmpty();
+
+        String cacheKey = Translation.getCacheKey( locale.toString(), property );
+
+        return translationCache.getOrDefault( cacheKey, defaultValue );
+    }
+
+    /**
+     * Populates the translationsCache map unless it is already populated.
+     */
+    private void loadTranslationsCacheIfEmpty()
+    {
+        if ( translationCache.isEmpty() && translations != null )
+        {
+            for ( Translation translation : translations )
+            {
+                if ( translation.getLocale() != null && translation.getProperty() != null
+                    && !StringUtils.isEmpty( translation.getValue() ) )
+                {
+                    String key = Translation.getCacheKey( translation.getLocale(), translation.getProperty() );
+                    translationCache.put( key, translation.getValue() );
+                }
+            }
+        }
+    }
+
+    /**
+     * Compares objects based on display name. A null display name is ordered after
+     * a non-null display name.
+     */
+    @Override
+    public int compareTo( DataItem object )
+    {
+        if ( this.getDisplayName() == null )
+        {
+            return object.getDisplayName() == null ? 0 : 1;
+        }
+
+        return object.getDisplayName() == null ? -1
+            : this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
+    }
 }

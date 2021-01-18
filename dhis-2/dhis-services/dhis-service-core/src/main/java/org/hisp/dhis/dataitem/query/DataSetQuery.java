@@ -30,6 +30,7 @@ package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
+import static org.hisp.dhis.dataitem.query.shared.CommonStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
@@ -47,6 +48,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+/**
+ * This component is responsible for providing query capabilities on top of
+ * DataSets.
+ *
+ * @author maikel arabori
+ */
 @Component
 public class DataSetQuery implements DataItemQuery
 {
@@ -73,10 +80,7 @@ public class DataSetQuery implements DataItemQuery
 
         sql.append( commonOrdering( "ds", paramsMap ) );
 
-        if ( paramsMap.hasValue( "maxLimit" ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
-        {
-            sql.append( " LIMIT :maxLimit" );
-        }
+        sql.append( maxLimit( paramsMap ) );
 
         return sql.toString();
     }

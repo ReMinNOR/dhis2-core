@@ -30,9 +30,10 @@ package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.dataitem.query.shared.CommonStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
@@ -50,6 +51,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+/**
+ * This component is responsible for providing query capabilities on top of
+ * ProgramTrackedEntityAttributeDimensionItems.
+ *
+ * @author maikel arabori
+ */
 @Component
 public class ProgramAttributeQuery implements DataItemQuery
 {
@@ -75,24 +82,15 @@ public class ProgramAttributeQuery implements DataItemQuery
                 + sharingConditions( "p", "t", paramsMap )
                 + ")" );
 
-        if ( paramsMap.hasValue( "ilikeName" ) && isNotEmpty( (String) paramsMap.getValue( "ilikeName" ) ) )
-        {
-            sql.append( " AND (p.\"name\" ILIKE :ilikeName OR t.\"name\" ILIKE :ilikeName)" );
-        }
+        sql.append( commonFiltering( "p", "t", paramsMap ) );
 
-        if ( paramsMap.hasValue( "valueTypes" ) && paramsMap.getValue( "valueTypes" ) != null )
-        {
-            sql.append( " AND (t.valuetype IN (:valueTypes))" );
-        }
+        sql.append( valueTypeFiltering( "t", paramsMap ) );
 
         sql.append( " GROUP BY p.\"name\", p.uid, t.\"name\", t.uid, t.valuetype" );
 
         sql.append( commonOrdering( "p", paramsMap ) );
 
-        if ( paramsMap.hasValue( "maxLimit" ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
-        {
-            sql.append( " LIMIT :maxLimit" );
-        }
+        sql.append( maxLimit( paramsMap ) );
 
         return sql.toString();
     }
@@ -137,9 +135,9 @@ public class ProgramAttributeQuery implements DataItemQuery
 
         sql.append( commonFiltering( "p", "t", paramsMap ) );
 
-        if ( paramsMap.hasValue( "valueTypes" ) && paramsMap.getValue( "valueTypes" ) != null )
+        if ( paramsMap.hasValue( VALUE_TYPES ) && paramsMap.getValue( VALUE_TYPES ) != null )
         {
-            sql.append( " AND (t.valuetype IN (:valueTypes))" );
+            sql.append( " AND (t.valuetype IN (:" + VALUE_TYPES + "))" );
         }
 
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );

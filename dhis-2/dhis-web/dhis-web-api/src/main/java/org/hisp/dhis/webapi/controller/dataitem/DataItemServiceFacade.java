@@ -82,12 +82,8 @@ public class DataItemServiceFacade
 {
 
     // TODO: MAIKEL: LIST of tasks
-    // 1) Move all common strings into constants.
-    // 2) Fix unit tests
-    // 3) Add general code comments
+    // 1) Fix unit tests
 
-    // private final int PAGINATION_FIRST_RESULT = 0;
-    //
     // private final Set<String> METRICS = newHashSet( "Actual reports", "Actual
     // reports on time", "Expected reports",
     // "Reporting rate", "Reporting rate on time" );

@@ -30,7 +30,9 @@ package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.dataitem.query.shared.CommonStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
@@ -48,6 +50,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+/**
+ * This component is responsible for providing query capabilities on top of
+ * DataElements.
+ *
+ * @author maikel arabori
+ */
 @Component
 public class DataElementQuery implements DataItemQuery
 {
@@ -72,17 +80,11 @@ public class DataElementQuery implements DataItemQuery
 
         sql.append( commonFiltering( "de", paramsMap ) );
 
-        if ( paramsMap.hasValue( "valueTypes" ) && paramsMap.getValue( "valueTypes" ) != null )
-        {
-            sql.append( " AND (de.valuetype IN (:valueTypes))" );
-        }
+        sql.append( valueTypeFiltering( "de", paramsMap ) );
 
         sql.append( commonOrdering( "de", paramsMap ) );
 
-        if ( paramsMap.hasValue( "maxLimit" ) && (int) paramsMap.getValue( "maxLimit" ) > 0 )
-        {
-            sql.append( " LIMIT :maxLimit" );
-        }
+        sql.append( maxLimit( paramsMap ) );
 
         return sql.toString();
     }
@@ -124,9 +126,9 @@ public class DataElementQuery implements DataItemQuery
 
         sql.append( commonFiltering( "de", paramsMap ) );
 
-        if ( paramsMap.hasValue( "valueTypes" ) && paramsMap.getValue( "valueTypes" ) != null )
+        if ( paramsMap.hasValue( VALUE_TYPES ) && paramsMap.getValue( VALUE_TYPES ) != null )
         {
-            sql.append( " AND (de.valuetype IN (:valueTypes))" );
+            sql.append( " AND (de.valuetype IN (:" + VALUE_TYPES + "))" );
         }
 
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );

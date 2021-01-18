@@ -53,9 +53,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class OrderingHelper
 {
-    private static final int ORDERING_ATTRIBUTE = 0;
+    private static final int ORDERING_ATTRIBUTE_NAME = 0;
 
-    private static final int ORDERING_VALUE = 1;
+    private static final int ORDERING_ATTRIBUTE_VALUE = 1;
 
     private static final String DESC = "desc";
 
@@ -85,7 +85,11 @@ public class OrderingHelper
     }
 
     /**
-     * Sets the ordering defined by orderParams into the paramsMap.
+     * Sets the ordering defined by orderParams into the paramsMap. It will set the
+     * given "orderParams" into the provided "paramsMap". It's important to
+     * highlight that the "key" added to the "paramsMap" will contain the actual
+     * order param, ie.: "name" + "Order". So, if there is a "name" as order param,
+     * the "key" will result in "nameOrder".
      *
      * @param orderParams the source of ordering params
      * @param paramsMap the map that will receive the order params
@@ -100,6 +104,8 @@ public class OrderingHelper
             {
                 final String[] array = order.split( ":" );
 
+                // Concatenation of param name (ie.:"name") + "Order". It will result
+                // in "nameOrder".
                 paramsMap.addValue( trimToEmpty( array[0] ).concat( "Order" ), array[1] );
             }
         }
@@ -114,9 +120,9 @@ public class OrderingHelper
         if ( hasValidOrderingAttributes )
         {
             final BeanComparator<DataItem> comparator = new BeanComparator(
-                orderingAttributes[ORDERING_ATTRIBUTE], new NullComparator<>( true ) );
+                orderingAttributes[ORDERING_ATTRIBUTE_NAME], new NullComparator<>( true ) );
 
-            if ( DESC.equals( orderingAttributes[ORDERING_VALUE] ) )
+            if ( DESC.equals( orderingAttributes[ORDERING_ATTRIBUTE_VALUE] ) )
             {
                 return comparator.reversed();
             }
