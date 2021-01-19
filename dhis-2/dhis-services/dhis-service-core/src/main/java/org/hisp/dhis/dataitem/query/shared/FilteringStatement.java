@@ -28,11 +28,13 @@ package org.hisp.dhis.dataitem.query.shared;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.ILIKE_NAME;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.VALUE_TYPES;
+import static org.springframework.util.Assert.hasText;
+import static org.springframework.util.Assert.isInstanceOf;
+import static org.springframework.util.Assert.notEmpty;
+import static org.springframework.util.Assert.notNull;
 
 import java.util.Set;
 
@@ -49,8 +51,12 @@ public class FilteringStatement
     {
         final StringBuilder filtering = new StringBuilder();
 
-        if ( paramsMap.hasValue( ILIKE_NAME ) && isNotEmpty( (String) paramsMap.getValue( ILIKE_NAME ) ) )
+        if ( paramsMap != null && paramsMap.hasValue( ILIKE_NAME ) )
         {
+            isInstanceOf( String.class, paramsMap.getValue( ILIKE_NAME ),
+                ILIKE_NAME + " cannot be null and must be a String." );
+            hasText( (String) paramsMap.getValue( ILIKE_NAME ), ILIKE_NAME + " cannot be null/blank." );
+
             filtering.append( " AND (" + tableAlias + ".\"name\" ILIKE :" + ILIKE_NAME + ")" );
         }
 
@@ -62,8 +68,12 @@ public class FilteringStatement
     {
         final StringBuilder filtering = new StringBuilder();
 
-        if ( paramsMap.hasValue( ILIKE_NAME ) && isNotEmpty( (String) paramsMap.getValue( ILIKE_NAME ) ) )
+        if ( paramsMap != null && paramsMap.hasValue( ILIKE_NAME ) )
         {
+            isInstanceOf( String.class, paramsMap.getValue( ILIKE_NAME ),
+                ILIKE_NAME + " cannot be null and must be a String." );
+            hasText( (String) paramsMap.getValue( ILIKE_NAME ), ILIKE_NAME + " cannot be null/blank." );
+
             filtering.append( " AND (" + tableAlias1 + ".\"name\" ILIKE :" + ILIKE_NAME + " OR " + tableAlias2
                 + ".\"name\" ILIKE :" + ILIKE_NAME + ")" );
         }
@@ -75,18 +85,26 @@ public class FilteringStatement
     {
         final StringBuilder filtering = new StringBuilder();
 
-        if ( paramsMap.hasValue( VALUE_TYPES ) && paramsMap.getValue( VALUE_TYPES ) != null )
+        if ( paramsMap != null && paramsMap.hasValue( VALUE_TYPES ) )
         {
+            isInstanceOf( Set.class, paramsMap.getValue( VALUE_TYPES ),
+                VALUE_TYPES + " cannot be null and must be a Set." );
+            notEmpty( (Set) paramsMap.getValue( VALUE_TYPES ), VALUE_TYPES + " cannot be empty." );
+
             filtering.append( " AND (" + tableAlias + ".valuetype IN (:" + VALUE_TYPES + "))" );
         }
 
-        return EMPTY;
+        return filtering.toString();
     }
 
     public static boolean skipNumberValueType( final MapSqlParameterSource paramsMap )
     {
-        if ( paramsMap.hasValue( VALUE_TYPES ) && paramsMap.getValue( VALUE_TYPES ) != null )
+        if ( paramsMap != null && paramsMap.hasValue( VALUE_TYPES ) )
         {
+            isInstanceOf( Set.class, paramsMap.getValue( VALUE_TYPES ), VALUE_TYPES + " must be a Set." );
+            notNull( paramsMap.getValue( VALUE_TYPES ), VALUE_TYPES + " cannot be null." );
+            notEmpty( (Set) paramsMap.getValue( VALUE_TYPES ), VALUE_TYPES + " cannot be empty." );
+
             final Set<String> valueTypeNames = (Set<String>) paramsMap.getValue( VALUE_TYPES );
 
             // Skip WHEN the value type list does NOT contain a NUMBER type.

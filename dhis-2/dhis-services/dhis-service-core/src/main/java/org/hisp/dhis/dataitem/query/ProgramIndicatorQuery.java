@@ -69,24 +69,6 @@ public class ProgramIndicatorQuery implements DataItemQuery
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
     }
 
-    private String getProgramIndicatorQuery( final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT pi.\"name\" AS name, pi.uid AS uid"
-                + " FROM programindicator pi"
-                + " WHERE ("
-                + sharingConditions( "pi", paramsMap )
-                + ")" );
-
-        sql.append( commonFiltering( "pi", paramsMap ) );
-
-        sql.append( commonOrdering( "pi", paramsMap ) );
-
-        sql.append( maxLimit( paramsMap ) );
-
-        return sql.toString();
-    }
-
     public List<DataItem> find( final MapSqlParameterSource paramsMap )
     {
         final List<DataItem> dataItems = new ArrayList<>();
@@ -152,5 +134,23 @@ public class ProgramIndicatorQuery implements DataItemQuery
     public Class<? extends BaseDimensionalItemObject> getAssociatedEntity()
     {
         return ProgramIndicator.class;
+    }
+
+    private String getProgramIndicatorQuery( final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder sql = new StringBuilder(
+            "SELECT pi.\"name\" AS name, pi.uid AS uid"
+                + " FROM programindicator pi"
+                + " WHERE ("
+                + sharingConditions( "pi", paramsMap )
+                + ")" );
+
+        sql.append( commonFiltering( "pi", paramsMap ) );
+
+        sql.append( commonOrdering( "pi", paramsMap ) );
+
+        sql.append( maxLimit( paramsMap ) );
+
+        return sql.toString();
     }
 }

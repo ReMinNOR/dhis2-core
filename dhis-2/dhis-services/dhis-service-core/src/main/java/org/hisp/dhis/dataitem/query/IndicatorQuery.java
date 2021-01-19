@@ -69,24 +69,6 @@ public class IndicatorQuery implements DataItemQuery
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
     }
 
-    private String getIndicatorQuery( final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT i.\"name\" AS name, i.uid AS uid"
-                + " FROM indicator i"
-                + " WHERE ("
-                + sharingConditions( "i", paramsMap )
-                + ")" );
-
-        sql.append( commonFiltering( "i", paramsMap ) );
-
-        sql.append( commonOrdering( "i", paramsMap ) );
-
-        sql.append( maxLimit( paramsMap ) );
-
-        return sql.toString();
-    }
-
     @Override
     public List<DataItem> find( final MapSqlParameterSource paramsMap )
     {
@@ -152,5 +134,23 @@ public class IndicatorQuery implements DataItemQuery
     public Class<? extends BaseDimensionalItemObject> getAssociatedEntity()
     {
         return Indicator.class;
+    }
+
+    private String getIndicatorQuery( final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder sql = new StringBuilder(
+            "SELECT i.\"name\" AS name, i.uid AS uid"
+                + " FROM indicator i"
+                + " WHERE ("
+                + sharingConditions( "i", paramsMap )
+                + ")" );
+
+        sql.append( commonFiltering( "i", paramsMap ) );
+
+        sql.append( commonOrdering( "i", paramsMap ) );
+
+        sql.append( maxLimit( paramsMap ) );
+
+        return sql.toString();
     }
 }

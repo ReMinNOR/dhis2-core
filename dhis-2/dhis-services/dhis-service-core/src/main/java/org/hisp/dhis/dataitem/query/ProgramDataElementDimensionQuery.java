@@ -70,32 +70,6 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
     }
 
-    private String getProgramDataElementQueryWith( final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT p.\"name\" AS program_name, p.uid AS program_uid,"
-                + " de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
-                + " FROM dataelement de"
-                + " JOIN programstagedataelement psde ON psde.dataelementid = de.dataelementid"
-                + " JOIN programstage ps ON psde.programstageid = ps.programstageid"
-                + " JOIN program p ON p.programid = ps.programid"
-                + " WHERE ("
-                + sharingConditions( "p", "de", paramsMap )
-                + ")" );
-
-        sql.append( commonFiltering( "p", "de", paramsMap ) );
-
-        sql.append( valueTypeFiltering( "de", paramsMap ) );
-
-        sql.append( " GROUP BY p.\"name\", p.uid, de.\"name\", de.uid, de.valuetype" );
-
-        sql.append( commonOrdering( "p", paramsMap ) );
-
-        sql.append( maxLimit( paramsMap ) );
-
-        return sql.toString();
-    }
-
     public List<DataItem> find( final MapSqlParameterSource paramsMap )
     {
         final List<DataItem> dataItems = new ArrayList<>();
@@ -149,5 +123,31 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
     public Class<? extends BaseDimensionalItemObject> getAssociatedEntity()
     {
         return ProgramDataElementDimensionItem.class;
+    }
+
+    private String getProgramDataElementQueryWith( final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder sql = new StringBuilder(
+            "SELECT p.\"name\" AS program_name, p.uid AS program_uid,"
+                + " de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
+                + " FROM dataelement de"
+                + " JOIN programstagedataelement psde ON psde.dataelementid = de.dataelementid"
+                + " JOIN programstage ps ON psde.programstageid = ps.programstageid"
+                + " JOIN program p ON p.programid = ps.programid"
+                + " WHERE ("
+                + sharingConditions( "p", "de", paramsMap )
+                + ")" );
+
+        sql.append( commonFiltering( "p", "de", paramsMap ) );
+
+        sql.append( valueTypeFiltering( "de", paramsMap ) );
+
+        sql.append( " GROUP BY p.\"name\", p.uid, de.\"name\", de.uid, de.valuetype" );
+
+        sql.append( commonOrdering( "p", paramsMap ) );
+
+        sql.append( maxLimit( paramsMap ) );
+
+        return sql.toString();
     }
 }

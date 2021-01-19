@@ -67,24 +67,6 @@ public class DataSetQuery implements DataItemQuery
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
     }
 
-    private String getDateSetQuery( final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT ds.\"name\" AS name, ds.uid AS uid"
-                + " FROM dataset ds"
-                + " WHERE ("
-                + sharingConditions( "ds", paramsMap )
-                + ")" );
-
-        sql.append( commonFiltering( "ds", paramsMap ) );
-
-        sql.append( commonOrdering( "ds", paramsMap ) );
-
-        sql.append( maxLimit( paramsMap ) );
-
-        return sql.toString();
-    }
-
     @Override
     public List<DataItem> find( final MapSqlParameterSource paramsMap )
     {
@@ -126,5 +108,23 @@ public class DataSetQuery implements DataItemQuery
     public Class<? extends BaseDimensionalItemObject> getAssociatedEntity()
     {
         return DataSet.class;
+    }
+
+    private String getDateSetQuery( final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder sql = new StringBuilder(
+            "SELECT ds.\"name\" AS name, ds.uid AS uid"
+                + " FROM dataset ds"
+                + " WHERE ("
+                + sharingConditions( "ds", paramsMap )
+                + ")" );
+
+        sql.append( commonFiltering( "ds", paramsMap ) );
+
+        sql.append( commonOrdering( "ds", paramsMap ) );
+
+        sql.append( maxLimit( paramsMap ) );
+
+        return sql.toString();
     }
 }

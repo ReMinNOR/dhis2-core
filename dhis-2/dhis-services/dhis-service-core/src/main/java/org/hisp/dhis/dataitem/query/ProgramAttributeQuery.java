@@ -70,31 +70,6 @@ public class ProgramAttributeQuery implements DataItemQuery
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
     }
 
-    private String getProgramAttributeQueryWith( final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT p.\"name\" AS program_name, p.uid AS program_uid, t.\"name\" AS name, t.uid AS uid,"
-                + " t.valuetype AS valuetype"
-                + " FROM trackedentityattribute t"
-                + " JOIN program_attributes pa ON pa.trackedentityattributeid = t.trackedentityattributeid"
-                + " JOIN program p ON pa.programid = p.programid"
-                + " WHERE ("
-                + sharingConditions( "p", "t", paramsMap )
-                + ")" );
-
-        sql.append( commonFiltering( "p", "t", paramsMap ) );
-
-        sql.append( valueTypeFiltering( "t", paramsMap ) );
-
-        sql.append( " GROUP BY p.\"name\", p.uid, t.\"name\", t.uid, t.valuetype" );
-
-        sql.append( commonOrdering( "p", paramsMap ) );
-
-        sql.append( maxLimit( paramsMap ) );
-
-        return sql.toString();
-    }
-
     public List<DataItem> find( final MapSqlParameterSource paramsMap )
     {
         final List<DataItem> dataItems = new ArrayList<>();
@@ -147,5 +122,30 @@ public class ProgramAttributeQuery implements DataItemQuery
     public Class<? extends BaseDimensionalItemObject> getAssociatedEntity()
     {
         return ProgramTrackedEntityAttributeDimensionItem.class;
+    }
+
+    private String getProgramAttributeQueryWith( final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder sql = new StringBuilder(
+            "SELECT p.\"name\" AS program_name, p.uid AS program_uid, t.\"name\" AS name, t.uid AS uid,"
+                + " t.valuetype AS valuetype"
+                + " FROM trackedentityattribute t"
+                + " JOIN program_attributes pa ON pa.trackedentityattributeid = t.trackedentityattributeid"
+                + " JOIN program p ON pa.programid = p.programid"
+                + " WHERE ("
+                + sharingConditions( "p", "t", paramsMap )
+                + ")" );
+
+        sql.append( commonFiltering( "p", "t", paramsMap ) );
+
+        sql.append( valueTypeFiltering( "t", paramsMap ) );
+
+        sql.append( " GROUP BY p.\"name\", p.uid, t.\"name\", t.uid, t.valuetype" );
+
+        sql.append( commonOrdering( "p", paramsMap ) );
+
+        sql.append( maxLimit( paramsMap ) );
+
+        return sql.toString();
     }
 }

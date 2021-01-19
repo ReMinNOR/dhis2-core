@@ -69,26 +69,6 @@ public class DataElementQuery implements DataItemQuery
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
     }
 
-    private String getDataElementQueryWith( final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
-                + " FROM dataelement de"
-                + " WHERE ("
-                + sharingConditions( "de", paramsMap )
-                + ")" );
-
-        sql.append( commonFiltering( "de", paramsMap ) );
-
-        sql.append( valueTypeFiltering( "de", paramsMap ) );
-
-        sql.append( commonOrdering( "de", paramsMap ) );
-
-        sql.append( maxLimit( paramsMap ) );
-
-        return sql.toString();
-    }
-
     @Override
     public List<DataItem> find( final MapSqlParameterSource paramsMap )
     {
@@ -138,5 +118,25 @@ public class DataElementQuery implements DataItemQuery
     public Class<? extends BaseDimensionalItemObject> getAssociatedEntity()
     {
         return DataElement.class;
+    }
+
+    private String getDataElementQueryWith( final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder sql = new StringBuilder(
+            "SELECT de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
+                + " FROM dataelement de"
+                + " WHERE ("
+                + sharingConditions( "de", paramsMap )
+                + ")" );
+
+        sql.append( commonFiltering( "de", paramsMap ) );
+
+        sql.append( valueTypeFiltering( "de", paramsMap ) );
+
+        sql.append( commonOrdering( "de", paramsMap ) );
+
+        sql.append( maxLimit( paramsMap ) );
+
+        return sql.toString();
     }
 }

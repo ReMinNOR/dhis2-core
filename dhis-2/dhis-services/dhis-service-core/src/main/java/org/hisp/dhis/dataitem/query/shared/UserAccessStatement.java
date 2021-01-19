@@ -32,6 +32,8 @@ import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_GROUP_UIDS;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_ID;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_GROUPS_ACCESS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_IDS;
+import static org.springframework.util.Assert.hasText;
+import static org.springframework.util.Assert.isInstanceOf;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
@@ -53,8 +55,12 @@ public class UserAccessStatement
             .append( " OR " )
             .append( userAccessCondition( tableAlias ) );
 
-        if ( paramsMap.hasValue( USER_GROUP_UIDS ) )
+        if ( paramsMap != null && paramsMap.hasValue( USER_GROUP_UIDS ) )
         {
+            isInstanceOf( String.class, paramsMap.getValue( USER_GROUP_UIDS ),
+                USER_GROUP_UIDS + " must be a String." );
+            hasText( (String) paramsMap.getValue( USER_GROUP_UIDS ), USER_GROUP_UIDS + " cannot be null/blank." );
+
             conditions.append( " OR (" + userGroupAccessCondition( tableAlias ) + ")" );
         }
 
@@ -82,8 +88,12 @@ public class UserAccessStatement
             .append( userAccessCondition( tableAlias2 ) )
             .append( ")" ); // Table 2 conditions end
 
-        if ( paramsMap.hasValue( USER_GROUP_UIDS ) )
+        if ( paramsMap != null && paramsMap.hasValue( USER_GROUP_UIDS ) )
         {
+            isInstanceOf( String.class, paramsMap.getValue( USER_GROUP_UIDS ),
+                USER_GROUP_UIDS + " must be a String." );
+            hasText( (String) paramsMap.getValue( USER_GROUP_UIDS ), USER_GROUP_UIDS + " cannot be null/blank." );
+
             conditions.append( " OR (" );
 
             // Program group access checks
@@ -99,28 +109,36 @@ public class UserAccessStatement
         return conditions.toString();
     }
 
-    private static String ownerAccessCondition( final String tableAlias )
+    static String ownerAccessCondition( final String tableAlias )
     {
+        hasText( tableAlias, "The argument tableAlias cannot be null/blank." );
+
         return "(jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') IS NULL OR "
             + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') = 'null' OR "
             + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') = :userUid)";
     }
 
-    private static String publicAccessCondition( final String tableAlias )
+    static String publicAccessCondition( final String tableAlias )
     {
+        hasText( tableAlias, "The argument tableAlias cannot be null/blank." );
+
         return "(jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') IS NULL OR "
             + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') = 'null' OR "
             + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') LIKE 'r%')";
     }
 
-    private static String userAccessCondition( final String tableAlias )
+    static String userAccessCondition( final String tableAlias )
     {
+        hasText( tableAlias, "The argument tableAlias cannot be null/blank." );
+
         return "(jsonb_has_user_id(" + tableAlias + ".sharing, :" + USER_ID + ") = TRUE "
             + "AND jsonb_check_user_access(" + tableAlias + ".sharing, :" + USER_ID + ", 'r%') = TRUE)";
     }
 
-    private static String userGroupAccessCondition( final String tableAlias )
+    static String userGroupAccessCondition( final String tableAlias )
     {
+        hasText( tableAlias, "The argument tableAlias cannot be null/blank." );
+
         return "(" + HAS_USER_GROUP_IDS + "(" + tableAlias + ".sharing, :" + USER_GROUP_UIDS + ") = TRUE " +
             "AND " + CHECK_USER_GROUPS_ACCESS + "(" + tableAlias + ".sharing, 'r%', :" + USER_GROUP_UIDS + ") = TRUE)";
     }
