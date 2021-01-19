@@ -49,6 +49,7 @@ import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataitem.DataItem;
+import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
@@ -58,7 +59,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
@@ -80,14 +80,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class DataItemServiceFacade
 {
-
-    // TODO: MAIKEL: LIST of tasks
-    // 1) Fix unit tests
-
-    // private final Set<String> METRICS = newHashSet( "Actual reports", "Actual
-    // reports on time", "Expected reports",
-    // "Reporting rate", "Reporting rate on time" );
-
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;

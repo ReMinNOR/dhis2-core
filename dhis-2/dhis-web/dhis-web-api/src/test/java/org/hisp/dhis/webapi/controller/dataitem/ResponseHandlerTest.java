@@ -59,13 +59,13 @@ import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataitem.DataItem;
+import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Before;
@@ -112,12 +112,13 @@ public class ResponseHandlerTest
         final RootNode anyRootNode = new RootNode( "any" );
         final DataItem anyDataItem = new DataItem();
         anyDataItem.setName( "any" );
-        final List<DataItem> anyDimensionalItems = singletonList(anyDataItem);
-        final List<String> anyFields = singletonList( "any" );
+        final List<DataItem> anyDimensionalItems = singletonList( anyDataItem );
+        final List<String> anyFields = singletonList( "name" );
         final CollectionNode anyCollectionNode = new CollectionNode( "any" );
 
         // When
-        when( fieldFilterService.toCollectionNode( any(), any() ) ).thenReturn( anyCollectionNode );
+        when( fieldFilterService.toConcreteClassCollectionNode( any(), any(), any(), any() ) )
+            .thenReturn( anyCollectionNode );
         responseHandler.addResultsToNode( anyRootNode, anyDimensionalItems, anyFields );
 
         // Then
@@ -138,11 +139,11 @@ public class ResponseHandlerTest
         final User anyUser = new User();
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
         final String[] testEnvironmentVars = { "test" };
-        final CacheBuilder<Long> testingCacheBuilder = new SimpleCacheBuilder<>();
+        final CacheBuilder<Integer> testingCacheBuilder = new SimpleCacheBuilder<>();
 
         // When
         when( environment.getActiveProfiles() ).thenReturn( testEnvironmentVars );
-        when( cacheProvider.newCacheBuilder( Long.class ) ).thenReturn( testingCacheBuilder );
+        when( cacheProvider.newCacheBuilder( Integer.class ) ).thenReturn( testingCacheBuilder );
         responseHandler.init();
         responseHandler.addPaginationToNode( anyRootNode, anyTargetEntities, anyUser, anyWebOptions,
             anyFilters );
@@ -167,11 +168,11 @@ public class ResponseHandlerTest
         final User anyUser = new User();
         final WebOptions webOptionsNoPaging = mockWebOptionsNoPaging();
         final String[] testEnvironmentVars = { "test" };
-        final CacheBuilder<Long> testingCacheBuilder = new SimpleCacheBuilder<>();
+        final CacheBuilder<Integer> testingCacheBuilder = new SimpleCacheBuilder<>();
 
         // When
         when( environment.getActiveProfiles() ).thenReturn( testEnvironmentVars );
-        when( cacheProvider.newCacheBuilder( Long.class ) ).thenReturn( testingCacheBuilder );
+        when( cacheProvider.newCacheBuilder( Integer.class ) ).thenReturn( testingCacheBuilder );
         responseHandler.init();
         responseHandler.addPaginationToNode( anyRootNode, anyTargetEntities, anyUser, webOptionsNoPaging,
             anyFilters );
@@ -189,15 +190,15 @@ public class ResponseHandlerTest
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
         final List<Class<? extends BaseDimensionalItemObject>> emptyTargetEntities = emptyList();
-        final List<String> anyFilters = singletonList("any");
+        final List<String> anyFilters = singletonList( "any" );
         final User anyUser = new User();
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
         final String[] testEnvironmentVars = { "test" };
-        final CacheBuilder<Long> testingCacheBuilder = new SimpleCacheBuilder<>();
+        final CacheBuilder<Integer> testingCacheBuilder = new SimpleCacheBuilder<>();
 
         // When
         when( environment.getActiveProfiles() ).thenReturn( testEnvironmentVars );
-        when( cacheProvider.newCacheBuilder( Long.class ) ).thenReturn( testingCacheBuilder );
+        when( cacheProvider.newCacheBuilder( Integer.class ) ).thenReturn( testingCacheBuilder );
         responseHandler.init();
         responseHandler.addPaginationToNode( anyRootNode, emptyTargetEntities, anyUser, anyWebOptions,
             anyFilters );

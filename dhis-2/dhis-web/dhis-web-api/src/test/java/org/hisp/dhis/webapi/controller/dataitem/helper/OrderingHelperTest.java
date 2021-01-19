@@ -80,7 +80,6 @@ public class OrderingHelperTest
     }
 
     @Test
-    @Ignore
     public void sortWhenOrderParamsIsAsc()
     {
         // Given

@@ -35,15 +35,16 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
-import static org.hisp.dhis.query.Query.from;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.HashMap;
@@ -53,21 +54,22 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.dataitem.DataItem;
+import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.dataitem.query.QueryExecutor;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 public class DataItemServiceFacadeTest
 {
@@ -88,34 +90,33 @@ public class DataItemServiceFacadeTest
     @Before
     public void setUp()
     {
-        dataItemServiceFacade = new DataItemServiceFacade( currentUserService, aclService, queryExecutor);
+        dataItemServiceFacade = new DataItemServiceFacade( currentUserService, aclService, queryExecutor );
     }
 
     @Test
     public void testRetrieveDataItemEntities()
     {
         // Given
+        final Class<? extends BaseDimensionalItemObject> targetEntity = Indicator.class;
         final Set<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = new HashSet<>(
-            asList( Indicator.class ) );
-        final List<BaseDimensionalItemObject> expectedItemsFound = asList( new Indicator(), new Indicator() );
+            asList( targetEntity ) );
+        final List<DataItem> expectedItemsFound = asList( mockDataItem( INDICATOR ), mockDataItem( INDICATOR ) );
         final List<String> anyFilters = asList( "anyFilter" );
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
         final Set<String> anyOrdering = new HashSet<>( asList( "name:desc" ) );
         final OrderParams anyOrderParams = new OrderParams( anyOrdering );
-        final Query anyQuery = from( new Schema( Indicator.class, "indicator", "indicators" ) );
+        final User currentUser = new User();
 
-// TODO: Fix this test
         // When
-//        when( queryService.getQueryFromUrl( any(), anyList(), anyList(),
-//            any( Pagination.class ), any( Type.class ) ) ).thenReturn( anyQuery );
-//        when( (List<BaseDimensionalItemObject>) queryService.query( any( Query.class ) ) )
-//            .thenReturn( expectedItemsFound );
+        when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
+        when( aclService.canRead( currentUser, targetEntity ) ).thenReturn( true );
+        when( queryExecutor.find( any( Class.class ), any( MapSqlParameterSource.class ) ) )
+            .thenReturn( expectedItemsFound );
         final List<DataItem> actualDimensionalItems = dataItemServiceFacade
             .retrieveDataItemEntities( anyTargetEntities, anyFilters, anyWebOptions, anyOrderParams );
 
         // Then
-        // TODO: FIX IT!
-        //assertThat( actualDimensionalItems, hasSize( 2 ) );
+        assertThat( actualDimensionalItems, hasSize( 2 ) );
         assertThat( actualDimensionalItems.get( 0 ).getDimensionItemType(), is( INDICATOR ) );
         assertThat( actualDimensionalItems.get( 1 ).getDimensionItemType(), is( INDICATOR ) );
     }
@@ -129,7 +130,6 @@ public class DataItemServiceFacadeTest
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
         final Set<String> anyOrdering = new HashSet<>( asList( "name:desc" ) );
         final OrderParams anyOrderParams = new OrderParams( anyOrdering );
-        final Query anyQuery = from( new Schema( Indicator.class, "indicator", "indicators" ) );
 
         // When
         final List<DataItem> actualDimensionalItems = dataItemServiceFacade
@@ -193,5 +193,13 @@ public class DataItemServiceFacadeTest
         options.put( PAGING, "true" );
 
         return new WebOptions( options );
+    }
+
+    private DataItem mockDataItem( final DimensionItemType dimensionItemType )
+    {
+        final DataItem dataItem = new DataItem();
+        dataItem.setDimensionItemType( dimensionItemType );
+
+        return dataItem;
     }
 }
