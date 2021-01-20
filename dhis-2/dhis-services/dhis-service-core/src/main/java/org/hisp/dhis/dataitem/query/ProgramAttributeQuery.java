@@ -83,12 +83,12 @@ public class ProgramAttributeQuery implements DataItemQuery
             final ValueType valueType = ValueType.fromString( rowSet.getString( "valuetype" ) );
 
             viewItem.setName( rowSet.getString( "program_name" ) + SPACE + rowSet.getString( "name" ) );
-            viewItem.setValueType( valueType );
-            viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType() );
+            viewItem.setValueType( valueType.name() );
+            viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
             viewItem.setCombinedId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
-            viewItem.setDimensionItemType( PROGRAM_ATTRIBUTE );
+            viewItem.setDimensionItemType( PROGRAM_ATTRIBUTE.name() );
 
             dataItems.add( viewItem );
         }

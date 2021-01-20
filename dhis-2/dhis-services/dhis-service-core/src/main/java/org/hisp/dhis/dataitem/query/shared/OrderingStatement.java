@@ -41,6 +41,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class OrderingStatement
 {
+    private OrderingStatement()
+    {
+    }
 
     public static String commonOrdering( final String tableAlias, final MapSqlParameterSource paramsMap )
     {

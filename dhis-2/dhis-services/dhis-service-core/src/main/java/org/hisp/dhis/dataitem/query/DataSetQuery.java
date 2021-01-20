@@ -81,7 +81,7 @@ public class DataSetQuery implements DataItemQuery
 
             viewItem.setName( rowSet.getString( "name" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
-            viewItem.setDimensionItemType( REPORTING_RATE );
+            viewItem.setDimensionItemType( REPORTING_RATE.name() );
 
             dataItems.add( viewItem );
         }

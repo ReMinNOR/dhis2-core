@@ -59,6 +59,10 @@ public class OrderingHelper
 
     private static final String DESC = "desc";
 
+    private OrderingHelper()
+    {
+    }
+
     /**
      * Sorts the given list based on the given sorting params.
      *
@@ -72,11 +76,11 @@ public class OrderingHelper
             final ComparatorChain<DataItem> chainOfComparators = new ComparatorChain<>();
             final Set<String> orderingPairs = sortingParams.getOrders();
 
-            if ( sortingParams != null && isNotEmpty( orderingPairs ) )
+            if ( isNotEmpty( orderingPairs ) )
             {
                 for ( final String orderingPair : orderingPairs )
                 {
-                    chainOfComparators.addComparator( getComparator( orderingPair ) );
+                    chainOfComparators.addComparator( getComparator( orderingPair, dimensionalItems ) );
                 }
 
                 dimensionalItems.sort( chainOfComparators );
@@ -85,11 +89,11 @@ public class OrderingHelper
     }
 
     /**
-     * Sets the ordering defined by orderParams into the paramsMap. It will set the
-     * given "orderParams" into the provided "paramsMap". It's important to
+     * Sets the ordering defined by orderParams into the paramsMap. It will set
+     * the given "orderParams" into the provided "paramsMap". It's important to
      * highlight that the "key" added to the "paramsMap" will contain the actual
-     * order param, ie.: "name" + "Order". So, if there is a "name" as order param,
-     * the "key" will result in "nameOrder".
+     * order param, ie.: "name" + "Order". So, if there is a "name" as order
+     * param, the "key" will result in "nameOrder".
      *
      * @param orderParams the source of ordering params
      * @param paramsMap the map that will receive the order params
@@ -104,7 +108,8 @@ public class OrderingHelper
             {
                 final String[] array = order.split( ":" );
 
-                // Concatenation of param name (ie.:"name") + "Order". It will result
+                // Concatenation of param name (ie.:"name") + "Order". It will
+                // result
                 // in "nameOrder".
                 paramsMap.addValue( trimToEmpty( array[0] ).concat( "Order" ), array[1] );
             }
@@ -112,10 +117,11 @@ public class OrderingHelper
     }
 
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    private static Comparator<DataItem> getComparator( final String orderingParam )
+    private static Comparator<DataItem> getComparator( final String orderingParam,
+        final List<DataItem> dimensionalItems )
     {
         final String[] orderingAttributes = split( orderingParam, ":" );
-        final boolean hasValidOrderingAttributes = orderingAttributes != null & orderingAttributes.length == 2;
+        final boolean hasValidOrderingAttributes = orderingAttributes != null && orderingAttributes.length == 2;
 
         if ( hasValidOrderingAttributes )
         {

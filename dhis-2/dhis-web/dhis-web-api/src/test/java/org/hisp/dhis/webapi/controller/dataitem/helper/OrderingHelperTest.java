@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.collect.Lists.reverse;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
@@ -43,9 +44,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dataitem.DataItem;
-import org.junit.Ignore;
+import org.hisp.dhis.dxf2.common.OrderParams;
 import org.junit.Test;
 
 public class OrderingHelperTest
@@ -83,24 +83,23 @@ public class OrderingHelperTest
     public void sortWhenOrderParamsIsAsc()
     {
         // Given
-        final Set<String> orderings = new HashSet<>( singletonList( "name:asc" ) );
+        final Set<String> orderings = new HashSet<>( singletonList( "name:desc" ) );
         final OrderParams orderParams = new OrderParams( orderings );
         final List<DataItem> anyDimensionalItems = mockDimensionalItems( 2 );
-        final List<DataItem> ascList = mockDimensionalItems( 2 );
-        Collections.sort( ascList );
 
         // When
         sort( anyDimensionalItems, orderParams );
 
         // Then
-        assertEquals( anyDimensionalItems, ascList );
+        assertEquals( anyDimensionalItems.get(0).getName(), "d-1" );
+        assertEquals( anyDimensionalItems.get(1).getName(), "d-0" );
     }
 
     @Test
     public void sortWhenOrderParamsIsDesc()
     {
         // Given
-        final Set<String> orderings = new HashSet<>( singletonList( "name:desc" ));
+        final Set<String> orderings = new HashSet<>( singletonList( "name:desc" ) );
         final OrderParams orderParams = new OrderParams( orderings );
         final List<DataItem> anyDimensionalItems = mockDimensionalItems( 2 );
         final List<DataItem> ascList = mockDimensionalItems( 2 );
@@ -121,13 +120,12 @@ public class OrderingHelperTest
         final OrderParams orderParams = new OrderParams( orderingWithNoValue );
         final List<DataItem> anyDimensionalItems = mockDimensionalItems( 2 );
 
-
         // When
         assertThrows( "Unable to parse order param: `" + "name:" + "`", IllegalQueryException.class,
             () -> sort( anyDimensionalItems, orderParams ) );
     }
 
-    private List<DataItem> mockDimensionalItems(final int totalOfItems )
+    private List<DataItem> mockDimensionalItems( final int totalOfItems )
     {
         final List<DataItem> dataItemEntities = new ArrayList<>( 0 );
 
@@ -136,7 +134,7 @@ public class OrderingHelperTest
             final DataItem dataItem = new DataItem();
             dataItem.setName( "d-" + i );
             dataItem.setId( "d-" + i );
-            dataItemEntities.add(dataItem);
+            dataItemEntities.add( dataItem );
         }
 
         return dataItemEntities;

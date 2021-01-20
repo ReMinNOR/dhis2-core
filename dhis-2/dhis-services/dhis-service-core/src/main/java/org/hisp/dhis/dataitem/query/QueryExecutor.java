@@ -90,8 +90,8 @@ public class QueryExecutor
         final Class<? extends BaseDimensionalItemObject> other )
     {
         notNull( entity, "The entity must not be null" );
-        notNull( entity, "The other must not be null" );
+        notNull( other, "The other must not be null" );
 
-        return entity.getSimpleName().equals( other.getSimpleName() );
+        return entity.isAssignableFrom( other );
     }
 }

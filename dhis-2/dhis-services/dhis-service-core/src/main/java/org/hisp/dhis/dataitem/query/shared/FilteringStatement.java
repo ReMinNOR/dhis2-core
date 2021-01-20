@@ -47,6 +47,10 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class FilteringStatement
 {
+    private FilteringStatement()
+    {
+    }
+
     public static String commonFiltering( final String tableAlias, final MapSqlParameterSource paramsMap )
     {
         final StringBuilder filtering = new StringBuilder();

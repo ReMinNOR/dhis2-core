@@ -44,6 +44,10 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class UserAccessStatement
 {
+    private UserAccessStatement()
+    {
+    }
+
     public static String sharingConditions( final String tableAlias, final MapSqlParameterSource paramsMap )
     {
         final StringBuilder conditions = new StringBuilder();
@@ -111,7 +115,7 @@ public class UserAccessStatement
 
     static String ownerAccessCondition( final String tableAlias )
     {
-        hasText( tableAlias, "The argument tableAlias cannot be null/blank." );
+        assertTableAlias( tableAlias );
 
         return "(jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') IS NULL OR "
             + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') = 'null' OR "
@@ -120,7 +124,7 @@ public class UserAccessStatement
 
     static String publicAccessCondition( final String tableAlias )
     {
-        hasText( tableAlias, "The argument tableAlias cannot be null/blank." );
+        assertTableAlias( tableAlias );
 
         return "(jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') IS NULL OR "
             + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') = 'null' OR "
@@ -129,7 +133,7 @@ public class UserAccessStatement
 
     static String userAccessCondition( final String tableAlias )
     {
-        hasText( tableAlias, "The argument tableAlias cannot be null/blank." );
+        assertTableAlias( tableAlias );
 
         return "(jsonb_has_user_id(" + tableAlias + ".sharing, :" + USER_ID + ") = TRUE "
             + "AND jsonb_check_user_access(" + tableAlias + ".sharing, :" + USER_ID + ", 'r%') = TRUE)";
@@ -137,9 +141,14 @@ public class UserAccessStatement
 
     static String userGroupAccessCondition( final String tableAlias )
     {
-        hasText( tableAlias, "The argument tableAlias cannot be null/blank." );
+        assertTableAlias( tableAlias );
 
         return "(" + HAS_USER_GROUP_IDS + "(" + tableAlias + ".sharing, :" + USER_GROUP_UIDS + ") = TRUE " +
             "AND " + CHECK_USER_GROUPS_ACCESS + "(" + tableAlias + ".sharing, 'r%', :" + USER_GROUP_UIDS + ") = TRUE)";
+    }
+
+    private static void assertTableAlias( String tableAlias )
+    {
+        hasText( tableAlias, "The argument tableAlias cannot be null/blank." );
     }
 }

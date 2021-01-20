@@ -137,8 +137,8 @@ public class DataItemQueryController
     }
 
     /**
-     * Based on the informed arguments, this method will read the URL and based on
-     * the give params will retrieve the respective data items.
+     * Based on the informed arguments, this method will read the URL and based
+     * on the give params will retrieve the respective data items.
      * 
      * @param currentUser the logged user
      * @param urlParameters the request url params

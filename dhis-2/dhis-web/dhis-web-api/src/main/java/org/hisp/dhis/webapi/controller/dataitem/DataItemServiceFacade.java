@@ -114,9 +114,9 @@ public class DataItemServiceFacade
     }
 
     /**
-     * This method will iterate through the list of target entities, and query each
-     * one of them using the filters and params provided. The result list will bring
-     * together the results of all target entities queried.
+     * This method will iterate through the list of target entities, and query
+     * each one of them using the filters and params provided. The result list
+     * will bring together the results of all target entities queried.
      * 
      * @param targetEntities the list of entities to be retrieved
      * @param orderParams request ordering params
@@ -155,11 +155,11 @@ public class DataItemServiceFacade
                 dataItems.addAll( queryExecutor.find( entity, paramsMap ) );
             }
 
-            // In memory sorting.
-            sort( dataItems, orderParams );
-
             // In memory pagination.
             dataItems = slice( options, dataItems );
+
+            // In memory sorting.
+            sort( dataItems, orderParams );
         }
 
         return dataItems;
@@ -167,7 +167,8 @@ public class DataItemServiceFacade
 
     /**
      * This method returns a set of BaseDimensionalItemObject's based on the
-     * provided filters. It will also remove, from the filters, the objects found.
+     * provided filters. It will also remove, from the filters, the objects
+     * found.
      *
      * @param filters
      * @return the data items classes to be queried
@@ -178,29 +179,7 @@ public class DataItemServiceFacade
 
         if ( containsDimensionTypeFilter( filters ) )
         {
-            final Iterator<String> iterator = filters.iterator();
-
-            while ( iterator.hasNext() )
-            {
-                final String filter = iterator.next();
-                final Class<? extends BaseDimensionalItemObject> entity = extractEntityFromEqualFilter( filter );
-                final Set<Class<? extends BaseDimensionalItemObject>> entities = extractEntitiesFromInFilter( filter );
-
-                if ( entity != null || isNotEmpty( entities ) )
-                {
-                    if ( entity != null )
-                    {
-                        targetedEntities.add( entity );
-                    }
-
-                    if ( isNotEmpty( entities ) )
-                    {
-                        targetedEntities.addAll( entities );
-                    }
-
-                    iterator.remove();
-                }
-            }
+            addFilteredTargetEntities( filters, targetedEntities );
         }
         else
         {
@@ -209,5 +188,33 @@ public class DataItemServiceFacade
         }
 
         return targetedEntities;
+    }
+
+    private void addFilteredTargetEntities( final List<String> filters,
+        final Set<Class<? extends BaseDimensionalItemObject>> targetedEntities )
+    {
+        final Iterator<String> iterator = filters.iterator();
+
+        while ( iterator.hasNext() )
+        {
+            final String filter = iterator.next();
+            final Class<? extends BaseDimensionalItemObject> entity = extractEntityFromEqualFilter( filter );
+            final Set<Class<? extends BaseDimensionalItemObject>> entities = extractEntitiesFromInFilter( filter );
+
+            if ( entity != null || isNotEmpty( entities ) )
+            {
+                if ( entity != null )
+                {
+                    targetedEntities.add( entity );
+                }
+
+                if ( isNotEmpty( entities ) )
+                {
+                    targetedEntities.addAll( entities );
+                }
+
+                iterator.remove();
+            }
+        }
     }
 }

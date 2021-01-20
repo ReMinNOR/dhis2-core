@@ -30,6 +30,7 @@ package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.query.shared.CommonStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
@@ -80,13 +81,13 @@ public class DataElementQuery implements DataItemQuery
         while ( rowSet.next() )
         {
             final DataItem viewItem = new DataItem();
-            final ValueType valueType = ValueType.fromString( rowSet.getString( "valuetype" ) );
+            final ValueType valueType = fromString( rowSet.getString( "valuetype" ) );
 
             viewItem.setName( rowSet.getString( "name" ) );
-            viewItem.setValueType( valueType );
-            viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType() );
+            viewItem.setValueType( valueType.name() );
+            viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
             viewItem.setId( rowSet.getString( "uid" ) );
-            viewItem.setDimensionItemType( DATA_ELEMENT );
+            viewItem.setDimensionItemType( DATA_ELEMENT.name() );
 
             dataItems.add( viewItem );
         }

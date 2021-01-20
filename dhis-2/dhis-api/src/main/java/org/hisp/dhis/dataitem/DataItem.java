@@ -40,9 +40,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.UserContext;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.UserSettingKey;
@@ -61,7 +59,7 @@ import lombok.Setter;
 @EqualsAndHashCode
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "dataItem", namespace = DXF_2_0 )
-public class DataItem implements Serializable, Comparable<DataItem>
+public class DataItem implements Serializable
 {
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
@@ -79,7 +77,7 @@ public class DataItem implements Serializable, Comparable<DataItem>
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private DimensionItemType dimensionItemType;
+    private String dimensionItemType;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
@@ -91,11 +89,11 @@ public class DataItem implements Serializable, Comparable<DataItem>
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private ValueType valueType;
+    private String valueType;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private ValueType simplifiedValueType;
+    private String simplifiedValueType;
 
     /**
      * Set of available object translation, normally filtered by locale.
@@ -105,12 +103,14 @@ public class DataItem implements Serializable, Comparable<DataItem>
     protected Set<Translation> translations = new HashSet<>();
 
     /**
-     * Cache for object translations, where the cache key is a combination of locale
-     * and translation property, and value is the translated value.
+     * Cache for object translations, where the cache key is a combination of
+     * locale and translation property, and value is the translated value.
      */
     @Getter( value = NONE )
     @Setter( value = NONE )
     protected Map<String, String> translationCache = new HashMap<>();
+
+    private DataItem dataItem;
 
     public String getDisplayName()
     {
@@ -160,21 +160,5 @@ public class DataItem implements Serializable, Comparable<DataItem>
                 }
             }
         }
-    }
-
-    /**
-     * Compares objects based on display name. A null display name is ordered after
-     * a non-null display name.
-     */
-    @Override
-    public int compareTo( DataItem object )
-    {
-        if ( this.getDisplayName() == null )
-        {
-            return object.getDisplayName() == null ? 0 : 1;
-        }
-
-        return object.getDisplayName() == null ? -1
-            : this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
     }
 }

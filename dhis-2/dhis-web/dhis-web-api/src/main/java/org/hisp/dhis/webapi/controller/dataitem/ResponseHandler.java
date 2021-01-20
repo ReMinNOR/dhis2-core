@@ -48,12 +48,12 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataitem.DataItem;
+import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.core.env.Environment;
@@ -138,26 +138,23 @@ class ResponseHandler
         final List<Class<? extends BaseDimensionalItemObject>> targetEntities, final User currentUser,
         final WebOptions options, final List<String> filters )
     {
-        if ( options.hasPaging() )
+        if ( options.hasPaging() && isNotEmpty( targetEntities ) )
         {
-            if ( isNotEmpty( targetEntities ) )
+            long count = 0;
+
+            // Counting and summing up the results for each entity.
+            for ( final Class<? extends BaseDimensionalItemObject> entity : targetEntities )
             {
-                long count = 0;
-
-                // Counting and summing up the results for each entity.
-                for ( final Class<? extends BaseDimensionalItemObject> entity : targetEntities )
-                {
-                    count += PAGE_COUNTING_CACHE.get(
-                        createPageCountingCacheKey( currentUser, entity, filters, options ),
-                        p -> countEntityRowsTotal( entity, options, filters, currentUser ) ).orElse( 0 );
-                }
-
-                final Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
-
-                linkService.generatePagerLinks( pager, API_RESOURCE_PATH );
-
-                rootNode.addChild( createPager( pager ) );
+                count += PAGE_COUNTING_CACHE.get(
+                    createPageCountingCacheKey( currentUser, entity, filters, options ),
+                    p -> countEntityRowsTotal( entity, options, filters, currentUser ) ).orElse( 0 );
             }
+
+            final Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
+
+            linkService.generatePagerLinks( pager, API_RESOURCE_PATH );
+
+            rootNode.addChild( createPager( pager ) );
         }
     }
 

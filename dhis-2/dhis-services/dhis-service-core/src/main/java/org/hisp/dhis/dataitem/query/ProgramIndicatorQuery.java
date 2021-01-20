@@ -94,13 +94,13 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
             viewItem.setName( rowSet.getString( "name" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
-            viewItem.setDimensionItemType( PROGRAM_INDICATOR );
+            viewItem.setDimensionItemType( PROGRAM_INDICATOR.name() );
 
             // Specific case where we have to force a vale type. Program
             // Indicators don't
             // have a value type but they always evaluate to numbers.
-            viewItem.setValueType( NUMBER );
-            viewItem.setSimplifiedValueType( NUMBER );
+            viewItem.setValueType( NUMBER.name() );
+            viewItem.setSimplifiedValueType( NUMBER.name() );
 
             dataItems.add( viewItem );
         }

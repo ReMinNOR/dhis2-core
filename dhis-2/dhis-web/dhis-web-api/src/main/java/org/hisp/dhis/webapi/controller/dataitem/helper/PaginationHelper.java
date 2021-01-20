@@ -46,9 +46,13 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class PaginationHelper
 {
+    private PaginationHelper()
+    {
+    }
+
     /**
-     * This method will slice the given list based on the given options and return
-     * only the elements present in the pagination window.
+     * This method will slice the given list based on the given options and
+     * return only the elements present in the pagination window.
      * 
      * @param options
      * @param itemViewObjects
@@ -88,8 +92,8 @@ public class PaginationHelper
     }
 
     /**
-     * Sets the limit of items to be fetched IF paging is enabled. The max limit is
-     * set into the paramsMap.
+     * Sets the limit of items to be fetched IF paging is enabled. The max limit
+     * is set into the paramsMap.
      *
      * @param options the source of pagination params
      * @param paramsMap the map that will receive the max limit param (maxLimit)

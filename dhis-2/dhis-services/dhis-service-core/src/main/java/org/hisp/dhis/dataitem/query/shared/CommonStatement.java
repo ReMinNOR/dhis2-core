@@ -43,6 +43,10 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class CommonStatement
 {
+    private CommonStatement()
+    {
+    }
+
     public static String maxLimit( final MapSqlParameterSource paramsMap )
     {
         if ( paramsMap != null && paramsMap.hasValue( MAX_LIMIT ) )

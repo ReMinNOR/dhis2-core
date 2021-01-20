@@ -198,7 +198,7 @@ public class DataItemServiceFacadeTest
     private DataItem mockDataItem( final DimensionItemType dimensionItemType )
     {
         final DataItem dataItem = new DataItem();
-        dataItem.setDimensionItemType( dimensionItemType );
+        dataItem.setDimensionItemType( dimensionItemType.name() );
 
         return dataItem;
     }
