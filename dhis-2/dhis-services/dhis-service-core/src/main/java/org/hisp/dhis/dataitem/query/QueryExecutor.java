@@ -55,7 +55,8 @@ public class QueryExecutor
     public List<DataItem> find( final Class<? extends BaseDimensionalItemObject> entity,
         final MapSqlParameterSource paramsMap )
     {
-        // Iterates through all implementations of DataItemQuery and execute the correct
+        // Iterates through all implementations of DataItemQuery and execute the
+        // correct
         // "find" for the respective "entity".
         for ( final DataItemQuery dataItemQuery : dataItemQueries )
         {
@@ -71,7 +72,8 @@ public class QueryExecutor
     public int count( final Class<? extends BaseDimensionalItemObject> entity,
         final MapSqlParameterSource paramsMap )
     {
-        // Iterates through all implementations of DataItemQuery and execute the correct
+        // Iterates through all implementations of DataItemQuery and execute the
+        // correct
         // "count" for the respective "entity".
         for ( final DataItemQuery dataItemQuery : dataItemQueries )
         {

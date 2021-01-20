@@ -108,7 +108,8 @@ public class FilteringStatement
             final Set<String> valueTypeNames = (Set<String>) paramsMap.getValue( VALUE_TYPES );
 
             // Skip WHEN the value type list does NOT contain a NUMBER type.
-            // This is specific for Indicator's types, as they don't have a value type, but
+            // This is specific for Indicator's types, as they don't have a
+            // value type, but
             // are always interpreted as NUMBER.
             return !valueTypeNames.contains( NUMBER.name() );
         }

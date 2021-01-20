@@ -73,9 +73,11 @@ public class ProgramIndicatorQuery implements DataItemQuery
     {
         final List<DataItem> dataItems = new ArrayList<>();
 
-        // Very specific case, for Indicator objects, needed to handle filter by value
+        // Very specific case, for Indicator objects, needed to handle filter by
+        // value
         // type NUMBER.
-        // When the value type filter does not have a NUMBER type, we should not execute
+        // When the value type filter does not have a NUMBER type, we should not
+        // execute
         // this query.
         // It returns an empty instead.
         if ( skipNumberValueType( paramsMap ) )
@@ -94,7 +96,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
             viewItem.setId( rowSet.getString( "uid" ) );
             viewItem.setDimensionItemType( PROGRAM_INDICATOR );
 
-            // Specific case where we have to force a vale type. Program Indicators don't
+            // Specific case where we have to force a vale type. Program
+            // Indicators don't
             // have a value type but they always evaluate to numbers.
             viewItem.setValueType( NUMBER );
             viewItem.setSimplifiedValueType( NUMBER );
@@ -108,9 +111,11 @@ public class ProgramIndicatorQuery implements DataItemQuery
     @Override
     public int count( final MapSqlParameterSource paramsMap )
     {
-        // Very specific case, for Indicator objects, needed to handle filter by value
+        // Very specific case, for Indicator objects, needed to handle filter by
+        // value
         // type NUMBER.
-        // When the value type filter does not have a NUMBER type, we should not execute
+        // When the value type filter does not have a NUMBER type, we should not
+        // execute
         // this query.
         // It returns ZERO.
         if ( skipNumberValueType( paramsMap ) )
