@@ -35,7 +35,6 @@ import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.feedback.ErrorCode.E3012;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
-import static org.hisp.dhis.schema.descriptors.DataItemSchemaDescriptor.API_ENDPOINT;
 import static org.springframework.http.HttpStatus.FOUND;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -79,7 +78,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 public class DataItemQueryController
 {
-    static final String API_RESOURCE_PATH = API_ENDPOINT;
+    static final String API_RESOURCE_PATH = "/dataItems";
 
     private static final String FIELDS = "fields";
 
