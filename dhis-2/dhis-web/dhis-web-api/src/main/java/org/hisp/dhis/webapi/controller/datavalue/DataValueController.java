@@ -38,6 +38,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -51,6 +52,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
@@ -63,27 +65,37 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.jclouds.rest.AuthorizationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Lars Helge Overland
  */
 @Controller
 @RequestMapping( value = DataValueController.RESOURCE_PATH )
+@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataValueController
 {
     public static final String RESOURCE_PATH = "/dataValues";
+
+    public static final String FILE_PATH = "/file";
+
+    private static final String DEFAULT_FILENAME = "untitled";
+
+    private static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
 
     // ---------------------------------------------------------------------
     // Dependencies
@@ -99,17 +111,21 @@ public class DataValueController
 
     private final FileResourceService fileResourceService;
 
+    private final FileResourceUtils fileResourceUtils;
+
     private final DataValidator dataValueValidation;
 
     public DataValueController( final CurrentUserService currentUserService, final DataValueService dataValueService,
         final SystemSettingManager systemSettingManager, final InputUtils inputUtils,
-        final FileResourceService fileResourceService, final DataValidator dataValueValidation )
+        final FileResourceService fileResourceService, final FileResourceUtils fileResourceUtils,
+        final DataValidator dataValueValidation )
     {
         checkNotNull( currentUserService );
         checkNotNull( dataValueService );
         checkNotNull( systemSettingManager );
         checkNotNull( inputUtils );
         checkNotNull( fileResourceService );
+        checkNotNull( fileResourceUtils );
         checkNotNull( dataValueValidation );
 
         this.currentUserService = currentUserService;
@@ -117,6 +133,7 @@ public class DataValueController
         this.systemSettingManager = systemSettingManager;
         this.inputUtils = inputUtils;
         this.fileResourceService = fileResourceService;
+        this.fileResourceUtils = fileResourceUtils;
         this.dataValueValidation = dataValueValidation;
     }
 
@@ -138,10 +155,44 @@ public class DataValueController
         @RequestParam( required = false ) String value,
         @RequestParam( required = false ) String comment,
         @RequestParam( required = false ) Boolean followUp,
-        @RequestParam( required = false ) boolean force, HttpServletResponse response )
+        @RequestParam( required = false ) boolean force,
+        HttpServletResponse response )
         throws WebMessageException
     {
+        saveDataValueInternal( de, co, cc, cp, pe, ou, ds, value, comment, followUp, force );
+    }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
+    @RequestMapping( value = FILE_PATH, method = RequestMethod.POST )
+    public WebMessage saveFileDataValue(
+        @RequestParam String de,
+        @RequestParam( required = false ) String co,
+        @RequestParam( required = false ) String cc,
+        @RequestParam( required = false ) String cp,
+        @RequestParam String pe,
+        @RequestParam String ou,
+        @RequestParam( required = false ) String ds,
+        @RequestParam( required = false ) String comment,
+        @RequestParam( required = false ) Boolean followUp,
+        @RequestParam( required = false ) boolean force,
+        @RequestParam MultipartFile file )
+        throws WebMessageException, IOException
+    {
+        FileResource fileResource = fileResourceUtils.saveFileResource( file, FileResourceDomain.DATA_VALUE );
+
+        saveDataValueInternal( de, co, cc, cp, pe, ou, ds, fileResource.getUid(), comment, followUp, force );
+
+        WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.ACCEPTED );
+        webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
+
+        return webMessage;
+    }
+
+    private void saveDataValueInternal( String de, String co, String cc,
+        String cp, String pe, String ou, String ds, String value,
+        String comment, Boolean followUp, boolean force )
+        throws WebMessageException
+    {
         boolean strictPeriods = (Boolean) systemSettingManager
             .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
 
@@ -559,6 +610,5 @@ public class DataValueController
             throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
                 "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related" ) );
         }
-
     }
 }
