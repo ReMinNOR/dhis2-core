@@ -1,6 +1,41 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.controller.metadata.version;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -31,15 +66,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.zip.GZIPOutputStream;
-
 /**
  * Controller for MetadataVersion
  *
@@ -59,10 +85,12 @@ public class MetadataVersionController
     @Autowired
     private ContextUtils contextUtils;
 
-    //Gets the version by versionName or latest system version
+    // Gets the version by versionName or latest system version
     @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT, method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody MetadataVersion getMetaDataVersion( @RequestParam( value = "versionName", required = false ) String versionName )
-        throws MetadataVersionException, BadRequestException
+    public @ResponseBody MetadataVersion getMetaDataVersion(
+        @RequestParam( value = "versionName", required = false ) String versionName )
+        throws MetadataVersionException,
+        BadRequestException
     {
         MetadataVersion versionToReturn = null;
         boolean enabled = isMetadataVersioningEnabled();
@@ -80,7 +108,8 @@ public class MetadataVersionController
 
                 if ( versionToReturn == null )
                 {
-                    throw new MetadataVersionException( "No metadata version with name " + versionName + " exists. Please check again later." );
+                    throw new MetadataVersionException(
+                        "No metadata version with name " + versionName + " exists. Please check again later." );
                 }
 
             }
@@ -100,14 +129,19 @@ public class MetadataVersionController
         }
         catch ( MetadataVersionServiceException ex )
         {
-            throw new MetadataVersionException( "Exception occurred while getting metadata version." + (StringUtils.isNotEmpty( versionName ) ? versionName : " ") + ex.getMessage(), ex );
+            throw new MetadataVersionException( "Exception occurred while getting metadata version."
+                + (StringUtils.isNotEmpty( versionName ) ? versionName : " ") + ex.getMessage(), ex );
         }
     }
 
-    //Gets the list of all versions in between the passed version name and latest system version
-    @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT + "/history", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody RootNode getMetaDataVersionHistory( @RequestParam( value = "baseline", required = false ) String versionName )
-        throws MetadataVersionException, BadRequestException
+    // Gets the list of all versions in between the passed version name and
+    // latest system version
+    @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT
+        + "/history", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    public @ResponseBody RootNode getMetaDataVersionHistory(
+        @RequestParam( value = "baseline", required = false ) String versionName )
+        throws MetadataVersionException,
+        BadRequestException
     {
         List<MetadataVersion> allVersionsInBetween = new ArrayList<>();
         boolean enabled = isMetadataVersioningEnabled();
@@ -140,7 +174,8 @@ public class MetadataVersionController
 
             if ( startDate == null )
             {
-                throw new MetadataVersionException( "There is no such metadata version. The latest version is Version " + versionService.getCurrentVersion().getName() );
+                throw new MetadataVersionException( "There is no such metadata version. The latest version is Version "
+                    + versionService.getCurrentVersion().getName() );
             }
 
             Date endDate = new Date();
@@ -148,7 +183,7 @@ public class MetadataVersionController
 
             if ( allVersionsInBetween != null )
             {
-                //now remove the baseline version details
+                // now remove the baseline version details
                 for ( Iterator<MetadataVersion> iterator = allVersionsInBetween.iterator(); iterator.hasNext(); )
                 {
                     MetadataVersion m = iterator.next();
@@ -175,9 +210,11 @@ public class MetadataVersionController
         return null;
     }
 
-    //Gets the list of all versions
+    // Gets the list of all versions
     @RequestMapping( value = "/metadata/versions", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody RootNode getAllVersion() throws MetadataVersionException, BadRequestException
+    public @ResponseBody RootNode getAllVersion()
+        throws MetadataVersionException,
+        BadRequestException
     {
         boolean enabled = isMetadataVersioningEnabled();
 
@@ -194,15 +231,19 @@ public class MetadataVersionController
         }
         catch ( MetadataVersionServiceException ex )
         {
-            throw new MetadataVersionException( "Exception occurred while getting all metadata versions. " + ex.getMessage() );
+            throw new MetadataVersionException(
+                "Exception occurred while getting all metadata versions. " + ex.getMessage() );
         }
     }
 
-
-    //Creates version in versioning table, exports the metadata and saves the snapshot in datastore
+    // Creates version in versioning table, exports the metadata and saves the
+    // snapshot in datastore
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
-    @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT + "/create", method = RequestMethod.POST, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody MetadataVersion createSystemVersion( @RequestParam( value = "type" ) VersionType versionType ) throws MetadataVersionException, BadRequestException
+    @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT
+        + "/create", method = RequestMethod.POST, produces = ContextUtils.CONTENT_TYPE_JSON )
+    public @ResponseBody MetadataVersion createSystemVersion( @RequestParam( value = "type" ) VersionType versionType )
+        throws MetadataVersionException,
+        BadRequestException
     {
         MetadataVersion versionToReturn = null;
         boolean enabled = isMetadataVersioningEnabled();
@@ -228,10 +269,13 @@ public class MetadataVersionController
         }
     }
 
-    //endpoint to download metadata
+    // endpoint to download metadata
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
-    @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT + "/{versionName}/data", method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody String downloadVersion( @PathVariable( "versionName" ) String versionName ) throws MetadataVersionException, BadRequestException
+    @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT
+        + "/{versionName}/data", method = RequestMethod.GET, produces = "application/json" )
+    public @ResponseBody String downloadVersion( @PathVariable( "versionName" ) String versionName )
+        throws MetadataVersionException,
+        BadRequestException
     {
         boolean enabled = isMetadataVersioningEnabled();
 
@@ -246,21 +290,26 @@ public class MetadataVersionController
 
             if ( versionData == null )
             {
-                throw new MetadataVersionException( "No metadata version snapshot found for the given version " + versionName );
+                throw new MetadataVersionException(
+                    "No metadata version snapshot found for the given version " + versionName );
             }
             return versionData;
         }
         catch ( MetadataVersionServiceException ex )
         {
-            throw new MetadataVersionException( "Unable to download version from system: " + versionName + ex.getMessage() );
+            throw new MetadataVersionException(
+                "Unable to download version from system: " + versionName + ex.getMessage() );
         }
     }
 
-    //endpoint to download metadata in gzip format
+    // endpoint to download metadata in gzip format
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
-    @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT + "/{versionName}/data.gz", method = RequestMethod.GET, produces = "*/*" )
+    @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT
+        + "/{versionName}/data.gz", method = RequestMethod.GET, produces = "*/*" )
     public void downloadGZipVersion( @PathVariable( "versionName" ) String versionName, HttpServletResponse response )
-        throws MetadataVersionException, IOException, BadRequestException
+        throws MetadataVersionException,
+        IOException,
+        BadRequestException
     {
         boolean enabled = isMetadataVersioningEnabled();
 
@@ -271,13 +320,15 @@ public class MetadataVersionController
                 throw new BadRequestException( "Metadata versioning is not enabled for this instance." );
             }
 
-            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_GZIP, CacheStrategy.NO_CACHE, "metadata.json.gz", true );
+            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_GZIP, CacheStrategy.NO_CACHE,
+                "metadata.json.gz", true );
             response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             String versionData = versionService.getVersionData( versionName );
 
             if ( versionData == null )
             {
-                throw new MetadataVersionException( "No metadata version snapshot found for the given version " + versionName );
+                throw new MetadataVersionException(
+                    "No metadata version snapshot found for the given version " + versionName );
             }
 
             GZIPOutputStream gos = new GZIPOutputStream( response.getOutputStream() );
@@ -286,14 +337,14 @@ public class MetadataVersionController
         }
         catch ( MetadataVersionServiceException ex )
         {
-            throw new MetadataVersionException( "Unable to download version from system: " + versionName + ex.getMessage() );
+            throw new MetadataVersionException(
+                "Unable to download version from system: " + versionName + ex.getMessage() );
         }
     }
 
-
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
     // Private Methods
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
 
     private boolean isMetadataVersioningEnabled()
     {

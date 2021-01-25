@@ -1,6 +1,31 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.de.action;
-
-
 
 import static org.hisp.dhis.commons.util.TextUtils.SEP;
 
@@ -83,13 +108,13 @@ public class GetMetaDataAction
     {
         this.currentUserService = currentUserService;
     }
-    
+
     @Autowired
     private DataSetService dataSetService;
 
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
-    
+
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------
@@ -181,20 +206,22 @@ public class GetMetaDataAction
         User user = currentUserService.getCurrentUser();
 
         Date lastUpdated = DateUtils.max( Sets.newHashSet(
-            identifiableObjectManager.getLastUpdated( DataElement.class ), 
+            identifiableObjectManager.getLastUpdated( DataElement.class ),
             identifiableObjectManager.getLastUpdated( OptionSet.class ),
             identifiableObjectManager.getLastUpdated( Indicator.class ),
             identifiableObjectManager.getLastUpdated( DataSet.class ),
             identifiableObjectManager.getLastUpdated( CategoryCombo.class ),
             identifiableObjectManager.getLastUpdated( Category.class ),
             identifiableObjectManager.getLastUpdated( CategoryOption.class ) ) );
-        String tag = lastUpdated != null && user != null ? ( DateUtils.getLongDateString( lastUpdated ) + SEP + user.getUid() ): null;
-        
+        String tag = lastUpdated != null && user != null
+            ? (DateUtils.getLongDateString( lastUpdated ) + SEP + user.getUid())
+            : null;
+
         if ( ContextUtils.isNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag ) )
         {
             return SUCCESS;
         }
-                
+
         if ( user != null && user.getOrganisationUnits().isEmpty() )
         {
             emptyOrganisationUnits = true;
@@ -219,7 +246,7 @@ public class GetMetaDataAction
         expressionService.substituteIndicatorExpressions( indicators );
 
         dataSets = dataSetService.getUserDataWrite( user );
-        
+
         Set<CategoryCombo> categoryComboSet = new HashSet<>();
         Set<Category> categorySet = new HashSet<>();
 
@@ -244,7 +271,8 @@ public class GetMetaDataAction
 
         for ( Category category : categories )
         {
-            List<CategoryOption> categoryOptions = new ArrayList<>( categoryService.getDataWriteCategoryOptions( category, user ) );
+            List<CategoryOption> categoryOptions = new ArrayList<>(
+                categoryService.getDataWriteCategoryOptions( category, user ) );
             Collections.sort( categoryOptions );
             categoryOptionMap.put( category.getUid(), categoryOptions );
         }
@@ -255,11 +283,12 @@ public class GetMetaDataAction
         {
             CategoryCombo categoryCombo = dataSet.getCategoryCombo();
 
-            if ( categoryCombo != null && categoryCombo.getCategories() != null  )
+            if ( categoryCombo != null && categoryCombo.getCategories() != null )
             {
                 for ( Category category : categoryCombo.getCategories() )
                 {
-                    if ( !categoryOptionMap.containsKey( category.getUid() ) || categoryOptionMap.get( category.getUid() ).isEmpty() )
+                    if ( !categoryOptionMap.containsKey( category.getUid() )
+                        || categoryOptionMap.get( category.getUid() ).isEmpty() )
                     {
                         invalidIds.add( dataSet.getUid() );
                         break;
@@ -268,7 +297,8 @@ public class GetMetaDataAction
             }
         }
 
-        dataSets = dataSets.stream().filter( dataSet -> !invalidIds.contains( dataSet.getUid() ) ).collect(  Collectors.toList() );
+        dataSets = dataSets.stream().filter( dataSet -> !invalidIds.contains( dataSet.getUid() ) )
+            .collect( Collectors.toList() );
 
         lockExceptions = dataSetService.getAllLockExceptions();
 

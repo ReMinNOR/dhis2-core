@@ -1,6 +1,31 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.servlet.filter;
-
-
 
 import java.io.IOException;
 import java.util.Date;
@@ -11,6 +36,8 @@ import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
@@ -26,13 +53,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Austin McGee <austin@dhis2.org>
  */
- @Slf4j
- @Component
+@Slf4j
+@Component
 public class AppOverrideFilter
     extends OncePerRequestFilter
 {
@@ -42,15 +67,19 @@ public class AppOverrideFilter
     @Autowired
     private ObjectMapper jsonMapper;
 
-    public static final String APP_PATH_PATTERN = "^/" + AppManager.BUNDLED_APP_PREFIX + "(" + String.join("|", AppManager.BUNDLED_APPS) + ")/(.*)";
-    // public static final String REDIRECT_APP_PATH_PATTERN = "^/" + AppController.RESOURCE_PATH + "-(" + String.join("|", AppManager.BUNDLED_APPS) + ")/(.*)"
+    public static final String APP_PATH_PATTERN = "^/" + AppManager.BUNDLED_APP_PREFIX + "("
+        + String.join( "|", AppManager.BUNDLED_APPS ) + ")/(.*)";
+    // public static final String REDIRECT_APP_PATH_PATTERN = "^/" +
+    // AppController.RESOURCE_PATH + "-(" + String.join("|",
+    // AppManager.BUNDLED_APPS) + ")/(.*)"
 
     // -------------------------------------------------------------------------
     // Filter implementation
     // -------------------------------------------------------------------------
 
     // From AppController.java (some duplication)
-    private void serveInstalledAppResource( App app, String resourcePath, HttpServletRequest request, HttpServletResponse response )
+    private void serveInstalledAppResource( App app, String resourcePath, HttpServletRequest request,
+        HttpServletResponse response )
         throws IOException
     {
         // Get page requested
@@ -60,8 +89,10 @@ public class AppOverrideFilter
         // Handling of 'manifest.webapp'
         if ( "manifest.webapp".equals( resourcePath ) )
         {
-            // If request was for manifest.webapp, check for * and replace with host
-            if ( app.getActivities() != null && app.getActivities().getDhis() != null && "*".equals( app.getActivities().getDhis().getHref() ) )
+            // If request was for manifest.webapp, check for * and replace with
+            // host
+            if ( app.getActivities() != null && app.getActivities().getDhis() != null
+                && "*".equals( app.getActivities().getDhis().getHref() ) )
             {
                 String contextPath = ContextUtils.getContextPath( request );
                 log.debug( String.format( "Manifest context path: '%s'", contextPath ) );
@@ -111,7 +142,8 @@ public class AppOverrideFilter
 
     @Override
     protected void doFilterInternal( HttpServletRequest req, HttpServletResponse res, FilterChain chain )
-        throws IOException, ServletException
+        throws IOException,
+        ServletException
     {
         String requestURI = req.getRequestURI();
 

@@ -1,6 +1,45 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -32,19 +71,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 /**
  * @author Stian Sandvold
@@ -88,8 +114,7 @@ public class RelationshipController
     public List<Relationship> getRelationships(
         @RequestParam( required = false ) String tei,
         @RequestParam( required = false ) String enrollment,
-        @RequestParam( required = false ) String event
-    )
+        @RequestParam( required = false ) String event )
         throws WebMessageException
     {
         if ( tei != null )
@@ -139,8 +164,7 @@ public class RelationshipController
 
     @GetMapping( "/{id}" )
     public Relationship getRelationship(
-        @PathVariable String id
-    )
+        @PathVariable String id )
         throws WebMessageException
     {
         Relationship relationship = relationshipService.getRelationshipByUid( id );
@@ -161,8 +185,7 @@ public class RelationshipController
     public void postRelationshipJson(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response
-    )
+        HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         importOptions.setStrategy( strategy );
@@ -180,8 +203,7 @@ public class RelationshipController
     public void postRelationshipXml(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response
-    )
+        HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         importOptions.setStrategy( strategy );
@@ -203,8 +225,7 @@ public class RelationshipController
     public void updateRelationshipJson(
         @PathVariable String id,
         ImportOptions importOptions,
-        HttpServletRequest request, HttpServletResponse response
-    )
+        HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -218,8 +239,7 @@ public class RelationshipController
     public ImportSummary updateRelationshipXml(
         @PathVariable String id,
         ImportOptions importOptions,
-        HttpServletRequest request
-    )
+        HttpServletRequest request )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -234,8 +254,7 @@ public class RelationshipController
     // -------------------------------------------------------------------------
 
     @DeleteMapping( value = "/{id}" )
-    public void deleteRelationship( @PathVariable String id, HttpServletRequest request, HttpServletResponse response
-    )
+    public void deleteRelationship( @PathVariable String id, HttpServletRequest request, HttpServletResponse response )
         throws WebMessageException
     {
         Relationship relationship = relationshipService.getRelationshipByUid( id );
@@ -254,7 +273,8 @@ public class RelationshipController
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a Predicate that filters out ImportSummary depending on importOptions and the summary itself
+     * Returns a Predicate that filters out ImportSummary depending on
+     * importOptions and the summary itself
      *
      * @param importOptions
      * @return a Predicate for ImportSummary
@@ -268,8 +288,9 @@ public class RelationshipController
     }
 
     /**
-     * Creates a Consumer that takes an ImportSummary and sets the href property, based on the request root path,
-     * api endpoint and the reference from the import summary.
+     * Creates a Consumer that takes an ImportSummary and sets the href
+     * property, based on the request root path, api endpoint and the reference
+     * from the import summary.
      *
      * @param request
      * @return a Consumer for ImportSummary

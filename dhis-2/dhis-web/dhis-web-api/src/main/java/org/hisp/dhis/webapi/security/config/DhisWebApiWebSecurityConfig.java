@@ -1,8 +1,36 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.security.config;
 
+import java.util.Set;
 
+import javax.sql.DataSource;
 
-import com.google.common.collect.ImmutableList;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
 import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
@@ -54,8 +82,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
-import javax.sql.DataSource;
-import java.util.Set;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -68,9 +95,12 @@ public class DhisWebApiWebSecurityConfig
     public DataSource dataSource;
 
     /**
-     * This configuration class is responsible for setting up the OAuth2 /token endpoint and /authorize endpoint.
-     * This config is a modification of the config that is automatically enabled by using the @EnableAuthorizationServer annotation.
-     * The spring-security-oauth2 project is deprecated, but as of August 19, 2020; there is still no other viable alternative available.
+     * This configuration class is responsible for setting up the OAuth2 /token
+     * endpoint and /authorize endpoint. This config is a modification of the
+     * config that is automatically enabled by using
+     * the @EnableAuthorizationServer annotation. The spring-security-oauth2
+     * project is deprecated, but as of August 19, 2020; there is still no other
+     * viable alternative available.
      */
     @Configuration
     @Order( 1001 )
@@ -105,7 +135,8 @@ public class DhisWebApiWebSecurityConfig
             http.apply( configurer );
 
             // This is the only endpoint we need to configure.
-            // The other /authorize endpoint is only accessible AFTER you have been authorized.
+            // The other /authorize endpoint is only accessible AFTER you have
+            // been authorized.
             String tokenEndpointPath = handlerMapping.getServletPath( "/oauth/token" );
 
             http
@@ -130,8 +161,10 @@ public class DhisWebApiWebSecurityConfig
             public void init( HttpSecurity builder )
                 throws Exception
             {
-                // This is a quirk to remove the default DaoAuthenticationConfigurer,
-                // that gets automatically assigned in the AuthorizationServerSecurityConfigurer.
+                // This is a quirk to remove the default
+                // DaoAuthenticationConfigurer,
+                // that gets automatically assigned in the
+                // AuthorizationServerSecurityConfigurer.
                 // We only want ONE authentication provider (our own...)
                 AuthenticationManagerBuilder authBuilder = builder
                     .getSharedObject( AuthenticationManagerBuilder.class );
@@ -210,23 +243,21 @@ public class DhisWebApiWebSecurityConfig
             http
                 .antMatcher( "/oauth2/**" )
                 .authorizeRequests( authorize -> {
-                        for ( String providerId : providerIds )
-                        {
-                            authorize
-                                .antMatchers( "/oauth2/authorization/" + providerId ).permitAll()
-                                .antMatchers( "/oauth2/code/" + providerId ).permitAll();
-                        }
-                        authorize.anyRequest().authenticated();
+                    for ( String providerId : providerIds )
+                    {
+                        authorize
+                            .antMatchers( "/oauth2/authorization/" + providerId ).permitAll()
+                            .antMatchers( "/oauth2/code/" + providerId ).permitAll();
                     }
-                )
+                    authorize.anyRequest().authenticated();
+                } )
 
                 .oauth2Login( oauth2 -> oauth2
                     .failureUrl( "/dhis-web-dashboard" )
                     .clientRegistrationRepository( dhisClientRegistrationRepository )
                     .loginProcessingUrl( "/oauth2/code/*" )
                     .authorizationEndpoint()
-                    .authorizationRequestResolver( dhisOAuth2AuthorizationRequestResolver )
-                )
+                    .authorizationRequestResolver( dhisOAuth2AuthorizationRequestResolver ) )
 
                 .csrf().disable();
 
@@ -290,9 +321,10 @@ public class DhisWebApiWebSecurityConfig
         }
 
         /**
-         * This AuthenticationManager is responsible for authorizing access, refresh and code
-         * OAuth2 tokens from the /token and /authorize endpoints.
-         * It is used only by the OAuth2AuthenticationProcessingFilter.
+         * This AuthenticationManager is responsible for authorizing access,
+         * refresh and code OAuth2 tokens from the /token and /authorize
+         * endpoints. It is used only by the
+         * OAuth2AuthenticationProcessingFilter.
          */
         private AuthenticationManager oauthAuthenticationManager( HttpSecurity http )
         {
@@ -323,8 +355,7 @@ public class DhisWebApiWebSecurityConfig
                     .antMatchers( "/api/staticContent/*" ).permitAll()
                     .antMatchers( "/api/externalFileResources/*" ).permitAll()
                     .antMatchers( "/api/icons/*/icon.svg" ).permitAll()
-                    .anyRequest().authenticated()
-                )
+                    .anyRequest().authenticated() )
                 .httpBasic()
                 .authenticationEntryPoint( basicAuthenticationEntryPoint() )
                 .and().csrf().disable()
@@ -336,8 +367,10 @@ public class DhisWebApiWebSecurityConfig
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
                 .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
 
-            // This is the OAuth2 resource filter it will be checking for the "Authorization: Bearer <token>" header if
-            // the "Authorization: Basic <username:password>" header is not present or valid.
+            // This is the OAuth2 resource filter it will be checking for the
+            // "Authorization: Bearer <token>" header if
+            // the "Authorization: Basic <username:password>" header is not
+            // present or valid.
             OAuth2AuthenticationProcessingFilter resourcesServerFilter = new OAuth2AuthenticationProcessingFilter();
             resourcesServerFilter.setAuthenticationEntryPoint( authenticationEntryPoint );
             resourcesServerFilter.setAuthenticationManager( oauthAuthenticationManager( http ) );
@@ -352,7 +385,7 @@ public class DhisWebApiWebSecurityConfig
         @Bean
         public DHIS2BasicAuthenticationEntryPoint basicAuthenticationEntryPoint()
         {
-            return new DHIS2BasicAuthenticationEntryPoint("/dhis-web-commons/security/login.action");
+            return new DHIS2BasicAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
         }
     }
 

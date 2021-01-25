@@ -1,6 +1,31 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.controller.event;
-
-
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.TEI_IMPORT;
@@ -15,6 +40,8 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -75,8 +102,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 
-import lombok.RequiredArgsConstructor;
-
 /**
  * The following statements are added not to cause api break. They need to be
  * remove say in 2.26 or so once users are aware of the changes.
@@ -121,15 +146,18 @@ public class TrackedEntityInstanceController
     // READ
     // -------------------------------------------------------------------------
 
-    @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_XML, ContextUtils.CONTENT_TYPE_CSV } )
-    public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria, HttpServletResponse response )
+    @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_XML,
+        ContextUtils.CONTENT_TYPE_CSV } )
+    public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria,
+        HttpServletResponse response )
     {
         List<String> fields = contextService.getFieldsFromRequestOrAll();
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                getTrackedEntityInstanceParams( fields ), false );
+        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances(
+            queryParams,
+            getTrackedEntityInstanceParams( fields ), false );
 
         RootNode rootNode = NodeUtils.createMetadata();
 
@@ -143,8 +171,9 @@ public class TrackedEntityInstanceController
 
         if ( !StringUtils.isEmpty( criteria.getAttachment() ) )
         {
-                response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + criteria.getAttachment() );
-                response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
+                "attachment; filename=" + criteria.getAttachment() );
+            response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
         }
 
         rootNode.addChild( fieldFilterService.toCollectionNode( TrackedEntityInstance.class,

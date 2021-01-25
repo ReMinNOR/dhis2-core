@@ -1,8 +1,38 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.controller.mapping;
 
+import java.awt.image.BufferedImage;
+import java.util.List;
 
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletResponse;
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -28,10 +58,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletResponse;
-import java.awt.image.BufferedImage;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -53,12 +80,13 @@ public class MapViewController
     @Autowired
     private ContextUtils contextUtils;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Get data
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = { "/{uid}/data", "/{uid}/data.png" }, method = RequestMethod.GET )
-    public void getMapViewData( @PathVariable String uid, HttpServletResponse response ) throws Exception
+    public void getMapViewData( @PathVariable String uid, HttpServletResponse response )
+        throws Exception
     {
         MapView mapView = mappingService.getMapView( uid );
 
@@ -75,7 +103,8 @@ public class MapViewController
         @RequestParam( value = "in" ) String indicatorUid,
         @RequestParam( value = "ou" ) String organisationUnitUid,
         @RequestParam( value = "level", required = false ) Integer level,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         if ( level == null )
         {
@@ -89,17 +118,19 @@ public class MapViewController
         renderMapViewPng( mapView, response );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Hooks
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     @SuppressWarnings( "unchecked" )
-    protected List<MapView> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    protected List<MapView> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
+        List<Order> orders )
         throws QueryParserException
     {
         List<MapView> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
+            options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
@@ -115,9 +146,9 @@ public class MapViewController
         return entityList;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private void renderMapViewPng( MapView mapView, HttpServletResponse response )
         throws Exception
@@ -126,7 +157,8 @@ public class MapViewController
 
         if ( image != null )
         {
-            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, "mapview.png", false );
+            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG,
+                CacheStrategy.RESPECT_SYSTEM_SETTING, "mapview.png", false );
 
             ImageIO.write( image, "PNG", response.getOutputStream() );
         }

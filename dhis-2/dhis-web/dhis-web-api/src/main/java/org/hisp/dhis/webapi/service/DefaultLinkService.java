@@ -1,19 +1,35 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.service;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 
-
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.collection.spi.PersistentCollection;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.Nonnull;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -23,8 +39,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.trimToNull;
+import javax.annotation.Nonnull;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.collection.spi.PersistentCollection;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -51,7 +78,8 @@ public class DefaultLinkService implements LinkService
         this.contextService = contextService;
     }
 
-    // since classes won't change during runtime, use a map to cache setHref lookups
+    // since classes won't change during runtime, use a map to cache setHref
+    // lookups
     private Map<Class<?>, Method> setterCache = new HashMap<>();
 
     @Override
@@ -233,7 +261,8 @@ public class DefaultLinkService implements LinkService
                     }
                     catch ( UnsupportedEncodingException e )
                     {
-                        throw new IllegalStateException( "Encoding for URL values is not supported: " + DEFAULT_URL_ENCODING );
+                        throw new IllegalStateException(
+                            "Encoding for URL values is not supported: " + DEFAULT_URL_ENCODING );
                     }
                 } );
             }
@@ -341,7 +370,8 @@ public class DefaultLinkService implements LinkService
 
         Schema schema = schemaService.getDynamicSchema( klass );
 
-        if ( !schema.haveApiEndpoint() || schema.getProperty( "id" ) == null || schema.getProperty( "id" ).getGetterMethod() == null )
+        if ( !schema.haveApiEndpoint() || schema.getProperty( "id" ) == null
+            || schema.getProperty( "id" ).getGetterMethod() == null )
         {
             return;
         }

@@ -1,6 +1,41 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 
+import java.io.IOException;
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.DimensionService;
@@ -29,15 +64,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
-
 /**
  * @author Jan Henrik Overland
  */
@@ -64,12 +90,13 @@ public class EventChartController
     @Autowired
     private ContextUtils contextUtils;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // CRUD
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
-    protected EventChart deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
+    protected EventChart deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
     {
         EventChart eventChart = super.deserializeJsonEntity( request, response );
         mergeEventChart( eventChart );
@@ -77,9 +104,9 @@ public class EventChartController
         return eventChart;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Get data
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = { "/{uid}/data", "/{uid}/data.png" }, method = RequestMethod.GET )
     public void getChart(
@@ -89,9 +116,12 @@ public class EventChartController
         @RequestParam( value = "width", defaultValue = "800", required = false ) int width,
         @RequestParam( value = "height", defaultValue = "500", required = false ) int height,
         @RequestParam( value = "attachment", required = false ) boolean attachment,
-        HttpServletResponse response ) throws IOException, WebMessageException
+        HttpServletResponse response )
+        throws IOException,
+        WebMessageException
     {
-        EventChart chart = eventChartService.getEventChart( uid ); // TODO no acl?
+        EventChart chart = eventChartService.getEventChart( uid ); // TODO no
+                                                                   // acl?
 
         if ( chart == null )
         {
@@ -104,17 +134,19 @@ public class EventChartController
 
         String filename = CodecUtils.filenameEncode( chart.getName() ) + ".png";
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, attachment );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            filename, attachment );
 
         ChartUtils.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Hooks
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
-    protected void postProcessResponseEntity( EventChart eventChart, WebOptions options, Map<String, String> parameters )
+    protected void postProcessResponseEntity( EventChart eventChart, WebOptions options,
+        Map<String, String> parameters )
     {
         eventChart.populateAnalyticalProperties();
 
@@ -126,7 +158,8 @@ public class EventChartController
 
             for ( OrganisationUnit organisationUnit : eventChart.getOrganisationUnits() )
             {
-                eventChart.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
+                eventChart.getParentGraphMap().put( organisationUnit.getUid(),
+                    organisationUnit.getParentGraph( roots ) );
             }
         }
 
@@ -141,9 +174,9 @@ public class EventChartController
         }
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private void mergeEventChart( EventChart chart )
     {

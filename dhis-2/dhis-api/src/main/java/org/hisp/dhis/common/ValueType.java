@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.common;
 
-import static java.util.stream.Collectors.toSet;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -71,8 +69,8 @@ public enum ValueType
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
     AGE( Date.class, false ),
     URL( String.class, false ),
-    FILE_RESOURCE( String.class, false ),
-    IMAGE( String.class, false );
+    FILE_RESOURCE( String.class, false, FileTypeValueOptions.class ),
+    IMAGE( String.class, false, FileTypeValueOptions.class );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE );
@@ -103,6 +101,8 @@ public enum ValueType
 
     private boolean aggregateable;
 
+    private Class<? extends ValueTypeOptions> valueTypeOptionsClass;
+
     ValueType()
     {
         this.javaClass = null;
@@ -112,6 +112,13 @@ public enum ValueType
     {
         this.javaClass = javaClass;
         this.aggregateable = aggregateable;
+        this.valueTypeOptionsClass = null;
+    }
+
+    ValueType( Class<?> javaClass, boolean aggregateable, Class<? extends ValueTypeOptions> valueTypeOptionsClass )
+    {
+        this( javaClass, aggregateable );
+        this.valueTypeOptionsClass = valueTypeOptionsClass;
     }
 
     public Class<?> getJavaClass()
@@ -172,6 +179,11 @@ public enum ValueType
         return aggregateable;
     }
 
+    public Class<? extends ValueTypeOptions> getValueTypeOptionsClass()
+    {
+        return this.valueTypeOptionsClass;
+    }
+
     /**
      * Returns a simplified value type. As an example, if the value type is any
      * numeric type such as integer, percentage, then {@link ValueType#NUMBER}
@@ -221,10 +233,5 @@ public enum ValueType
     {
         return Arrays.stream( ValueType.values() ).filter( v -> v.toString().equals( valueType ) ).findFirst()
             .orElseThrow( () -> new IllegalArgumentException( "unknown value: " + valueType ) );
-    }
-
-    public static Set<ValueType> getAggregatables()
-    {
-        return Arrays.stream( ValueType.values() ).filter( v -> v.aggregateable ).collect( toSet() );
     }
 }

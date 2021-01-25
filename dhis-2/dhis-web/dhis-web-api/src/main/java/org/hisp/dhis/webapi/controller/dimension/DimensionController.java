@@ -1,6 +1,31 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.controller.dimension;
-
-
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.emptyList;
@@ -123,11 +148,22 @@ public class DimensionController
             fields.addAll( Preset.defaultPreset().getFields() );
         }
 
-        List<DimensionalItemObject> totalItems = dimensionService.getCanReadDimensionItems( uid );
+        // This is the base list used in this flow. It contains only items
+        // allowed to the current user.
+        List<DimensionalItemObject> readableItems = dimensionService.getCanReadDimensionItems( uid );
+
+        // This is needed for two reasons:
+        // 1) We are doing in-memory paging;
+        // 2) We have to count all items respecting the filtering.
+        Query queryForCount = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders );
+        queryForCount.setObjects( readableItems );
+
+        List<DimensionalItemObject> forCountItems = (List<DimensionalItemObject>) queryService
+            .query( queryForCount );
 
         Query query = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders,
             getPaginationData( options ) );
-        query.setObjects( totalItems );
+        query.setObjects( readableItems );
         query.setDefaultOrder();
 
         List<DimensionalItemObject> paginatedItems = (List<DimensionalItemObject>) queryService.query( query );
@@ -144,7 +180,8 @@ public class DimensionController
             ((AbstractNode) node).setName( "item" );
         }
 
-        final int totalOfItems = isNotEmpty( totalItems ) ? totalItems.size() : 0;
+        // Adding pagination elements to the root node.
+        final int totalOfItems = isNotEmpty( forCountItems ) ? forCountItems.size() : 0;
         dimensionItemPageHandler.addPaginationToNodeIfEnabled( rootNode, options, uid, totalOfItems );
 
         return rootNode;

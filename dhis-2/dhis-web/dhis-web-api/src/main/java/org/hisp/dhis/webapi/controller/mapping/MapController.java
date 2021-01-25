@@ -1,11 +1,46 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.controller.mapping;
 
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.Date;
+import java.util.Set;
+
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -22,6 +57,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.descriptors.MapSchemaDescriptor;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserService;
@@ -37,16 +73,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.Date;
-import java.util.Set;
-
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Lars Helge Overland
@@ -57,6 +83,7 @@ public class MapController
     extends AbstractCrudController<Map>
 {
     private static final int MAP_MIN_WIDTH = 140;
+
     private static final int MAP_MIN_HEIGHT = 25;
 
     @Autowired
@@ -89,14 +116,15 @@ public class MapController
     @Autowired
     private ContextUtils contextUtils;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // CRUD
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void putJsonObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void putJsonObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         Map map = mappingService.getMap( uid );
 
@@ -126,7 +154,8 @@ public class MapController
     }
 
     @Override
-    protected Map deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
+    protected Map deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
     {
         Map map = super.deserializeJsonEntity( request, response );
         mergeMap( map );
@@ -134,9 +163,9 @@ public class MapController
         return map;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Get data
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = { "/{uid}/data", "/{uid}/data.png" }, method = RequestMethod.GET )
     public void getMapData( @PathVariable String uid,
@@ -145,7 +174,8 @@ public class MapController
         @RequestParam( required = false ) Integer width,
         @RequestParam( required = false ) Integer height,
         @RequestParam( value = "attachment", required = false ) boolean attachment,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         Map map = mappingService.getMapNoAcl( uid );
 
@@ -156,12 +186,14 @@ public class MapController
 
         if ( width != null && width < MAP_MIN_WIDTH )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Min map width is " + MAP_MIN_WIDTH + ": " + width ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Min map width is " + MAP_MIN_WIDTH + ": " + width ) );
         }
 
         if ( height != null && height < MAP_MIN_HEIGHT )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Min map height is " + MAP_MIN_HEIGHT + ": " + height ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Min map height is " + MAP_MIN_HEIGHT + ": " + height ) );
         }
 
         OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;
@@ -169,9 +201,9 @@ public class MapController
         renderMapViewPng( map, date, unit, width, height, attachment, response );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Hooks
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public void postProcessResponseEntity( Map map, WebOptions options, java.util.Map<String, String> parameters )
@@ -200,9 +232,9 @@ public class MapController
         }
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private void mergeMap( Map map )
     {
@@ -238,7 +270,8 @@ public class MapController
 
         if ( view.getOrganisationUnitGroupSet() != null )
         {
-            view.setOrganisationUnitGroupSet( idObjectManager.get( OrganisationUnitGroupSet.class, view.getOrganisationUnitGroupSet().getUid() ) );
+            view.setOrganisationUnitGroupSet(
+                idObjectManager.get( OrganisationUnitGroupSet.class, view.getOrganisationUnitGroupSet().getUid() ) );
         }
 
         if ( view.getProgram() != null )
@@ -253,18 +286,21 @@ public class MapController
 
         if ( view.getTrackedEntityType() != null )
         {
-            view.setTrackedEntityType( idObjectManager.get( TrackedEntityType.class, view.getTrackedEntityType().getUid() ) );
+            view.setTrackedEntityType(
+                idObjectManager.get( TrackedEntityType.class, view.getTrackedEntityType().getUid() ) );
         }
     }
 
-    private void renderMapViewPng( Map map, Date date, OrganisationUnit unit, Integer width, Integer height, boolean attachment, HttpServletResponse response )
+    private void renderMapViewPng( Map map, Date date, OrganisationUnit unit, Integer width, Integer height,
+        boolean attachment, HttpServletResponse response )
         throws Exception
     {
         BufferedImage image = mapGenerationService.generateMapImage( map, date, unit, width, height );
 
         if ( image != null )
         {
-            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, "map.png", attachment );
+            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG,
+                CacheStrategy.RESPECT_SYSTEM_SETTING, "map.png", attachment );
 
             ImageIO.write( image, "PNG", response.getOutputStream() );
         }

@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,6 +53,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.user.User;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 /**
@@ -86,6 +88,19 @@ public class TrackedEntityInstanceQueryParams
     public static final int DEFAULT_PAGE = 1;
 
     public static final int DEFAULT_PAGE_SIZE = 50;
+
+    private static final Map<String, String> ORDER_COLS_MAP = ImmutableMap.<String, String> builder()
+        .put( "uid", "tei.uid" )
+        .put( CREATED_ID, "tei.created" )
+        .put( "storedBy", "tei.storedBy" )
+        .put( "lastUpdated", "tei.lastUpdated" )
+        .put( "lastUpdatedAtClient", "tei.lastUpdatedAtClient" )
+        .put( "lastSynchronized", "tei.lastSynchronized" )
+        .put( "orgUnitName", "tei.organisationUnit.name" )
+        .put( INACTIVE_ID, "tei.inactive" )
+        .put( DELETED, "tei.deleted" )
+        .put( "enrollmentStatus", "pi.status" )
+        .build();
 
     /**
      * Query value, will apply to all relevant attributes.
@@ -744,6 +759,50 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
+     * Indicated whether this params specifies ordering
+     */
+    public boolean hasOrders()
+    {
+        return orders != null && !orders.isEmpty();
+    }
+
+    public boolean hasAttributeAsOrder()
+    {
+        if ( hasOrders() )
+        {
+            for ( String order : getOrders() )
+            {
+                String[] prop = order.split( ":" );
+
+                if ( prop.length == 2 && !getStaticOrderColumns().contains( prop[0] ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public String getFirstAttributeOrder()
+    {
+        if ( hasOrders() )
+        {
+            for ( String order : getOrders() )
+            {
+                String[] prop = order.split( ":" );
+
+                if ( prop.length == 2 && !getStaticOrderColumns().contains( prop[0] ) )
+                {
+                    return prop[0];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Indicates whether paging is enabled.
      */
     public boolean isPaging()
@@ -1228,5 +1287,15 @@ public class TrackedEntityInstanceQueryParams
     public void setTrackedEntityTypes( List<TrackedEntityType> trackedEntityTypes )
     {
         this.trackedEntityTypes = trackedEntityTypes;
+    }
+
+    public Set<String> getStaticOrderColumns()
+    {
+        return ORDER_COLS_MAP.keySet();
+    }
+
+    public String getStaticOrderColumnValue( String key )
+    {
+        return ORDER_COLS_MAP.get( key );
     }
 }
