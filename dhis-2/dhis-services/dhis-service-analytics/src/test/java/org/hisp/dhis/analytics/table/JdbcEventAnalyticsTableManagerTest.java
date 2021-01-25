@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.table;
 
 /*
@@ -212,7 +239,7 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( program ) );
 
         when( jdbcTemplate.queryForList(
-            getYearQueryForCurrentYear( program, true),
+            getYearQueryForCurrentYear( program, true ),
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
@@ -267,13 +294,13 @@ public class JdbcEventAnalyticsTableManagerTest
         String aliasD5_geo = "(select ou.geometry from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
         String aliasD5_name = "(select ou.name from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
-                + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
+            + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
             .withStartTime( START_TIME ).withToday( today ).build();
 
         when( jdbcTemplate.queryForList(
-            getYearQueryForCurrentYear( program, true),
+            getYearQueryForCurrentYear( program, true ),
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
@@ -290,8 +317,20 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( d5.getUid(), TEXT, toAlias( aliasD5, d5.getUid() ) ) // ValueType.ORGANISATION_UNIT
             .addColumn( d6.getUid(), BIGINT, toAlias( aliasD6, d6.getUid() ) ) // ValueType.INTEGER
             .addColumn( d7.getUid(), GEOMETRY_POINT, toAlias( aliasD7, d7.getUid() ) ) // ValueType.COORDINATES
-            .addColumn( d5.getUid() + "_geom", GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), "gist" ) // element d5 also creates a Geo column
-            .addColumn( d5.getUid() + "_name", TEXT, toAlias( aliasD5_name, d5.getUid() + "_name" ) ) // element d5 also creates a Name column
+            .addColumn( d5.getUid() + "_geom", GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), "gist" ) // element
+                                                                                                       // d5
+                                                                                                       // also
+                                                                                                       // creates
+                                                                                                       // a
+                                                                                                       // Geo
+                                                                                                       // column
+            .addColumn( d5.getUid() + "_name", TEXT, toAlias( aliasD5_name, d5.getUid() + "_name" ) ) // element
+                                                                                                      // d5
+                                                                                                      // also
+                                                                                                      // creates
+                                                                                                      // a
+                                                                                                      // Name
+                                                                                                      // column
 
             .withDefaultColumns( subject.getFixedColumns() ).build().verify();
     }
@@ -326,9 +365,8 @@ public class JdbcEventAnalyticsTableManagerTest
             .withStartTime( START_TIME ).withToday( today ).build();
 
         when( jdbcTemplate.queryForList(
-            getYearQueryForCurrentYear( program, true),
+            getYearQueryForCurrentYear( program, true ),
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
-
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
@@ -378,8 +416,8 @@ public class JdbcEventAnalyticsTableManagerTest
             + d5.getUid() + ", value}' from programstageinstance where "
             + "programstageinstanceid=psi.programstageinstanceid )) as \"" + d5.getUid() + "\"";
 
-        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid") ) );
-        assertThat( sql.getValue(), containsString( String.format( ouQuery, "name") ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid" ) ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "name" ) ) );
     }
 
     @Test
@@ -415,8 +453,8 @@ public class JdbcEventAnalyticsTableManagerTest
             + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
             + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
-        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid") ) );
-        assertThat( sql.getValue(), containsString( String.format( ouQuery, "name") ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid" ) ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "name" ) ) );
     }
 
     @Test
@@ -571,11 +609,11 @@ public class JdbcEventAnalyticsTableManagerTest
         verify( jdbcTemplate ).execute( sql.capture() );
 
         final String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = "
-                + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
-                + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
+            + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
-        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid") ) );
-        assertThat( sql.getValue(), containsString( String.format( ouQuery, "name") ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid" ) ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "name" ) ) );
     }
 
     private String toAlias( String template, String uid )
@@ -591,9 +629,9 @@ public class JdbcEventAnalyticsTableManagerTest
     private String getYearQueryForCurrentYear( Program program, boolean withExecutionDate )
     {
         String sql = "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join "
-                + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
-                + "2019-08-01T00:00:00' and pi.programid = " + program.getId()
-                + " and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ";
+            + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
+            + "2019-08-01T00:00:00' and pi.programid = " + program.getId()
+            + " and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ";
 
         if ( withExecutionDate )
         {

@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.sync;
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -31,6 +58,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
@@ -43,8 +72,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
@@ -53,8 +80,11 @@ import lombok.extern.slf4j.Slf4j;
 public class CompleteDataSetRegistrationSynchronization extends DataSynchronizationWithoutPaging
 {
     private final SystemSettingManager systemSettingManager;
+
     private final RestTemplate restTemplate;
+
     private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
+
     private final CompleteDataSetRegistrationExchangeService completeDataSetRegistrationExchangeService;
 
     private Date lastUpdatedAfter;
@@ -90,7 +120,8 @@ public class CompleteDataSetRegistrationSynchronization extends DataSynchronizat
             SyncUtils.setLastSyncSuccess( systemSettingManager,
                 SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC, new Date( clock.getStartTime() ) );
             log.info( "Skipping completeness synchronization, no new or updated data" );
-            return SynchronizationResult.newSuccessResultWithMessage( "Skipping completeness synchronization, no new or updated data" );
+            return SynchronizationResult
+                .newSuccessResultWithMessage( "Skipping completeness synchronization, no new or updated data" );
         }
 
         if ( sendSyncRequest() )
@@ -114,9 +145,11 @@ public class CompleteDataSetRegistrationSynchronization extends DataSynchronizat
 
         final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager,
             SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC );
-        final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date skipChangedBefore = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
         lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
-        objectsToSynchronize = completeDataSetRegistrationService.getCompleteDataSetCountLastUpdatedAfter( lastUpdatedAfter );
+        objectsToSynchronize = completeDataSetRegistrationService
+            .getCompleteDataSetCountLastUpdatedAfter( lastUpdatedAfter );
 
         log.info(
             "CompleteDataSetRegistrations last changed before " + skipChangedBefore + " will not be synchronized." );
@@ -142,6 +175,7 @@ public class CompleteDataSetRegistrationSynchronization extends DataSynchronizat
                 .writeCompleteDataSetRegistrationsJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
         };
 
-        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS );
+        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance,
+            SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS );
     }
 }

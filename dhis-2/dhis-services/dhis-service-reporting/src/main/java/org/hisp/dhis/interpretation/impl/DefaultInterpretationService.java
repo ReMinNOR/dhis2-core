@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.interpretation.impl;
 
 /*
@@ -28,6 +55,14 @@ package org.hisp.dhis.interpretation.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
@@ -57,14 +92,6 @@ import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -240,7 +267,8 @@ public class DefaultInterpretationService
         return interpretationStore.getAllOrderedLastUpdated( first, max );
     }
 
-    private long sendNotificationMessage( Set<User> users, Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
+    private long sendNotificationMessage( Set<User> users, Interpretation interpretation, InterpretationComment comment,
+        NotificationType notificationType )
     {
         I18n i18n = i18nManager.getI18n();
         String currentUsername = currentUserService.getCurrentUsername();
@@ -250,50 +278,50 @@ public class DefaultInterpretationService
 
         switch ( notificationType )
         {
-            case INTERPRETATION_CREATE:
-                actionString = i18n.getString( "notification_interpretation_create" );
-                details = interpretation.getText();
-                break;
-            case INTERPRETATION_UPDATE:
-                actionString = i18n.getString( "notification_interpretation_update" );
-                details = interpretation.getText();
-                break;
-            case INTERPRETATION_LIKE:
-                actionString = i18n.getString( "notification_interpretation_like" );
-                details = "";
-                break;
-            case COMMENT_CREATE:
-                actionString = i18n.getString( "notification_comment_create" );
-                details = comment.getText();
-                break;
-            case COMMENT_UPDATE:
-                actionString = i18n.getString( "notification_comment_update" );
-                details = comment.getText();
-                break;
-            default:
-                throw new IllegalArgumentException( "Unknown notification type: " + notificationType );
+        case INTERPRETATION_CREATE:
+            actionString = i18n.getString( "notification_interpretation_create" );
+            details = interpretation.getText();
+            break;
+        case INTERPRETATION_UPDATE:
+            actionString = i18n.getString( "notification_interpretation_update" );
+            details = interpretation.getText();
+            break;
+        case INTERPRETATION_LIKE:
+            actionString = i18n.getString( "notification_interpretation_like" );
+            details = "";
+            break;
+        case COMMENT_CREATE:
+            actionString = i18n.getString( "notification_comment_create" );
+            details = comment.getText();
+            break;
+        case COMMENT_UPDATE:
+            actionString = i18n.getString( "notification_comment_update" );
+            details = comment.getText();
+            break;
+        default:
+            throw new IllegalArgumentException( "Unknown notification type: " + notificationType );
         }
 
         String subject = String.join( " ", Arrays.asList(
             i18n.getString( "notification_user" ),
             currentUsername,
             actionString,
-            i18n.getString( "notification_object_subscribed" )
-        ) );
+            i18n.getString( "notification_object_subscribed" ) ) );
 
         String fullBody = String.join( "\n\n", Arrays.asList(
             String.format( "%s: %s", subject, interpretableName ),
             Jsoup.parse( details ).text(),
-            String.format( "%s %s", i18n.getString( "go_to" ), getInterpretationLink( interpretation ) )
-        ) );
+            String.format( "%s %s", i18n.getString( "go_to" ), getInterpretationLink( interpretation ) ) ) );
 
         return messageService.sendSystemMessage( users, subject, fullBody );
     }
 
-    private void notifySubscribers( Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
+    private void notifySubscribers( Interpretation interpretation, InterpretationComment comment,
+        NotificationType notificationType )
     {
         IdentifiableObject interpretableObject = interpretation.getObject();
-        Schema interpretableObjectSchema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( interpretableObject ) );
+        Schema interpretableObjectSchema = schemaService
+            .getDynamicSchema( HibernateProxyUtils.getRealClass( interpretableObject ) );
 
         if ( interpretableObjectSchema.isSubscribable() )
         {
@@ -308,7 +336,8 @@ public class DefaultInterpretationService
         }
     }
 
-    private void sendMentionNotifications( Interpretation interpretation, InterpretationComment comment, Set<User> users )
+    private void sendMentionNotifications( Interpretation interpretation, InterpretationComment comment,
+        Set<User> users )
     {
         if ( interpretation == null || users.isEmpty() )
         {
@@ -338,7 +367,8 @@ public class DefaultInterpretationService
         messageService.sendSystemMessage( users, subjectContent.toString(), messageContent.toString() );
     }
 
-    private String getInterpretationLink( Interpretation interpretation ) {
+    private String getInterpretationLink( Interpretation interpretation )
+    {
         String path;
 
         switch ( interpretation.getType() )
@@ -348,8 +378,9 @@ public class DefaultInterpretationService
                 + interpretation.getUid();
             break;
         case VISUALIZATION:
-            path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getVisualization().getUid() + "/interpretation/"
-                    + interpretation.getUid();
+            path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getVisualization().getUid()
+                + "/interpretation/"
+                + interpretation.getUid();
             break;
         case REPORT_TABLE:
             path = "/dhis-web-pivot/index.html?id=" + interpretation.getReportTable().getUid() + "&interpretationid="

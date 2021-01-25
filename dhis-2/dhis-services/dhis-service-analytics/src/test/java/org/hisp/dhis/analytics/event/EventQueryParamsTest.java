@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.event;
 
 /*
@@ -70,25 +97,45 @@ public class EventQueryParamsTest
     extends DhisConvenienceTest
 {
     private Option opA;
+
     private Option opB;
+
     private Option opC;
+
     private Option opD;
+
     private OptionSet osA;
+
     private OptionSet osB;
+
     private DataElement deA;
+
     private DataElement deB;
+
     private DataElement deC;
+
     private DataElement deD;
+
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private Program prA;
+
     private Program prB;
+
     private Program prC;
+
     private ProgramStage psA;
+
     private ProgramStage psB;
+
     private ProgramStage psC;
+
     private Period peA;
+
     private Period peB;
+
     private Period peC;
 
     @Before
@@ -114,25 +161,25 @@ public class EventQueryParamsTest
         psA = createProgramStage( 'A', prA );
         psB = createProgramStage( 'B', prB );
         psC = createProgramStage( 'B', prC );
-        
+
         // Program Stage A
         psA.addDataElement( deA, 0 );
         psA.addDataElement( deB, 1 );
         psA.addDataElement( deC, 2 );
         psA.addDataElement( deD, 3 );
         // Program Stage B
-        psB.addDataElement( deA, 0);
-        psB.addDataElement( deB, 1);
+        psB.addDataElement( deA, 0 );
+        psB.addDataElement( deB, 1 );
         // Program Stage C
-        psC.addDataElement( deA, 0);
+        psC.addDataElement( deA, 0 );
 
         prA = createProgram( 'A', Sets.newHashSet( psA ), ouA );
         prB = createProgram( 'B', Sets.newHashSet( psB ), ouA );
         prC = createProgram( 'C', Sets.newHashSet( psC ), ouA );
 
-        TrackedEntityAttribute teA = createTrackedEntityAttribute('A', ValueType.ORGANISATION_UNIT);
+        TrackedEntityAttribute teA = createTrackedEntityAttribute( 'A', ValueType.ORGANISATION_UNIT );
         teA.setUid( deD.getUid() );
-        ProgramTrackedEntityAttribute pteA = createProgramTrackedEntityAttribute( prC, teA);
+        ProgramTrackedEntityAttribute pteA = createProgramTrackedEntityAttribute( prC, teA );
 
         prC.setProgramAttributes( Collections.singletonList( pteA ) );
 
@@ -148,15 +195,19 @@ public class EventQueryParamsTest
         QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), osB );
 
         EventQueryParams paramsA = new EventQueryParams.Builder()
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB ) ) )
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
+                Lists.newArrayList( ouA, ouB ) ) )
             .addItem( qiA )
             .addItem( qiB )
             .build();
 
         EventQueryParams paramsB = new EventQueryParams.Builder()
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB ) ) )
-            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) ) )
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB ) ) )
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
+                Lists.newArrayList( ouA ) ) )
             .addItem( qiA )
             .addItem( qiB )
             .withGeometryOnly( true )
@@ -170,11 +221,13 @@ public class EventQueryParamsTest
 
         assertNotEquals( paramsA.getKey(), paramsB.getKey() );
     }
+
     @Test
     public void testReplacePeriodsWithStartEndDates()
     {
         EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
             .build();
 
         assertNull( params.getStartDate() );
@@ -293,14 +346,14 @@ public class EventQueryParamsTest
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
 
-        ProgramIndicator programIndicatorA = createProgramIndicator('A', prA, "", "");
+        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prA, "", "" );
 
         EventQueryParams params = new EventQueryParams.Builder()
-                .withProgram( null )
-                .withOrgUnitField( deD.getUid() )
-                .addItem( iA )
-                .addItemProgramIndicator( programIndicatorA )
-                .build();
+            .withProgram( null )
+            .withOrgUnitField( deD.getUid() )
+            .addItem( iA )
+            .addItemProgramIndicator( programIndicatorA )
+            .build();
 
         assertTrue( params.orgUnitFieldIsValid() );
 
@@ -311,17 +364,17 @@ public class EventQueryParamsTest
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
 
-        ProgramIndicator programIndicatorA = createProgramIndicator('A', prA, "", "");
+        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prA, "", "" );
         // this PI has 0 Data Element of type OrgUnit -> test should fail
-        ProgramIndicator programIndicatorB = createProgramIndicator('B', prB, "", "");
+        ProgramIndicator programIndicatorB = createProgramIndicator( 'B', prB, "", "" );
 
         EventQueryParams params = new EventQueryParams.Builder()
-                .withProgram( null )
-                .withOrgUnitField( deD.getUid() )
-                .addItem( iA )
-                .addItemProgramIndicator( programIndicatorA )
-                .addItemProgramIndicator( programIndicatorB )
-                .build();
+            .withProgram( null )
+            .withOrgUnitField( deD.getUid() )
+            .addItem( iA )
+            .addItemProgramIndicator( programIndicatorA )
+            .addItemProgramIndicator( programIndicatorB )
+            .build();
 
         assertFalse( params.orgUnitFieldIsValid() );
 
@@ -332,15 +385,16 @@ public class EventQueryParamsTest
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
 
-        // This PI has a Program that has a Tracked Entity Attribute of type Org Unit
-        ProgramIndicator programIndicatorA = createProgramIndicator('A', prC, "", "");
+        // This PI has a Program that has a Tracked Entity Attribute of type Org
+        // Unit
+        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prC, "", "" );
 
         EventQueryParams params = new EventQueryParams.Builder()
-                .withProgram( null )
-                .withOrgUnitField( deD.getUid() )
-                .addItem( iA )
-                .addItemProgramIndicator( programIndicatorA )
-                .build();
+            .withProgram( null )
+            .withOrgUnitField( deD.getUid() )
+            .addItem( iA )
+            .addItemProgramIndicator( programIndicatorA )
+            .build();
 
         assertTrue( params.orgUnitFieldIsValid() );
 

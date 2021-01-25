@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.attribute;
 
 /*
@@ -28,6 +55,17 @@ package org.hisp.dhis.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.cache.Cache;
@@ -39,16 +77,6 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -118,14 +146,14 @@ public class DefaultAttributeService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Attribute getAttribute( long id )
     {
         return attributeStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Attribute getAttribute( String uid )
     {
         Optional<Attribute> attribute = attributeCache.get( uid, attr -> attributeStore.getByUid( uid ) );
@@ -133,42 +161,42 @@ public class DefaultAttributeService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Attribute getAttributeByName( String name )
     {
         return attributeStore.getByName( name );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Attribute getAttributeByCode( String code )
     {
         return attributeStore.getByCode( code );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Attribute> getAllAttributes()
     {
         return new ArrayList<>( attributeStore.getAll() );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Attribute> getAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getAttributes( klass ) );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Attribute> getMandatoryAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getMandatoryAttributes( klass ) );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Attribute> getUniqueAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getUniqueAttributes( klass ) );
@@ -212,7 +240,7 @@ public class DefaultAttributeService
     public <T extends IdentifiableObject> void deleteAttributeValue( T object, AttributeValue attributeValue )
     {
         object.getAttributeValues()
-                .removeIf( a -> a.getAttribute() == attributeValue.getAttribute() );
+            .removeIf( a -> a.getAttribute() == attributeValue.getAttribute() );
         manager.update( object );
     }
 
@@ -230,6 +258,7 @@ public class DefaultAttributeService
     public <T extends IdentifiableObject> void generateAttributes( List<T> entityList )
     {
         entityList.forEach( entity -> entity.getAttributeValues()
-            .forEach( attributeValue -> attributeValue.setAttribute( getAttribute( attributeValue.getAttribute().getUid() ) ) ) );
+            .forEach( attributeValue -> attributeValue
+                .setAttribute( getAttribute( attributeValue.getAttribute().getUid() ) ) ) );
     }
 }

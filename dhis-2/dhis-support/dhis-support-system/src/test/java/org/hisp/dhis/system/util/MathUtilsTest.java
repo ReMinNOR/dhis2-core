@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.system.util;
 
 /*
@@ -43,12 +70,12 @@ import org.junit.Test;
 public class MathUtilsTest
 {
     private static final double DELTA = 0.0001;
-    
+
     @Test
     public void testGetMin()
     {
         double[] array = { 5.0, 2.0, 6.0, 12.0 };
-        
+
         assertEquals( 2.0, MathUtils.getMin( array ), DELTA );
     }
 
@@ -56,10 +83,10 @@ public class MathUtilsTest
     public void testGetMax()
     {
         double[] array = { 5.0, 2.0, 12.0, 6.0 };
-        
+
         assertEquals( 12.0, MathUtils.getMax( array ), DELTA );
     }
-    
+
     @Test
     public void testIsNumeric()
     {
@@ -144,7 +171,7 @@ public class MathUtilsTest
         assertFalse( MathUtils.isNumericLenient( "E5" ) );
         assertFalse( MathUtils.isNumericLenient( null ) );
     }
-    
+
     @Test
     public void testIsUnitInterval()
     {
@@ -152,13 +179,13 @@ public class MathUtilsTest
         assertTrue( MathUtils.isUnitInterval( "0.2" ) );
         assertTrue( MathUtils.isUnitInterval( "0.876" ) );
         assertTrue( MathUtils.isUnitInterval( "1" ) );
-        
+
         assertFalse( MathUtils.isUnitInterval( "2" ) );
         assertFalse( MathUtils.isUnitInterval( "-1" ) );
         assertFalse( MathUtils.isUnitInterval( "abc" ) );
         assertFalse( MathUtils.isUnitInterval( "1.01" ) );
     }
-    
+
     @Test
     public void testIsPercentage()
     {
@@ -172,7 +199,7 @@ public class MathUtilsTest
         assertFalse( MathUtils.isPercentage( "17,8" ) );
         assertFalse( MathUtils.isPercentage( "101" ) );
     }
-    
+
     @Test
     public void testIsInteger()
     {
@@ -180,7 +207,7 @@ public class MathUtilsTest
         assertTrue( MathUtils.isInteger( "123" ) );
         assertTrue( MathUtils.isInteger( "-2" ) );
         assertTrue( MathUtils.isInteger( "0" ) );
-        
+
         assertFalse( MathUtils.isInteger( "1.1" ) );
         assertFalse( MathUtils.isInteger( "+4" ) );
         assertFalse( MathUtils.isInteger( "-0" ) );
@@ -226,7 +253,7 @@ public class MathUtilsTest
         assertFalse( MathUtils.isNegativeInteger( "2 " ) );
         assertFalse( MathUtils.isNegativeInteger( "6.1345" ) );
     }
-        
+
     @Test
     public void testIsZeroOrPositiveInteger()
     {
@@ -256,7 +283,7 @@ public class MathUtilsTest
         assertTrue( MathUtils.isCoordinate( "   [18.56 ,  65.342   ]    " ) );
         assertTrue( MathUtils.isCoordinate( "   [  -180 ,  -90]    " ) );
         assertTrue( MathUtils.isCoordinate( "   [  12.30 ,  45.67    ]    " ) );
-        
+
         assertFalse( MathUtils.isCoordinate( "" ) );
         assertFalse( MathUtils.isCoordinate( null ) );
         assertFalse( MathUtils.isCoordinate( "18.56a, 65.342b" ) );
@@ -285,13 +312,13 @@ public class MathUtilsTest
         assertFalse( MathUtils.isZero( "2.17" ) );
         assertFalse( MathUtils.isZero( "Hey" ) );
     }
-    
+
     @Test
     public void testGetAverage()
     {
         assertEquals( 7.5, MathUtils.getAverage( Arrays.asList( 5.0, 5.0, 10.0, 10.0 ) ), DELTA );
     }
-    
+
     @Test
     public void testGetRounded()
     {
@@ -301,7 +328,7 @@ public class MathUtilsTest
         assertEquals( 0.5, MathUtils.getRounded( 0.5 ), DELTA );
         assertEquals( 0, MathUtils.getRounded( 0 ), DELTA );
         assertEquals( -0.43, MathUtils.getRounded( -0.43123 ), DELTA );
-        assertEquals( -10, MathUtils.getRounded( -10.00 ), DELTA );        
+        assertEquals( -10, MathUtils.getRounded( -10.00 ), DELTA );
     }
 
     @Test

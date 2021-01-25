@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.notification;
 
 /*
@@ -42,6 +69,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.RegexUtils;
@@ -53,9 +81,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 /**
- * Template formats supported:
- *  A{uid-of-attribute}
- *  V{name-of-variable}
+ * Template formats supported: A{uid-of-attribute} V{name-of-variable}
  *
  * The implementing superclass defines how these are resolved.
  *
@@ -67,35 +93,68 @@ import com.google.common.collect.Maps;
 public abstract class BaseNotificationMessageRenderer<T>
     implements NotificationMessageRenderer<T>
 {
-    protected static final int SMS_CHAR_LIMIT = 160 * 4;  // Four concatenated SMS messages
-    protected static final int EMAIL_CHAR_LIMIT = 10000;  // Somewhat arbitrarily chosen limits
+    protected static final int SMS_CHAR_LIMIT = 160 * 4; // Four concatenated
+                                                         // SMS messages
+
+    protected static final int EMAIL_CHAR_LIMIT = 10000; // Somewhat arbitrarily
+                                                         // chosen limits
+
     protected static final int SUBJECT_CHAR_LIMIT = 100;
 
-    protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]"; // TODO reconsider this...
+    protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]"; // TODO
+                                                                                     // reconsider
+                                                                                     // this...
+
     protected static final String MISSING_VALUE_REPLACEMENT = "[N/A]";
+
     protected static final String VALUE_ON_ERROR = "[SERVER ERROR]";
 
-    protected static final Pattern VARIABLE_CONTENT_PATTERN = Pattern.compile( "^[A-Za-z0-9_]+$" ); // For Variable
-    protected static final Pattern COMBINED_CONTENT_PATTERN = Pattern.compile( "[A-Za-z][A-Za-z0-9]{10}" ); // For TrackedEntityAttribute and DataElement
+    protected static final Pattern VARIABLE_CONTENT_PATTERN = Pattern.compile( "^[A-Za-z0-9_]+$" ); // For
+                                                                                                    // Variable
 
-    private static final Pattern VARIABLE_PATTERN  = Pattern.compile( "V\\{([a-z_]*)}" ); // Matches the variable in group 1
-    private static final Pattern TRACKED_ENTITY_ATTRIBUTE_PATTERN = Pattern.compile( "A\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1
-    private static final Pattern DATA_ELEMENT_PATTERN = Pattern.compile( "#\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1 for DataElement
+    protected static final Pattern COMBINED_CONTENT_PATTERN = Pattern.compile( "[A-Za-z][A-Za-z0-9]{10}" ); // For
+                                                                                                            // TrackedEntityAttribute
+                                                                                                            // and
+                                                                                                            // DataElement
 
-    private ImmutableMap<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> EXPRESSION_TO_VALUE_RESOLVERS =
-        new ImmutableMap.Builder<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>>()
-            .put( ExpressionType.VARIABLE, (entity, keys) -> resolveVariableValues( keys, entity ) )
-            .put( ExpressionType.TRACKED_ENTITY_ATTRIBUTE, (entity, keys) -> resolveTrackedEntityAttributeValues( keys, entity ) )
-            .put( ExpressionType.DATA_ELEMENT, ( entity, keys ) -> resolveDataElementValues( keys, entity ) )
-            .build();
+    private static final Pattern VARIABLE_PATTERN = Pattern.compile( "V\\{([a-z_]*)}" ); // Matches
+                                                                                         // the
+                                                                                         // variable
+                                                                                         // in
+                                                                                         // group
+                                                                                         // 1
+
+    private static final Pattern TRACKED_ENTITY_ATTRIBUTE_PATTERN = Pattern.compile( "A\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches
+                                                                                                                         // the
+                                                                                                                         // uid
+                                                                                                                         // in
+                                                                                                                         // group
+                                                                                                                         // 1
+
+    private static final Pattern DATA_ELEMENT_PATTERN = Pattern.compile( "#\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches
+                                                                                                             // the
+                                                                                                             // uid
+                                                                                                             // in
+                                                                                                             // group
+                                                                                                             // 1
+                                                                                                             // for
+                                                                                                             // DataElement
+
+    private ImmutableMap<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> EXPRESSION_TO_VALUE_RESOLVERS = new ImmutableMap.Builder<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>>()
+        .put( ExpressionType.VARIABLE, ( entity, keys ) -> resolveVariableValues( keys, entity ) )
+        .put( ExpressionType.TRACKED_ENTITY_ATTRIBUTE,
+            ( entity, keys ) -> resolveTrackedEntityAttributeValues( keys, entity ) )
+        .put( ExpressionType.DATA_ELEMENT, ( entity, keys ) -> resolveDataElementValues( keys, entity ) )
+        .build();
 
     protected enum ExpressionType
     {
-        VARIABLE ( VARIABLE_PATTERN, VARIABLE_CONTENT_PATTERN ),
-        TRACKED_ENTITY_ATTRIBUTE ( TRACKED_ENTITY_ATTRIBUTE_PATTERN, COMBINED_CONTENT_PATTERN ),
-        DATA_ELEMENT ( DATA_ELEMENT_PATTERN, COMBINED_CONTENT_PATTERN );
+        VARIABLE( VARIABLE_PATTERN, VARIABLE_CONTENT_PATTERN ),
+        TRACKED_ENTITY_ATTRIBUTE( TRACKED_ENTITY_ATTRIBUTE_PATTERN, COMBINED_CONTENT_PATTERN ),
+        DATA_ELEMENT( DATA_ELEMENT_PATTERN, COMBINED_CONTENT_PATTERN );
 
         private final Pattern expressionPattern;
+
         private final Pattern contentPattern;
 
         ExpressionType( Pattern expressionPattern, Pattern contentPattern )
@@ -123,10 +182,9 @@ public abstract class BaseNotificationMessageRenderer<T>
     {
         final String collatedTemplate = template.getSubjectTemplate() + " " + template.getMessageTemplate();
 
-        Map<String, String> expressionToValueMap =
-            extractExpressionsByType( collatedTemplate ).entrySet().stream()
-                .map( entry -> resolveValuesFromExpressions( entry.getValue(), entry.getKey(), entity ) )
-                .collect( HashMap::new, Map::putAll, Map::putAll );
+        Map<String, String> expressionToValueMap = extractExpressionsByType( collatedTemplate ).entrySet().stream()
+            .map( entry -> resolveValuesFromExpressions( entry.getValue(), entry.getKey(), entity ) )
+            .collect( HashMap::new, Map::putAll, Map::putAll );
 
         return createNotificationMessage( template, expressionToValueMap );
     }
@@ -137,7 +195,8 @@ public abstract class BaseNotificationMessageRenderer<T>
 
     protected boolean isValidExpressionContent( String content, ExpressionType type )
     {
-        return content != null && getSupportedExpressionTypes().contains( type ) && type.isValidExpressionContent( content );
+        return content != null && getSupportedExpressionTypes().contains( type )
+            && type.isValidExpressionContent( content );
     }
 
     // -------------------------------------------------------------------------
@@ -145,8 +204,8 @@ public abstract class BaseNotificationMessageRenderer<T>
     // -------------------------------------------------------------------------
 
     /**
-     * Gets a Map of variable resolver functions, keyed by the Template Variable.
-     * The returned Map should not be mutable.
+     * Gets a Map of variable resolver functions, keyed by the Template
+     * Variable. The returned Map should not be mutable.
      */
     protected abstract Map<TemplateVariable, Function<T, String>> getVariableResolvers();
 
@@ -184,7 +243,8 @@ public abstract class BaseNotificationMessageRenderer<T>
 
     private Map<String, String> resolveValuesFromExpressions( Set<String> expressions, ExpressionType type, T entity )
     {
-        return EXPRESSION_TO_VALUE_RESOLVERS.getOrDefault( type, (e, s) -> Maps.newHashMap() ).apply( entity, expressions );
+        return EXPRESSION_TO_VALUE_RESOLVERS.getOrDefault( type, ( e, s ) -> Maps.newHashMap() ).apply( entity,
+            expressions );
     }
 
     private Map<String, String> resolveVariableValues( Set<String> variables, T entity )
@@ -192,8 +252,7 @@ public abstract class BaseNotificationMessageRenderer<T>
         return variables.stream()
             .collect( Collectors.toMap(
                 v -> v,
-                v -> resolveValue( v, entity )
-            ) );
+                v -> resolveValue( v, entity ) ) );
     }
 
     private String resolveValue( String variableName, T entity )
@@ -222,14 +281,15 @@ public abstract class BaseNotificationMessageRenderer<T>
         }
         catch ( Exception ex )
         {
-            log.warn( "Caught exception when running value resolver for variable: " + variableName , ex );
+            log.warn( "Caught exception when running value resolver for variable: " + variableName, ex );
             value = VALUE_ON_ERROR;
         }
 
         return value != null ? value : StringUtils.EMPTY;
     }
 
-    private NotificationMessage createNotificationMessage( NotificationTemplate template, Map<String, String> expressionToValueMap )
+    private NotificationMessage createNotificationMessage( NotificationTemplate template,
+        Map<String, String> expressionToValueMap )
     {
         String subject = replaceExpressions( template.getSubjectTemplate(), expressionToValueMap );
         subject = chop( subject, SUBJECT_CHAR_LIMIT );
@@ -268,8 +328,7 @@ public abstract class BaseNotificationMessageRenderer<T>
 
                     return matcher.appendTail( sb ).toString();
                 },
-                ( oldStr, newStr ) -> newStr
-            );
+                ( oldStr, newStr ) -> newStr );
     }
 
     private Map<ExpressionType, Set<String>> extractExpressionsByType( String template )
@@ -281,7 +340,8 @@ public abstract class BaseNotificationMessageRenderer<T>
     private Set<String> extractExpressions( String template, ExpressionType type )
     {
         Map<Boolean, Set<String>> groupedExpressions = RegexUtils.getMatches( type.getExpressionPattern(), template, 1 )
-            .stream().collect( Collectors.groupingBy( expr -> isValidExpressionContent( expr, type ), Collectors.toSet() ) );
+            .stream()
+            .collect( Collectors.groupingBy( expr -> isValidExpressionContent( expr, type ), Collectors.toSet() ) );
 
         warnOfUnrecognizedExpressions( groupedExpressions.get( false ), type );
 
@@ -320,7 +380,7 @@ public abstract class BaseNotificationMessageRenderer<T>
 
     protected static String daysSince( Date date )
     {
-        return String.valueOf( Days.daysBetween( new DateTime( date ) , DateTime.now() ).getDays() );
+        return String.valueOf( Days.daysBetween( new DateTime( date ), DateTime.now() ).getDays() );
     }
 
     protected static String formatDate( Date date )

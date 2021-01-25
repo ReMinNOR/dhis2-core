@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.common;
 
 /*
@@ -59,8 +86,8 @@ public class BaseDimensionalObject
     private DimensionType dimensionType;
 
     /**
-     * The data dimension type of this dimension. Can be null. Only applicable for
-     * {@link DimensionType#CATEGORY}.
+     * The data dimension type of this dimension. Can be null. Only applicable
+     * for {@link DimensionType#CATEGORY}.
      */
     protected DataDimensionType dataDimensionType;
 
@@ -107,15 +134,15 @@ public class BaseDimensionalObject
     protected AggregationType aggregationType;
 
     /**
-     * Filter. Applicable for events. Contains operator and filter on this format:
-     * <operator>:<filter>;<operator>:<filter>
-     * Operator and filter pairs can be repeated any number of times.
+     * Filter. Applicable for events. Contains operator and filter on this
+     * format: <operator>:<filter>;<operator>:<filter> Operator and filter pairs
+     * can be repeated any number of times.
      */
     private String filter;
 
     /**
-     * A {@link DimensionalKeywords} defines a pre-defined group of items. For instance,
-     * all the OU withing a district
+     * A {@link DimensionalKeywords} defines a pre-defined group of items. For
+     * instance, all the OU withing a district
      */
     private DimensionalKeywords dimensionalKeywords;
 
@@ -125,9 +152,9 @@ public class BaseDimensionalObject
      */
     private boolean fixed;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Constructors
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     // TODO displayName collides with translation solution, rename
 
@@ -140,39 +167,46 @@ public class BaseDimensionalObject
         this.uid = dimension;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, List<? extends DimensionalItemObject> items )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType,
+        List<? extends DimensionalItemObject> items )
     {
         this.uid = dimension;
         this.dimensionType = dimensionType;
         this.items = new ArrayList<>( items );
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionDisplayName, List<? extends DimensionalItemObject> items )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionDisplayName,
+        List<? extends DimensionalItemObject> items )
     {
         this( dimension, dimensionType, items );
         this.dimensionDisplayName = dimensionDisplayName;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String dimensionDisplayName, List<? extends DimensionalItemObject> items )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
+        String dimensionDisplayName, List<? extends DimensionalItemObject> items )
     {
         this( dimension, dimensionType, items );
         this.dimensionName = dimensionName;
         this.dimensionDisplayName = dimensionDisplayName;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String dimensionDisplayName, List<? extends DimensionalItemObject> items, DimensionalKeywords dimensionalKeywords )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
+        String dimensionDisplayName, List<? extends DimensionalItemObject> items,
+        DimensionalKeywords dimensionalKeywords )
     {
         this( dimension, dimensionType, dimensionName, dimensionDisplayName, items );
         this.dimensionalKeywords = dimensionalKeywords;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String dimensionDisplayName, List<? extends DimensionalItemObject> items, boolean allItems )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
+        String dimensionDisplayName, List<? extends DimensionalItemObject> items, boolean allItems )
     {
         this( dimension, dimensionType, dimensionName, dimensionDisplayName, items );
         this.allItems = allItems;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String dimensionDisplayName, LegendSet legendSet, ProgramStage programStage, String filter )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
+        String dimensionDisplayName, LegendSet legendSet, ProgramStage programStage, String filter )
     {
         this( dimension );
         this.dimensionType = dimensionType;
@@ -243,10 +277,8 @@ public class BaseDimensionalObject
     @Override
     public AnalyticsType getAnalyticsType()
     {
-        return
-            DimensionType.PROGRAM_ATTRIBUTE.equals( dimensionType ) ||
-                DimensionType.PROGRAM_DATA_ELEMENT.equals( dimensionType ) ?
-                AnalyticsType.EVENT : AnalyticsType.AGGREGATE;
+        return DimensionType.PROGRAM_ATTRIBUTE.equals( dimensionType ) ||
+            DimensionType.PROGRAM_DATA_ELEMENT.equals( dimensionType ) ? AnalyticsType.EVENT : AnalyticsType.AGGREGATE;
     }
 
     /**
@@ -284,9 +316,9 @@ public class BaseDimensionalObject
             .addIgnoreNull( "filter", filter ).asPlainKey();
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Getters and setters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     @JsonProperty

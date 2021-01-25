@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.reservedvalue.hibernate;
 
 /*
@@ -28,7 +55,14 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.Objects;
@@ -45,14 +79,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Lists;
 
 public class HibernateReservedValueStoreTest
     extends DhisSpringTest
@@ -117,19 +144,21 @@ public class HibernateReservedValueStoreTest
         List<ReservedValue> res = reservedValueStore.reserveValuesJpa( rv, Lists.newArrayList( rv.getValue() ) );
 
         assertEquals( 1, res.size() );
-        assertEquals(reservedValueStore.getCount(), count + 1);
+        assertEquals( reservedValueStore.getCount(), count + 1 );
     }
 
     @Test
     public void isReservedShouldBeTrue()
     {
-        assertTrue( reservedValueStore.isReserved( reservedValueA.getOwnerObject(), reservedValueA.getOwnerUid(), "001" ) );
+        assertTrue(
+            reservedValueStore.isReserved( reservedValueA.getOwnerObject(), reservedValueA.getOwnerUid(), "001" ) );
     }
 
     @Test
     public void isReservedShouldBeFalse()
     {
-        assertFalse( reservedValueStore.isReserved( reservedValueA.getOwnerObject(), reservedValueA.getOwnerUid(), "100" ) );
+        assertFalse(
+            reservedValueStore.isReserved( reservedValueA.getOwnerObject(), reservedValueA.getOwnerUid(), "100" ) );
     }
 
     @Test
@@ -148,7 +177,7 @@ public class HibernateReservedValueStoreTest
         List<ReservedValue> res = reservedValueStore.reserveValuesJpa( getFreeReservedValue(), values );
 
         assertEquals( n, res.size() );
-        assertEquals( ( count + n ), reservedValueStore.getCount() );
+        assertEquals( (count + n), reservedValueStore.getCount() );
     }
 
     @Test
@@ -185,7 +214,7 @@ public class HibernateReservedValueStoreTest
 
         assertEquals( 1, count );
         assertEquals( 3, res.size() );
-        assertEquals( ( count + 3 ), reservedValueStore.getCount() );
+        assertEquals( (count + 3), reservedValueStore.getCount() );
     }
 
     @Test
@@ -231,8 +260,8 @@ public class HibernateReservedValueStoreTest
 
         reservedValueStore.removeExpiredReservations();
 
-        assertFalse( reservedValueStore.getIfReservedValues( expired, Lists.newArrayList(expired.getValue() ) )
-                .contains( expired ) );
+        assertFalse( reservedValueStore.getIfReservedValues( expired, Lists.newArrayList( expired.getValue() ) )
+            .contains( expired ) );
     }
 
     @Test
@@ -254,7 +283,6 @@ public class HibernateReservedValueStoreTest
             "FREE",
             "00X",
             String.format( "%03d", counter++ ),
-            futureDate
-        );
+            futureDate );
     }
 }

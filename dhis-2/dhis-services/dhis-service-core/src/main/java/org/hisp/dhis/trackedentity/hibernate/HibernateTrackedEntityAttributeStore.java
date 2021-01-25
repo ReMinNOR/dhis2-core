@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.trackedentity.hibernate;
 
 /*
@@ -76,7 +103,8 @@ public class HibernateTrackedEntityAttributeStore
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         AclService aclService, StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityAttribute.class, currentUserService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityAttribute.class, currentUserService, aclService,
+            true );
         this.statementBuilder = statementBuilder;
     }
 
@@ -103,7 +131,8 @@ public class HibernateTrackedEntityAttributeStore
     }
 
     @Override
-    public Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params )
+    public Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue(
+        TrackedEntityInstanceQueryParams params )
     {
         // ---------------------------------------------------------------------
         // Select clause
@@ -127,7 +156,8 @@ public class HibernateTrackedEntityAttributeStore
         {
             for ( QueryFilter filter : item.getFilters() )
             {
-                final String encodedFilter = filter.getSqlFilter( statementBuilder.encode( StringUtils.lowerCase( filter.getFilter() ), false ) );
+                final String encodedFilter = filter
+                    .getSqlFilter( statementBuilder.encode( StringUtils.lowerCase( filter.getFilter() ), false ) );
 
                 hql += hlp.whereAnd() + " exists (from TrackedEntityAttributeValue teav where teav.entityInstance=tei";
                 hql += " and teav.attribute.uid='" + item.getItemId() + "'";
@@ -155,19 +185,18 @@ public class HibernateTrackedEntityAttributeStore
 
         if ( it.hasNext() )
         {
-            return Optional.of( it.next());
+            return Optional.of( it.next() );
         }
 
         return Optional.empty();
     }
 
-
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
     public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes()
     {
         Query query = sessionFactory.getCurrentSession()
-                .createQuery( "select trackedEntityTypeAttributes from TrackedEntityType" );
+            .createQuery( "select trackedEntityTypeAttributes from TrackedEntityType" );
 
         Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>( query.list() );
 
@@ -176,9 +205,8 @@ public class HibernateTrackedEntityAttributeStore
             .collect( Collectors.toSet() );
     }
 
-
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
     public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram()
     {
         Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
@@ -191,11 +219,13 @@ public class HibernateTrackedEntityAttributeStore
         {
             if ( !result.containsKey( programTrackedEntityAttribute.getProgram() ) )
             {
-                result.put( programTrackedEntityAttribute.getProgram(), Sets.newHashSet( programTrackedEntityAttribute.getAttribute() ) );
+                result.put( programTrackedEntityAttribute.getProgram(),
+                    Sets.newHashSet( programTrackedEntityAttribute.getAttribute() ) );
             }
             else
             {
-                result.get( programTrackedEntityAttribute.getProgram() ).add( programTrackedEntityAttribute.getAttribute() );
+                result.get( programTrackedEntityAttribute.getProgram() )
+                    .add( programTrackedEntityAttribute.getAttribute() );
             }
         }
         return result;

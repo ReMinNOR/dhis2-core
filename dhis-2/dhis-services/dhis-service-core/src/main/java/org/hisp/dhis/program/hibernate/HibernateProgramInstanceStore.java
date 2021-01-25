@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.program.hibernate;
 
 /*
@@ -86,11 +113,9 @@ public class HibernateProgramInstanceStore
 
     private final static String STATUS = "status";
 
-    private static final Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
-        Sets.intersection(
-            NotificationTrigger.getAllApplicableToProgramInstance(),
-            NotificationTrigger.getAllScheduledTriggers()
-        );
+    private static final Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS = Sets.intersection(
+        NotificationTrigger.getAllApplicableToProgramInstance(),
+        NotificationTrigger.getAllScheduledTriggers() );
 
     public HibernateProgramInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -110,7 +135,8 @@ public class HibernateProgramInstanceStore
 
     private String buildCountProgramInstanceHql( ProgramInstanceQueryParams params )
     {
-        return buildProgramInstanceHql( params ).replaceFirst( "from ProgramInstance pi", "select count(distinct uid) from ProgramInstance pi" );
+        return buildProgramInstanceHql( params ).replaceFirst( "from ProgramInstance pi",
+            "select count(distinct uid) from ProgramInstance pi" );
     }
 
     @Override
@@ -151,7 +177,8 @@ public class HibernateProgramInstanceStore
 
         if ( params.hasTrackedEntityType() )
         {
-            hql += hlp.whereAnd() + "pi.entityInstance.trackedEntityType.uid = '" + params.getTrackedEntityType().getUid() + "'";
+            hql += hlp.whereAnd() + "pi.entityInstance.trackedEntityType.uid = '"
+                + params.getTrackedEntityType().getUid() + "'";
         }
 
         if ( params.hasOrganisationUnits() )
@@ -172,7 +199,8 @@ public class HibernateProgramInstanceStore
             }
             else
             {
-                hql += hlp.whereAnd() + "pi.organisationUnit.uid in (" + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnits() ) ) + ")";
+                hql += hlp.whereAnd() + "pi.organisationUnit.uid in ("
+                    + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnits() ) ) + ")";
             }
         }
 
@@ -193,7 +221,8 @@ public class HibernateProgramInstanceStore
 
         if ( params.hasProgramStartDate() )
         {
-            hql += hlp.whereAnd() + "pi.enrollmentDate >= '" + getMediumDateString( params.getProgramStartDate() ) + "'";
+            hql += hlp.whereAnd() + "pi.enrollmentDate >= '" + getMediumDateString( params.getProgramStartDate() )
+                + "'";
         }
 
         if ( params.hasProgramEndDate() )
@@ -214,7 +243,8 @@ public class HibernateProgramInstanceStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
+        return getList( builder,
+            newJpaParameters().addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
     }
 
     @Override
@@ -279,7 +309,8 @@ public class HibernateProgramInstanceStore
         {
             if ( !uidsPartition.isEmpty() )
             {
-                resultUids.addAll( getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
+                resultUids.addAll(
+                    getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
             }
         }
 
@@ -305,9 +336,11 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
+    public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template,
+        Date notificationDate )
     {
-        if ( notificationDate == null || !SCHEDULED_PROGRAM_INSTANCE_TRIGGERS.contains( template.getNotificationTrigger() ) )
+        if ( notificationDate == null
+            || !SCHEDULED_PROGRAM_INSTANCE_TRIGGERS.contains( template.getNotificationTrigger() ) )
         {
             return Lists.newArrayList();
         }
@@ -321,13 +354,12 @@ public class HibernateProgramInstanceStore
 
         Date targetDate = DateUtils.addDays( notificationDate, template.getRelativeScheduledDays() * -1 );
 
-        String hql =
-            "select distinct pi from ProgramInstance as pi " +
-                "inner join pi.program as p " +
-                "where :notificationTemplate in elements(p.notificationTemplates) " +
-                "and pi." + dateProperty + " is not null " +
-                "and pi.status = :activeEnrollmentStatus " +
-                "and cast(:targetDate as date) = pi." + dateProperty;
+        String hql = "select distinct pi from ProgramInstance as pi " +
+            "inner join pi.program as p " +
+            "where :notificationTemplate in elements(p.notificationTemplates) " +
+            "and pi." + dateProperty + " is not null " +
+            "and pi.status = :activeEnrollmentStatus " +
+            "and cast(:targetDate as date) = pi." + dateProperty;
 
         return getQuery( hql )
             .setParameter( "notificationTemplate", template )
@@ -371,7 +403,8 @@ public class HibernateProgramInstanceStore
         // Constructing list of parameters
         List<Predicate> predicates = new ArrayList<>();
 
-        // TODO we may have potentially thousands of events here, so, it's better to
+        // TODO we may have potentially thousands of events here, so, it's
+        // better to
         // partition the list
         for ( Pair<Program, TrackedEntityInstance> pair : programTeiPair )
         {
@@ -402,7 +435,8 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    protected void preProcessPredicates( CriteriaBuilder builder, List<Function<Root<ProgramInstance>, Predicate>> predicates )
+    protected void preProcessPredicates( CriteriaBuilder builder,
+        List<Function<Root<ProgramInstance>, Predicate>> predicates )
     {
         predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
     }

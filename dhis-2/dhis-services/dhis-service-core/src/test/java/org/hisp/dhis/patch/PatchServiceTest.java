@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.patch;
 
 /*
@@ -28,10 +55,13 @@ package org.hisp.dhis.patch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -39,20 +69,18 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -73,7 +101,8 @@ public class PatchServiceTest
     private ObjectMapper jsonMapper;
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         userService = _userService;
     }
@@ -130,7 +159,8 @@ public class PatchServiceTest
 
         Patch patch = new Patch()
             .addMutation( new Mutation( "name", "Updated Name" ) )
-            .addMutation( new Mutation( "dataElements", Lists.newArrayList( deA.getUid() ), Mutation.Operation.DELETION ) );
+            .addMutation(
+                new Mutation( "dataElements", Lists.newArrayList( deA.getUid() ), Mutation.Operation.DELETION ) );
 
         patchService.apply( patch, dataElementGroup );
 
@@ -138,7 +168,8 @@ public class PatchServiceTest
         assertEquals( 1, dataElementGroup.getMembers().size() );
 
         patch = new Patch()
-            .addMutation( new Mutation( "dataElements", Lists.newArrayList( deB.getUid() ), Mutation.Operation.DELETION ) );
+            .addMutation(
+                new Mutation( "dataElements", Lists.newArrayList( deB.getUid() ), Mutation.Operation.DELETION ) );
 
         patchService.apply( patch, dataElementGroup );
 
@@ -434,6 +465,7 @@ public class PatchServiceTest
             }
         }
 
-        assertEquals( "Did not find " + expected + " mutations of type " + operation + " on property " + name, expected, count );
+        assertEquals( "Did not find " + expected + " mutations of type " + operation + " on property " + name, expected,
+            count );
     }
 }

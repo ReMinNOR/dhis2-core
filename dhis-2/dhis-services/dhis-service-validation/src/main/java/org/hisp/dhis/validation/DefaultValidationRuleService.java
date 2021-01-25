@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.validation;
 
 /*
@@ -152,13 +179,13 @@ public class DefaultValidationRuleService
     @Override
     public List<ValidationRule> getValidationRulesBetween( int first, int max )
     {
-        return validationRuleStore.getAllOrderedName( first, max ) ;
+        return validationRuleStore.getAllOrderedName( first, max );
     }
 
     @Override
     public List<ValidationRule> getValidationRulesBetweenByName( String name, int first, int max )
     {
-        return validationRuleStore.getAllLikeName( name, first, max ) ;
+        return validationRuleStore.getAllLikeName( name, first, max );
     }
 
     @Override
@@ -192,8 +219,10 @@ public class DefaultValidationRuleService
 
         for ( ValidationRule rule : getAllFormValidationRules() )
         {
-            Set<String> leftSideElementsAndCombos = expressionService.getExpressionElementAndOptionComboIds( rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION );
-            Set<String> rightSideElementsAndCombos = expressionService.getExpressionElementAndOptionComboIds( rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION );
+            Set<String> leftSideElementsAndCombos = expressionService.getExpressionElementAndOptionComboIds(
+                rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION );
+            Set<String> rightSideElementsAndCombos = expressionService.getExpressionElementAndOptionComboIds(
+                rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION );
 
             if ( !Sets.intersection( leftSideElementsAndCombos, elementsAndOptionCombos ).isEmpty() ||
                 !Sets.intersection( rightSideElementsAndCombos, elementsAndOptionCombos ).isEmpty() )
@@ -209,8 +238,10 @@ public class DefaultValidationRuleService
     public Set<DataElement> getDataElements( ValidationRule validationRule )
     {
         Set<DataElement> elements = new HashSet<>();
-        elements.addAll( expressionService.getExpressionDataElements( validationRule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION ) );
-        elements.addAll( expressionService.getExpressionDataElements( validationRule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION ) );
+        elements.addAll( expressionService.getExpressionDataElements( validationRule.getLeftSide().getExpression(),
+            VALIDATION_RULE_EXPRESSION ) );
+        elements.addAll( expressionService.getExpressionDataElements( validationRule.getRightSide().getExpression(),
+            VALIDATION_RULE_EXPRESSION ) );
         return elements;
     }
 
@@ -277,7 +308,7 @@ public class DefaultValidationRuleService
     @Override
     public int getValidationRuleGroupCountByName( String name )
     {
-        return validationRuleGroupStore.getCountLikeName( name ) ;
+        return validationRuleGroupStore.getCountLikeName( name );
     }
 
     @Override
@@ -289,6 +320,6 @@ public class DefaultValidationRuleService
     @Override
     public List<ValidationRuleGroup> getValidationRuleGroupsBetweenByName( String name, int first, int max )
     {
-        return validationRuleGroupStore.getAllLikeName( name, first, max ) ;
+        return validationRuleGroupStore.getAllLikeName( name, first, max );
     }
 }

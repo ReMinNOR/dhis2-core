@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
 /*
@@ -28,9 +55,10 @@ package org.hisp.dhis.analytics.event.data.programindicator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
+import static org.hisp.dhis.relationship.RelationshipEntity.*;
+import static org.junit.Assert.*;
 
-import org.hisp.dhis.analytics.event.data.programindicator.RelationshipTypeJoinGenerator;
+import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -38,10 +66,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.*;
-import static org.junit.Assert.*;
-
-import org.apache.commons.text.StringSubstitutor;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Luciano Fiandesio
@@ -99,15 +124,14 @@ public class RelationshipTypeJoinGeneratorTest
         asserter( relationshipType, AnalyticsType.ENROLLMENT );
     }
 
-
     @Test
     public void verifyPsiToPsi()
     {
         RelationshipType relationshipType = createRelationshipType( PROGRAM_STAGE_INSTANCE.getName(),
             PROGRAM_STAGE_INSTANCE.getName() );
 
-        asserter( relationshipType, AnalyticsType.EVENT);
-        asserter( relationshipType, AnalyticsType.ENROLLMENT);
+        asserter( relationshipType, AnalyticsType.EVENT );
+        asserter( relationshipType, AnalyticsType.ENROLLMENT );
     }
 
     @Test
@@ -116,8 +140,8 @@ public class RelationshipTypeJoinGeneratorTest
         RelationshipType relationshipType = createRelationshipType( TRACKED_ENTITY_INSTANCE.getName(),
             PROGRAM_INSTANCE.getName() );
 
-        asserter( relationshipType, AnalyticsType.EVENT);
-        asserter( relationshipType, AnalyticsType.ENROLLMENT);
+        asserter( relationshipType, AnalyticsType.EVENT );
+        asserter( relationshipType, AnalyticsType.ENROLLMENT );
     }
 
     @Test
@@ -126,8 +150,8 @@ public class RelationshipTypeJoinGeneratorTest
         RelationshipType relationshipType = createRelationshipType( TRACKED_ENTITY_INSTANCE.getName(),
             PROGRAM_STAGE_INSTANCE.getName() );
 
-        asserter( relationshipType, AnalyticsType.EVENT);
-        asserter( relationshipType, AnalyticsType.ENROLLMENT);
+        asserter( relationshipType, AnalyticsType.EVENT );
+        asserter( relationshipType, AnalyticsType.ENROLLMENT );
     }
 
     @Test
@@ -136,8 +160,8 @@ public class RelationshipTypeJoinGeneratorTest
         RelationshipType relationshipType = createRelationshipType( PROGRAM_INSTANCE.getName(),
             TRACKED_ENTITY_INSTANCE.getName() );
 
-        asserter( relationshipType, AnalyticsType.EVENT);
-        asserter( relationshipType, AnalyticsType.ENROLLMENT);
+        asserter( relationshipType, AnalyticsType.EVENT );
+        asserter( relationshipType, AnalyticsType.ENROLLMENT );
     }
 
     @Test
@@ -146,8 +170,8 @@ public class RelationshipTypeJoinGeneratorTest
         RelationshipType relationshipType = createRelationshipType( PROGRAM_INSTANCE.getName(),
             PROGRAM_STAGE_INSTANCE.getName() );
 
-        asserter( relationshipType, AnalyticsType.EVENT);
-        asserter( relationshipType, AnalyticsType.ENROLLMENT);
+        asserter( relationshipType, AnalyticsType.EVENT );
+        asserter( relationshipType, AnalyticsType.ENROLLMENT );
     }
 
     @Test
@@ -156,8 +180,8 @@ public class RelationshipTypeJoinGeneratorTest
         RelationshipType relationshipType = createRelationshipType( PROGRAM_STAGE_INSTANCE.getName(),
             TRACKED_ENTITY_INSTANCE.getName() );
 
-        asserter( relationshipType, AnalyticsType.EVENT);
-        asserter( relationshipType, AnalyticsType.ENROLLMENT);
+        asserter( relationshipType, AnalyticsType.EVENT );
+        asserter( relationshipType, AnalyticsType.ENROLLMENT );
     }
 
     @Test
@@ -166,8 +190,8 @@ public class RelationshipTypeJoinGeneratorTest
         RelationshipType relationshipType = createRelationshipType( PROGRAM_STAGE_INSTANCE.getName(),
             PROGRAM_INSTANCE.getName() );
 
-        asserter( relationshipType, AnalyticsType.EVENT);
-        asserter( relationshipType, AnalyticsType.ENROLLMENT);
+        asserter( relationshipType, AnalyticsType.EVENT );
+        asserter( relationshipType, AnalyticsType.ENROLLMENT );
     }
 
     private RelationshipType createRelationshipType( String fromConstraint, String toConstraint )
@@ -195,20 +219,21 @@ public class RelationshipTypeJoinGeneratorTest
         expected += RELATIONSHIP_JOIN;
         expected += getToRelationshipEntity( to );
         expected += addWhere( relationshipType );
-        expected += (to.equals(TRACKED_ENTITY_INSTANCE) ? " AND tei.uid = ax.tei )":(to.equals(PROGRAM_INSTANCE)?" AND pi.uid = ax.pi )":" AND psi.uid = ax.psi )"));
-        assertEquals(expected, RelationshipTypeJoinGenerator.generate( ALIAS, relationshipType,  type));
+        expected += (to.equals( TRACKED_ENTITY_INSTANCE ) ? " AND tei.uid = ax.tei )"
+            : (to.equals( PROGRAM_INSTANCE ) ? " AND pi.uid = ax.pi )" : " AND psi.uid = ax.psi )"));
+        assertEquals( expected, RelationshipTypeJoinGenerator.generate( ALIAS, relationshipType, type ) );
     }
 
     private static String getFromRelationshipEntity( RelationshipEntity relationshipEntity,
-                                                     AnalyticsType programIndicatorType )
+        AnalyticsType programIndicatorType )
     {
         switch ( relationshipEntity )
         {
-            case TRACKED_ENTITY_INSTANCE:
-                return TEI_JOIN_START;
-            case PROGRAM_STAGE_INSTANCE:
-            case PROGRAM_INSTANCE:
-                return (programIndicatorType.equals( AnalyticsType.EVENT ) ? PSI_JOIN_START : PI_JOIN_START);
+        case TRACKED_ENTITY_INSTANCE:
+            return TEI_JOIN_START;
+        case PROGRAM_STAGE_INSTANCE:
+        case PROGRAM_INSTANCE:
+            return (programIndicatorType.equals( AnalyticsType.EVENT ) ? PSI_JOIN_START : PI_JOIN_START);
         }
         return "";
     }
@@ -217,12 +242,12 @@ public class RelationshipTypeJoinGeneratorTest
     {
         switch ( relationshipEntity )
         {
-            case TRACKED_ENTITY_INSTANCE:
-                return TEI_RELTO_JOIN;
-            case PROGRAM_STAGE_INSTANCE:
-                return PSI_RELTO_JOIN;
-            case PROGRAM_INSTANCE:
-                return PI_RELTO_JOIN;
+        case TRACKED_ENTITY_INSTANCE:
+            return TEI_RELTO_JOIN;
+        case PROGRAM_STAGE_INSTANCE:
+            return PSI_RELTO_JOIN;
+        case PROGRAM_INSTANCE:
+            return PI_RELTO_JOIN;
         }
         return "";
     }

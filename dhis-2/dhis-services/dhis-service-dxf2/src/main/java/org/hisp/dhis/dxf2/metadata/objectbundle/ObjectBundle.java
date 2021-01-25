@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
@@ -28,6 +55,16 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
@@ -44,15 +81,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -64,8 +92,9 @@ public class ObjectBundle implements ObjectIndexProvider
     private final User user;
 
     /**
-     * How should the user property be handled, by default it is left as is. You can override this
-     * to use current user, or a selected user instead (not yet supported).
+     * How should the user property be handled, by default it is left as is. You
+     * can override this to use current user, or a selected user instead (not
+     * yet supported).
      */
     private final UserOverrideMode userOverrideMode;
 
@@ -155,21 +184,25 @@ public class ObjectBundle implements ObjectIndexProvider
     private final TypedIndexedObjectContainer typedIndexedObjectContainer = new TypedIndexedObjectContainer();
 
     /**
-     * Pre-scanned map of all object references (mainly used for object book hundle).
+     * Pre-scanned map of all object references (mainly used for object book
+     * hundle).
      */
     private Map<Class<?>, Map<String, Map<String, Object>>> objectReferences = new HashMap<>();
 
     /**
-     * Simple class => uid => object map to store extra info about an object. Especially
-     * useful for object hooks as they can be working on more than one object at a time, and
-     * needs to be stateless.
+     * Simple class => uid => object map to store extra info about an object.
+     * Especially useful for object hooks as they can be working on more than
+     * one object at a time, and needs to be stateless.
      */
     private Map<Class<?>, Map<String, Map<String, Object>>> extras = new HashMap<>();
 
-    public ObjectBundle( ObjectBundleParams params, Preheat preheat, Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap )
+    public ObjectBundle( ObjectBundleParams params, Preheat preheat,
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap )
     {
-        if ( !objects.containsKey( Boolean.TRUE ) ) objects.put( Boolean.TRUE, new HashMap<>() );
-        if ( !objects.containsKey( Boolean.FALSE ) ) objects.put( Boolean.FALSE, new HashMap<>() );
+        if ( !objects.containsKey( Boolean.TRUE ) )
+            objects.put( Boolean.TRUE, new HashMap<>() );
+        if ( !objects.containsKey( Boolean.FALSE ) )
+            objects.put( Boolean.FALSE, new HashMap<>() );
 
         this.user = params.getUser();
         this.userOverrideMode = params.getUserOverrideMode();
@@ -307,8 +340,8 @@ public class ObjectBundle implements ObjectIndexProvider
      * Returns if the object bundle container contains the specified object.
      *
      * @param object the object that should be checked.
-     * @return <code>true</code> if this object container contains the specified object,
-     * <code>false</code> otherwise.
+     * @return <code>true</code> if this object container contains the specified
+     *         object, <code>false</code> otherwise.
      */
     public boolean containsObject( @Nullable IdentifiableObject object )
     {
@@ -371,8 +404,7 @@ public class ObjectBundle implements ObjectIndexProvider
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = new HashMap<>();
 
-        klasses.forEach( klass ->
-        {
+        klasses.forEach( klass -> {
             objectMap.put( klass, new ArrayList<>() );
             objectMap.get( klass ).addAll( objects.get( Boolean.TRUE ).get( klass ) );
             objectMap.get( klass ).addAll( objects.get( Boolean.FALSE ).get( klass ) );
@@ -433,7 +465,7 @@ public class ObjectBundle implements ObjectIndexProvider
 
         Class<? extends IdentifiableObject> realClass = HibernateProxyUtils.getRealClass( identifiableObject );
 
-        extras.computeIfAbsent( realClass, k ->  new HashMap<>());
+        extras.computeIfAbsent( realClass, k -> new HashMap<>() );
 
         extras.get( realClass ).computeIfAbsent( identifiableObject.getUid(), s -> new HashMap<>() ).put( key, object );
     }
@@ -487,7 +519,8 @@ public class ObjectBundle implements ObjectIndexProvider
     @SuppressWarnings( { "unchecked" } )
     public void removeExtras( IdentifiableObject identifiableObject, String key )
     {
-        if ( identifiableObject == null || StringUtils.isEmpty( identifiableObject.getUid() ) || !hasExtras( identifiableObject, key ) )
+        if ( identifiableObject == null || StringUtils.isEmpty( identifiableObject.getUid() )
+            || !hasExtras( identifiableObject, key ) )
         {
             return;
         }

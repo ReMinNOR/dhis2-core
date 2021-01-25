@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.events.aggregates;
 
 /*
@@ -81,7 +108,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    private SessionFactory  sessionFactory;
+    private SessionFactory sessionFactory;
 
     @Autowired
     private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
@@ -130,9 +157,10 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( trackedEntityInstances, hasSize( 4 ) );
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
 
-        //Check further for explicit uid in param
+        // Check further for explicit uid in param
         queryParams.getTrackedEntityInstanceUids()
-            .addAll( trackedEntityInstances.stream().limit( 2 ).map(TrackedEntityInstance::getTrackedEntityInstance).collect( Collectors.toSet() ) );
+            .addAll( trackedEntityInstances.stream().limit( 2 ).map( TrackedEntityInstance::getTrackedEntityInstance )
+                .collect( Collectors.toSet() ) );
 
         final List<TrackedEntityInstance> limitedTTrackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false );
@@ -372,14 +400,14 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( false );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-                .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false );
 
         Enrollment enrollment = trackedEntityInstances.get( 0 ).getEnrollments().get( 0 );
 
         assertThat( "Tracked Entity Type does not match", enrollment.getTrackedEntityType(),
-                is( trackedEntityTypeA.getUid() ) );
+            is( trackedEntityTypeA.getUid() ) );
         assertThat( "Tracked Entity Instance UID does not match", enrollment.getTrackedEntityInstance(),
-                is( trackedEntityInstances.get( 0 ).getTrackedEntityInstance() ) );
+            is( trackedEntityInstances.get( 0 ).getTrackedEntityInstance() ) );
         assertThat( "Org Unit UID does not match", enrollment.getOrgUnit(), is( organisationUnitA.getUid() ) );
         assertThat( "Org Unit Name does not match", enrollment.getOrgUnitName(), is( organisationUnitA.getName() ) );
         assertTrue( CodeGenerator.isValidUid( enrollment.getEnrollment() ) );
@@ -445,7 +473,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-                .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false );
         TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
         Enrollment enrollment = tei.getEnrollments().get( 0 );
         Event event = enrollment.getEvents().get( 0 );
@@ -509,7 +537,8 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false );
 
-        // Fetch the TEI which is the vertex of the relationship TEI <--> ENROLLMENT
+        // Fetch the TEI which is the vertex of the relationship TEI <-->
+        // ENROLLMENT
         Optional<TrackedEntityInstance> trackedEntityInstance = trackedEntityInstances.stream()
             .filter( t -> t.getTrackedEntityInstance().equals( relationshipItemsUid[0] ) ).findFirst();
         if ( trackedEntityInstance.isPresent() )
@@ -539,7 +568,8 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
                 .persistTrackedEntityInstanceWithEnrollmentAndEvents();
             sessionFactory.getCurrentSession().flush();
             sessionFactory.getCurrentSession().clear();
-            t2 = manager.get( org.hisp.dhis.trackedentity.TrackedEntityInstance.class, Collections.singletonList( t2.getUid() ) ).get( 0 );
+            t2 = manager.get( org.hisp.dhis.trackedentity.TrackedEntityInstance.class,
+                Collections.singletonList( t2.getUid() ) ).get( 0 );
             ProgramInstance pi = t2.getProgramInstances().iterator().next();
             final ProgramStageInstance psi = pi.getProgramStageInstances().iterator().next();
             this.persistRelationship( t1, psi );
@@ -560,7 +590,8 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false );
 
-        // Fetch the TEI which is the vertex of the relationship TEI <--> ENROLLMENT
+        // Fetch the TEI which is the vertex of the relationship TEI <-->
+        // ENROLLMENT
         Optional<TrackedEntityInstance> trackedEntityInstance = trackedEntityInstances.stream()
             .filter( t -> t.getTrackedEntityInstance().equals( relationshipItemsUid[0] ) ).findFirst();
         if ( trackedEntityInstance.isPresent() )
@@ -602,9 +633,9 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         ProgramOwner programOwner = trackedEntityInstances.get( 0 ).getProgramOwners().get( 0 );
         assertThat( programOwner.getProgram(), is( programA.getUid() ) );
         assertThat( programOwner.getOwnerOrgUnit(), is( organisationUnitA.getUid() ) );
-        assertThat( programOwner.getTrackedEntityInstance(), is(  trackedEntityInstances.get( 0 ).getTrackedEntityInstance() ) );
+        assertThat( programOwner.getTrackedEntityInstance(),
+            is( trackedEntityInstances.get( 0 ).getTrackedEntityInstance() ) );
     }
-
 
     private void checkDate( Date currentTime, String date, long milliseconds )
     {

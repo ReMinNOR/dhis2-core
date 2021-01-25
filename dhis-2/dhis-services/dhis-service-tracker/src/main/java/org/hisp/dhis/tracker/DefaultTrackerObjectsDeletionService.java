@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.tracker;
 
 /*
@@ -80,12 +107,12 @@ public class DefaultTrackerObjectsDeletionService
     private final EventTrackerConverterService eventTrackerConverterService;
 
     public DefaultTrackerObjectsDeletionService( ProgramInstanceService programInstanceService,
-         TrackedEntityInstanceService entityInstanceService,
-         ProgramStageInstanceService stageInstanceService,
-         RelationshipService relationshipService,
-         TrackerAccessManager trackerAccessManager,
-         EnrollmentTrackerConverterService enrollmentTrackerConverterService,
-         EventTrackerConverterService eventTrackerConverterService )
+        TrackedEntityInstanceService entityInstanceService,
+        ProgramStageInstanceService stageInstanceService,
+        RelationshipService relationshipService,
+        TrackerAccessManager trackerAccessManager,
+        EnrollmentTrackerConverterService enrollmentTrackerConverterService,
+        EventTrackerConverterService eventTrackerConverterService )
     {
         this.programInstanceService = programInstanceService;
         this.teiService = entityInstanceService;
@@ -113,8 +140,10 @@ public class DefaultTrackerObjectsDeletionService
 
             if ( bundle.getUser() != null )
             {
-                // TODO authority check should be part of validation phase. This check will be moved in validation hooks.
-                List<TrackerErrorReport> trackerErrorReports = isAllowedToDeleteEnrollment( idx, bundle.getUser(), programInstance, bundle );
+                // TODO authority check should be part of validation phase. This
+                // check will be moved in validation hooks.
+                List<TrackerErrorReport> trackerErrorReports = isAllowedToDeleteEnrollment( idx, bundle.getUser(),
+                    programInstance, bundle );
 
                 if ( !trackerErrorReports.isEmpty() )
                 {
@@ -122,11 +151,13 @@ public class DefaultTrackerObjectsDeletionService
                 }
             }
 
-            List<Event> events = eventTrackerConverterService.to( Lists.newArrayList( programInstance.getProgramStageInstances() ) );
+            List<Event> events = eventTrackerConverterService
+                .to( Lists.newArrayList( programInstance.getProgramStageInstances() ) );
 
             TrackerBundle trackerBundle = TrackerBundle.builder().events( events ).user( bundle.getUser() ).build();
 
-            // Associated events should be deleted provided user has authority for that.
+            // Associated events should be deleted provided user has authority
+            // for that.
             deleteEvents( trackerBundle, TrackerType.EVENT );
 
             programInstanceService.deleteProgramInstance( programInstance );
@@ -156,7 +187,8 @@ public class DefaultTrackerObjectsDeletionService
 
             ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
 
-            // TODO authority check should be part of validation phase. This check will be moved in validation hooks.
+            // TODO authority check should be part of validation phase. This
+            // check will be moved in validation hooks.
             List<String> errors = trackerAccessManager.canDelete( bundle.getUser(), programStageInstance, false );
 
             if ( !errors.isEmpty() )
@@ -202,12 +234,14 @@ public class DefaultTrackerObjectsDeletionService
             TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY );
 
             org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
-                    .getTrackedEntityInstance( uid );
+                .getTrackedEntityInstance( uid );
 
-            // TODO authority check should be part of validation phase. This check will be moved in validation hooks.
+            // TODO authority check should be part of validation phase. This
+            // check will be moved in validation hooks.
             if ( bundle.getUser() != null )
             {
-                List<TrackerErrorReport> trackerErrorReports = isAllowedToDeleteTrackedEntity( idx, bundle.getUser(), daoEntityInstance, bundle );
+                List<TrackerErrorReport> trackerErrorReports = isAllowedToDeleteTrackedEntity( idx, bundle.getUser(),
+                    daoEntityInstance, bundle );
 
                 if ( !trackerErrorReports.isEmpty() )
                 {
@@ -217,11 +251,14 @@ public class DefaultTrackerObjectsDeletionService
 
             Set<ProgramInstance> programInstances = daoEntityInstance.getProgramInstances();
 
-            List<Enrollment> enrollments = enrollmentTrackerConverterService.to( Lists.newArrayList( programInstances ) );
+            List<Enrollment> enrollments = enrollmentTrackerConverterService
+                .to( Lists.newArrayList( programInstances ) );
 
-            TrackerBundle trackerBundle = TrackerBundle.builder().enrollments( enrollments ).user( bundle.getUser() ).build();
+            TrackerBundle trackerBundle = TrackerBundle.builder().enrollments( enrollments ).user( bundle.getUser() )
+                .build();
 
-            // Associated enrollments should be deleted provided user has authority for that.
+            // Associated enrollments should be deleted provided user has
+            // authority for that.
             deleteEnrollments( trackerBundle, TrackerType.ENROLLMENT );
 
             teiService.deleteTrackedEntityInstance( daoEntityInstance );
@@ -250,7 +287,8 @@ public class DefaultTrackerObjectsDeletionService
 
             org.hisp.dhis.relationship.Relationship relationship = relationshipService.getRelationship( uid );
 
-            // TODO authority check should be part of validation phase. This check will be moved in validation hooks.
+            // TODO authority check should be part of validation phase. This
+            // check will be moved in validation hooks.
             List<String> errors = trackerAccessManager.canWrite( bundle.getUser(), relationship );
 
             if ( !errors.isEmpty() )
@@ -276,7 +314,8 @@ public class DefaultTrackerObjectsDeletionService
         return typeReport;
     }
 
-    private List<TrackerErrorReport> isAllowedToDeleteEnrollment( int index, User user, ProgramInstance pi, TrackerBundle bundle )
+    private List<TrackerErrorReport> isAllowedToDeleteEnrollment( int index, User user, ProgramInstance pi,
+        TrackerBundle bundle )
     {
         List<TrackerErrorReport> errorReports = new ArrayList<>();
 
@@ -284,7 +323,8 @@ public class DefaultTrackerObjectsDeletionService
             .filter( psi -> !psi.isDeleted() )
             .collect( Collectors.toSet() );
 
-        if ( !notDeletedProgramStageInstances.isEmpty() && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
+        if ( !notDeletedProgramStageInstances.isEmpty()
+            && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
         {
             TrackerErrorReport trackerErrorReport = TrackerErrorReport.builder()
                 .errorCode( TrackerErrorCode.E1091 )
@@ -337,8 +377,9 @@ public class DefaultTrackerObjectsDeletionService
         return errorReports;
     }
 
-    private TrackerTypeReport addErrorToTypeReport( TrackerTypeReport typeReport, TrackerObjectReport trackerObjectReport,
-        List<TrackerErrorReport> trackerErrorReports  ,int index, String uid )
+    private TrackerTypeReport addErrorToTypeReport( TrackerTypeReport typeReport,
+        TrackerObjectReport trackerObjectReport,
+        List<TrackerErrorReport> trackerErrorReports, int index, String uid )
     {
         trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
         trackerObjectReport.setIndex( index );

@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.external.conf;
 
 /*
@@ -28,10 +55,10 @@ package org.hisp.dhis.external.conf;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.util.Arrays;
 import java.util.Optional;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * @author Lars Helge Overland
@@ -63,7 +90,8 @@ public enum ConfigurationKey
     CONNECTION_POOL_TEST_ON_CHECKOUT( "connection.pool.test.on.checkout", Constants.FALSE, false ),
     CONNECTION_POOL_TEST_ON_CHECKIN( "connection.pool.test.on.checkin", Constants.TRUE, false ),
     CONNECTION_POOL_TIMEOUT( "connection.pool.timeout", String.valueOf( SECONDS.toMillis( 30 ) ), false ),
-    CONNECTION_POOL_VALIDATION_TIMEOUT( "connection.pool.validation_timeout", String.valueOf( SECONDS.toMillis( 5 ) ), false ),
+    CONNECTION_POOL_VALIDATION_TIMEOUT( "connection.pool.validation_timeout", String.valueOf( SECONDS.toMillis( 5 ) ),
+        false ),
     LDAP_URL( "ldap.url", "ldaps://0:1", false ),
     LDAP_MANAGER_DN( "ldap.manager.dn", "", false ),
     LDAP_MANAGER_PASSWORD( "ldap.manager.password", "", true ),
@@ -133,7 +161,8 @@ public enum ConfigurationKey
     OIDC_PROVIDER_WSO2_SERVER_URL( "oidc.provider.wso2.server_url", "", false ),
     OIDC_PROVIDER_WSO2_DISPLAY_ALIAS( "oidc.provider.wso2.display_alias", "", false ),
     OIDC_PROVIDER_WSO2_ENABLE_LOGOUT( "oidc.provider.wso2.enable_logout", Constants.TRUE, false ),
-    SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS( "slow.query.logging.threshold.time", String.valueOf( SECONDS.toMillis( 1 ) ), false ),
+    SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS( "slow.query.logging.threshold.time", String.valueOf( SECONDS.toMillis( 1 ) ),
+        false ),
     ENABLE_QUERY_LOGGING( "enable.query.logging", Constants.FALSE, false ),
     METHOD_QUERY_LOGGING_ENABLED( "method.query.logging.enabled", Constants.FALSE, false ),
     ELAPSED_TIME_QUERY_LOGGING_ENABLED( "elapsed.time.query.logging.enabled", Constants.FALSE, false ),

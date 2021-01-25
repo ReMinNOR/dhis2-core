@@ -1,16 +1,31 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.db.migration.v31;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import org.flywaydb.core.api.FlywayException;
-import org.flywaydb.core.api.migration.BaseJavaMigration;
-import org.flywaydb.core.api.migration.Context;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.JobType;
-import org.postgresql.util.PGobject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -21,6 +36,19 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.flywaydb.core.api.FlywayException;
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.JobType;
+import org.postgresql.util.PGobject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -51,9 +79,9 @@ import java.util.Map;
  */
 
 /**
- * 1.Creates new jsonb column for jobparameters in jobconfiguration
- * 2. Fetches jobparameters from existing bytearray column and moves them into new jsonb column
- * 3. Deletes old jobparameter column
+ * 1.Creates new jsonb column for jobparameters in jobconfiguration 2. Fetches
+ * jobparameters from existing bytearray column and moves them into new jsonb
+ * column 3. Deletes old jobparameter column
  *
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
@@ -72,19 +100,20 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
         MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
         writer = MAPPER.writerFor( JobParameters.class );
 
-
-        //1. Create new jsonb column for jobparameters in jobconfiguration
+        // 1. Create new jsonb column for jobparameters in jobconfiguration
         try (Statement stmt = context.getConnection().createStatement())
         {
             stmt.executeUpdate( "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS jsonbjobparameters jsonb" );
         }
 
-        //2. Move existing jobparameters from bytearray column into jsonb column
+        // 2. Move existing jobparameters from bytearray column into jsonb
+        // column
         Map<Integer, byte[]> jobParamByteMap = new HashMap<>();
         Map<Integer, byte[]> jobTypeByteMap = new HashMap<>();
         try (Statement stmt = context.getConnection().createStatement())
         {
-            try ( ResultSet rows = stmt.executeQuery( "select jobconfigurationid,jobparameters,jobtype from jobconfiguration where jobparameters is not null" ) )
+            try (ResultSet rows = stmt.executeQuery(
+                "select jobconfigurationid,jobparameters,jobtype from jobconfiguration where jobparameters is not null" ))
             {
                 while ( rows.next() )
                 {
@@ -108,8 +137,8 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
                 throw new FlywayException( e );
             }
 
-            try ( PreparedStatement ps = context.getConnection()
-                .prepareStatement( "Update jobconfiguration set jsonbjobparameters =? where  jobconfigurationid = ?" ) )
+            try (PreparedStatement ps = context.getConnection()
+                .prepareStatement( "Update jobconfiguration set jsonbjobparameters =? where  jobconfigurationid = ?" ))
             {
                 PGobject pg = new PGobject();
                 pg.setType( "jsonb" );
@@ -126,26 +155,34 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
             }
         } );
 
-        //3. Delete old byte array column for jobparameters in jobconfiguration
-        try ( Statement stmt = context.getConnection().createStatement() )
+        // 3. Delete old byte array column for jobparameters in jobconfiguration
+        try (Statement stmt = context.getConnection().createStatement())
         {
             stmt.executeUpdate( "ALTER TABLE jobconfiguration DROP COLUMN IF EXISTS jobparameters" );
         }
     }
 
-    private Object toObject(byte[] bytes) throws IOException, ClassNotFoundException {
+    private Object toObject( byte[] bytes )
+        throws IOException,
+        ClassNotFoundException
+    {
         Object obj;
         ByteArrayInputStream bis = null;
         ObjectInputStream ois = null;
-        try {
-            bis = new ByteArrayInputStream(bytes);
-            ois = new ObjectInputStream(bis);
+        try
+        {
+            bis = new ByteArrayInputStream( bytes );
+            ois = new ObjectInputStream( bis );
             obj = ois.readObject();
-        } finally {
-            if (bis != null) {
+        }
+        finally
+        {
+            if ( bis != null )
+            {
                 bis.close();
             }
-            if (ois != null) {
+            if ( ois != null )
+            {
                 ois.close();
             }
         }

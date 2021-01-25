@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
@@ -28,6 +55,13 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -55,14 +89,6 @@ import org.hisp.dhis.validation.ValidationRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -92,14 +118,16 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         renderService = _renderService;
         userService = _userService;
     }
 
     @Test
-    public void testCreateSimpleProgramNoReg() throws IOException
+    public void testCreateSimpleProgramNoReg()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/program_noreg.json" ).getInputStream(), RenderFormat.JSON );
@@ -143,7 +171,8 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
-    public void testCreateSimpleProgramWithSectionsNoReg() throws IOException
+    public void testCreateSimpleProgramWithSectionsNoReg()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/program_noreg_sections.json" ).getInputStream(), RenderFormat.JSON );
@@ -187,7 +216,8 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
-    public void testCreateSimpleProgramReg() throws IOException
+    public void testCreateSimpleProgramReg()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/program_reg1.json" ).getInputStream(), RenderFormat.JSON );
@@ -214,7 +244,8 @@ public class ObjectBundleServiceProgramTest
         List<Program> programs = manager.getAll( Program.class );
         List<ProgramStage> programStages = manager.getAll( ProgramStage.class );
         List<ProgramStageDataElement> programStageDataElements = manager.getAll( ProgramStageDataElement.class );
-        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = manager.getAll( ProgramTrackedEntityAttribute.class );
+        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = manager
+            .getAll( ProgramTrackedEntityAttribute.class );
 
         assertFalse( organisationUnits.isEmpty() );
         assertFalse( dataElements.isEmpty() );
@@ -227,7 +258,8 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
-    public void testProgramRuleCreation() throws IOException
+    public void testProgramRuleCreation()
+        throws IOException
     {
         createProgramRuleMetadata();
 
@@ -252,7 +284,8 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
-    public void testProgramRuleUpdate() throws IOException
+    public void testProgramRuleUpdate()
+        throws IOException
     {
         createProgramRuleMetadata();
 
@@ -271,7 +304,8 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
-    public void testCreateSimpleProgramRegNextScheduleDate() throws IOException
+    public void testCreateSimpleProgramRegNextScheduleDate()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/program_reg1_valid_nextschedule.json" ).getInputStream(), RenderFormat.JSON );
@@ -289,7 +323,8 @@ public class ObjectBundleServiceProgramTest
         objectBundleService.commit( bundle );
 
         metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/program_reg1_invalid_nextschedule.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/program_reg1_invalid_nextschedule.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -415,10 +450,12 @@ public class ObjectBundleServiceProgramTest
         assertTrue( validate.getErrorReports().isEmpty() );
     }
 
-    private void createProgramRuleMetadata() throws IOException
+    private void createProgramRuleMetadata()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/metadata_with_program_and_programrules.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/metadata_with_program_and_programrules.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );

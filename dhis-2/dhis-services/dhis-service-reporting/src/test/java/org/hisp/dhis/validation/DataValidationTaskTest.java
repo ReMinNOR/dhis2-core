@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.validation;
 
 /*
@@ -29,10 +56,10 @@ package org.hisp.dhis.validation;
  */
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -90,15 +117,23 @@ public class DataValidationTaskTest
     public MockitoRule rule = MockitoJUnit.rule();
 
     private PeriodType MONTHLY = PeriodType.getPeriodTypeFromIsoString( "201901" );
+
     private DataValidationTask subject;
+
     private DataElement deA;
+
     private List<OrganisationUnit> organisationUnits;
+
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
 
     private Period p1;
+
     private Period p2;
+
     private Period p3;
+
     private Map<String, Constant> constantMap;
 
     @Before
@@ -138,7 +173,8 @@ public class DataValidationTaskTest
         Expression leftExpression = createExpression2( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}" );
         Expression rightExpression = createExpression2( 'B', "-10" );
 
-        ValidationRuleExtended vre = createValidationRuleExtended( leftExpression, rightExpression, Operator.not_equal_to );
+        ValidationRuleExtended vre = createValidationRuleExtended( leftExpression, rightExpression,
+            Operator.not_equal_to );
 
         List<PeriodTypeExtended> periodTypes = new ArrayList<>();
         PeriodTypeExtended periodType = createPeriodTypeExtended( vre );
@@ -157,10 +193,11 @@ public class DataValidationTaskTest
 
         List<DeflatedDataValue> deflatedDataValues = new ArrayList<>();
 
-        DataValue dv = createDataValue(deA, createPeriod("201901"), ouA, "12.4", createCategoryOptionCombo('B', 'C'));
+        DataValue dv = createDataValue( deA, createPeriod( "201901" ), ouA, "12.4",
+            createCategoryOptionCombo( 'B', 'C' ) );
 
-        DeflatedDataValue ddv = new DeflatedDataValue(dv);
-        deflatedDataValues.add(ddv);
+        DeflatedDataValue ddv = new DeflatedDataValue( dv );
+        deflatedDataValues.add( ddv );
 
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) )
             .thenReturn( deflatedDataValues );
@@ -168,8 +205,8 @@ public class DataValidationTaskTest
         Map<DimensionalItemObject, Double> vals = new HashMap<>();
         vals.put( deA, 12.4 );
 
-        mockExpressionService(leftExpression, vals, ctx, 8.4);
-        mockExpressionService(rightExpression, vals, ctx, -10.0);
+        mockExpressionService( leftExpression, vals, ctx, 8.4 );
+        mockExpressionService( rightExpression, vals, ctx, -10.0 );
 
         when( expressionService.getExpressionValue( "8.4!=-10.0", SIMPLE_TEST ) ).thenReturn( true );
 
@@ -185,7 +222,8 @@ public class DataValidationTaskTest
         Expression leftExpression = createExpression2( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}" );
         Expression rightExpression = createExpression2( 'B', "-10" );
 
-        ValidationRuleExtended vre = createValidationRuleExtended( leftExpression, rightExpression, Operator.not_equal_to );
+        ValidationRuleExtended vre = createValidationRuleExtended( leftExpression, rightExpression,
+            Operator.not_equal_to );
 
         List<PeriodTypeExtended> periodTypes = new ArrayList<>();
         PeriodTypeExtended periodType = createPeriodTypeExtended( vre );
@@ -206,7 +244,7 @@ public class DataValidationTaskTest
 
         // Return no values!
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) )
-                .thenReturn( deflatedDataValues );
+            .thenReturn( deflatedDataValues );
 
         subject.init( organisationUnits, ctx, analyticsService );
         subject.run();
@@ -214,20 +252,22 @@ public class DataValidationTaskTest
         assertThat( ctx.getValidationResults().size(), is( 0 ) );
     }
 
-
-
-    private void mockExpressionService(Expression expression, Map<DimensionalItemObject, Double> vals, ValidationRunContext ctx, Double val) {
-
-        when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, vals,
-                ctx.getConstantMap(), null, p1.getDaysInPeriod(), expression.getMissingValueStrategy() ) ).thenReturn( val );
+    private void mockExpressionService( Expression expression, Map<DimensionalItemObject, Double> vals,
+        ValidationRunContext ctx, Double val )
+    {
 
         when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, vals,
-                ctx.getConstantMap(), null, p2.getDaysInPeriod(), expression.getMissingValueStrategy() ) ).thenReturn( val );
+            ctx.getConstantMap(), null, p1.getDaysInPeriod(), expression.getMissingValueStrategy() ) )
+                .thenReturn( val );
 
         when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, vals,
-                ctx.getConstantMap(), null, p3.getDaysInPeriod(), expression.getMissingValueStrategy() ) ).thenReturn( val );
+            ctx.getConstantMap(), null, p2.getDaysInPeriod(), expression.getMissingValueStrategy() ) )
+                .thenReturn( val );
+
+        when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, vals,
+            ctx.getConstantMap(), null, p3.getDaysInPeriod(), expression.getMissingValueStrategy() ) )
+                .thenReturn( val );
     }
-
 
     private ValidationRuleExtended createValidationRuleExtended( Expression left, Expression right, Operator op )
     {

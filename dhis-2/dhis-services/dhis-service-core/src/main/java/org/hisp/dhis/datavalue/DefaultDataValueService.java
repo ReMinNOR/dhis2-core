@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.datavalue;
 
 /*
@@ -29,14 +56,16 @@ package org.hisp.dhis.datavalue;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -53,8 +82,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Data value service implementation. Note that data values are softly deleted,
@@ -241,7 +268,7 @@ public class DefaultDataValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo )
     {
@@ -251,7 +278,7 @@ public class DefaultDataValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
     {
@@ -263,7 +290,7 @@ public class DefaultDataValueService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataValue> getDataValues( DataExportParams params )
     {
         validate( params );
@@ -286,7 +313,8 @@ public class DefaultDataValueService
             error = new ErrorMessage( ErrorCode.E2001 );
         }
 
-        if ( !params.hasPeriods() && !params.hasStartEndDate() && !params.hasLastUpdated() && !params.hasLastUpdatedDuration() )
+        if ( !params.hasPeriods() && !params.hasStartEndDate() && !params.hasLastUpdated()
+            && !params.hasLastUpdatedDuration() )
         {
             error = new ErrorMessage( ErrorCode.E2002 );
         }
@@ -335,14 +363,14 @@ public class DefaultDataValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataValue> getAllDataValues()
     {
         return dataValueStore.getAllDataValues();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataValue> getDataValues( OrganisationUnit source, Period period,
         Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo )
     {
@@ -350,14 +378,14 @@ public class DefaultDataValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DeflatedDataValue> getDeflatedDataValues( DataExportParams params )
     {
         return dataValueStore.getDeflatedDataValues( params );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getDataValueCount( int days )
     {
         Calendar cal = PeriodType.createCalendarInstance();
@@ -367,14 +395,14 @@ public class DefaultDataValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getDataValueCountLastUpdatedAfter( Date date, boolean includeDeleted )
     {
         return dataValueStore.getDataValueCountLastUpdatedBetween( date, null, includeDeleted );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
     {
         return dataValueStore.getDataValueCountLastUpdatedBetween( startDate, endDate, includeDeleted );

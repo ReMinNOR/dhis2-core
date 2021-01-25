@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.table;
 
 /*
@@ -28,7 +55,18 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -50,16 +88,6 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 
 import com.google.common.collect.Lists;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -139,7 +167,8 @@ public class DefaultAnalyticsTableService
 
         if ( tables.isEmpty() )
         {
-            clock.logTime( String.format( "Table update aborted, no table or partitions to be updated: '%s'", tableType.getTableName() ) );
+            clock.logTime( String.format( "Table update aborted, no table or partitions to be updated: '%s'",
+                tableType.getTableName() ) );
             notifier.notify( jobId, "Table updated aborted, no table or partitions to be updated" );
             return;
         }
@@ -290,7 +319,7 @@ public class DefaultAnalyticsTableService
 
         int aggLevels = 0;
 
-        levelLoop : for ( int i = 0; i < maxLevels; i++ )
+        levelLoop: for ( int i = 0; i < maxLevels; i++ )
         {
             int level = maxLevels - i;
 
@@ -359,7 +388,8 @@ public class DefaultAnalyticsTableService
             {
                 if ( !col.isSkipIndex() )
                 {
-                    List<String> indexColumns = col.hasIndexColumns() ? col.getIndexColumns() : Lists.newArrayList( col.getName() );
+                    List<String> indexColumns = col.hasIndexColumns() ? col.getIndexColumns()
+                        : Lists.newArrayList( col.getName() );
 
                     indexes.add( new AnalyticsIndex( partition.getTempTableName(), indexColumns, col.getIndexType() ) );
                 }
@@ -415,8 +445,8 @@ public class DefaultAnalyticsTableService
     {
         Integer cores = (Integer) systemSettingManager.getSystemSetting( SettingKey.DATABASE_SERVER_CPUS );
 
-        cores = ( cores == null || cores == 0 ) ? SystemUtils.getCpuCores() : cores;
+        cores = (cores == null || cores == 0) ? SystemUtils.getCpuCores() : cores;
 
-        return cores > 2 ? ( cores - 1 ) : cores;
+        return cores > 2 ? (cores - 1) : cores;
     }
 }

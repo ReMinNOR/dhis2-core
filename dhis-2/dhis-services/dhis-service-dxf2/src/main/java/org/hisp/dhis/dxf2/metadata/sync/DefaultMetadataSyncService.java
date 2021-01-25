@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.metadata.sync;
 
 /*
@@ -33,6 +60,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -45,8 +74,6 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Performs the meta data sync related tasks in service layer.
@@ -70,10 +97,10 @@ public class DefaultMetadataSyncService
         MetadataVersionService metadataVersionService, MetadataSyncDelegate metadataSyncDelegate,
         MetadataSyncImportHandler metadataSyncImportHandler )
     {
-        checkNotNull(metadataVersionDelegate);
-        checkNotNull(metadataVersionService);
-        checkNotNull(metadataSyncDelegate);
-        checkNotNull(metadataSyncImportHandler);
+        checkNotNull( metadataVersionDelegate );
+        checkNotNull( metadataVersionService );
+        checkNotNull( metadataSyncDelegate );
+        checkNotNull( metadataSyncImportHandler );
 
         this.metadataVersionDelegate = metadataVersionDelegate;
         this.metadataVersionService = metadataVersionService;
@@ -121,7 +148,8 @@ public class DefaultMetadataSyncService
 
     @Override
     public synchronized MetadataSyncSummary doMetadataSync( MetadataSyncParams syncParams )
-        throws MetadataSyncServiceException, DhisVersionMismatchException
+        throws MetadataSyncServiceException,
+        DhisVersionMismatchException
     {
         MetadataVersion version = getMetadataVersion( syncParams );
 
@@ -130,11 +158,13 @@ public class DefaultMetadataSyncService
 
         if ( metadataSyncDelegate.shouldStopSync( metadataVersionSnapshot ) )
         {
-            throw new DhisVersionMismatchException( "Metadata sync failed because your version of DHIS does not match the master version" );
+            throw new DhisVersionMismatchException(
+                "Metadata sync failed because your version of DHIS does not match the master version" );
         }
 
         saveMetadataVersionSnapshotLocally( version, metadataVersionSnapshot );
-        MetadataSyncSummary metadataSyncSummary = metadataSyncImportHandler.importMetadata( syncParams, metadataVersionSnapshot );
+        MetadataSyncSummary metadataSyncSummary = metadataSyncImportHandler.importMetadata( syncParams,
+            metadataVersionSnapshot );
 
         log.info( "Metadata Sync Summary: " + metadataSyncSummary );
 
@@ -142,10 +172,10 @@ public class DefaultMetadataSyncService
     }
 
     @Override
-    public boolean isSyncRequired ( MetadataSyncParams syncParams )
+    public boolean isSyncRequired( MetadataSyncParams syncParams )
     {
         MetadataVersion version = getMetadataVersion( syncParams );
-        return ( metadataVersionService.getVersionByName( version.getName() ) == null );
+        return (metadataVersionService.getVersionByName( version.getName() ) == null);
     }
 
     private void saveMetadataVersionSnapshotLocally( MetadataVersion version, String metadataVersionSnapshot )
@@ -153,7 +183,8 @@ public class DefaultMetadataSyncService
         if ( getLocalVersionSnapshot( version ) == null )
         {
             metadataVersionService.createMetadataVersionInDataStore( version.getName(), metadataVersionSnapshot );
-            log.info( "Downloaded the metadata snapshot from remote and saved in Data Store for the version: " + version );
+            log.info(
+                "Downloaded the metadata snapshot from remote and saved in Data Store for the version: " + version );
         }
     }
 
@@ -168,7 +199,7 @@ public class DefaultMetadataSyncService
 
         metadataVersionSnapshot = getMetadataVersionSnapshotFromRemote( version );
 
-        if ( !(metadataVersionService.isMetadataPassingIntegrity( version, metadataVersionSnapshot ) ) )
+        if ( !(metadataVersionService.isMetadataPassingIntegrity( version, metadataVersionSnapshot )) )
         {
             throw new MetadataSyncServiceException( "Metadata snapshot is corrupted. Not saving it locally" );
         }
@@ -205,9 +236,9 @@ public class DefaultMetadataSyncService
         }
     }
 
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
     // Private Methods
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
 
     private String getLocalVersionSnapshot( MetadataVersion version )
     {

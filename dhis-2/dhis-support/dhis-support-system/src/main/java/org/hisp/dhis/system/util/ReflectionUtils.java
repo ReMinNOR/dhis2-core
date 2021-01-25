@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.system.util;
 
 /*
@@ -28,13 +55,6 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimap;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.schema.Property;
-import org.springframework.util.StringUtils;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -50,6 +70,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.schema.Property;
+import org.springframework.util.StringUtils;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 
 /**
  * @author Lars Helge Overland
@@ -92,7 +121,7 @@ public class ReflectionUtils
     /**
      * Fetch a property off the object. Returns null if the operation fails.
      *
-     * @param object   the object.
+     * @param object the object.
      * @param property name of the property to get.
      * @return the value of the property or null.
      */
@@ -125,14 +154,14 @@ public class ReflectionUtils
      * UnsupportedOperationException if the operation fails.
      *
      * @param object Object to modify
-     * @param name   Name of property to set
-     * @param value  Value the property will be set to
+     * @param name Name of property to set
+     * @param value Value the property will be set to
      */
     public static void setProperty( Object object, String name, String value )
     {
-        Object[] arguments = new Object[]{ value };
+        Object[] arguments = new Object[] { value };
 
-        Class<?>[] parameterTypes = new Class<?>[]{ String.class };
+        Class<?>[] parameterTypes = new Class<?>[] { String.class };
 
         if ( name.length() > 0 )
         {
@@ -155,10 +184,10 @@ public class ReflectionUtils
      * Sets a property for the supplied object. Throws an
      * UnsupportedOperationException if the operation fails.
      *
-     * @param object     Object to modify
+     * @param object Object to modify
      * @param namePrefix prefix of the property name to set
-     * @param name       Name of property to set
-     * @param value      Value the property will be set to
+     * @param name Name of property to set
+     * @param value Value the property will be set to
      */
     public static void setProperty( Object object, String namePrefix, String name, String value )
     {
@@ -203,7 +232,8 @@ public class ReflectionUtils
         return isCollection( fieldName, object, type, null );
     }
 
-    public static boolean isCollection( String fieldName, Object object, Class<?> type, Class<? extends Annotation> annotation )
+    public static boolean isCollection( String fieldName, Object object, Class<?> type,
+        Class<? extends Annotation> annotation )
     {
         Field field;
 
@@ -254,7 +284,7 @@ public class ReflectionUtils
 
     public static Method findGetterMethod( String fieldName, Class<?> clazz )
     {
-        final String[] getterNames = new String[]{
+        final String[] getterNames = new String[] {
             "get",
             "is",
             "has"
@@ -299,7 +329,7 @@ public class ReflectionUtils
             return null;
         }
 
-        final String[] setterNames = new String[]{
+        final String[] setterNames = new String[] {
             "set"
         };
 
@@ -310,7 +340,8 @@ public class ReflectionUtils
         {
             for ( String setterName : setterNames )
             {
-                method = _findMethod( target.getClass(), setterName + StringUtils.capitalize( field.getName() ), field.getType() );
+                method = _findMethod( target.getClass(), setterName + StringUtils.capitalize( field.getName() ),
+                    field.getType() );
 
                 if ( method != null )
                 {
@@ -355,7 +386,7 @@ public class ReflectionUtils
 
             for ( Field field : fields )
             {
-                if ( ( name == null || name.equals( field.getName() ) ) )
+                if ( (name == null || name.equals( field.getName() )) )
                 {
                     return field;
                 }
@@ -402,7 +433,8 @@ public class ReflectionUtils
 
             for ( Method method : methods )
             {
-                if ( name.equals( method.getName() ) && (paramTypes == null || Arrays.equals( paramTypes, method.getParameterTypes() )) )
+                if ( name.equals( method.getName() )
+                    && (paramTypes == null || Arrays.equals( paramTypes, method.getParameterTypes() )) )
                 {
                     return method;
                 }
@@ -489,7 +521,8 @@ public class ReflectionUtils
     }
 
     /**
-     * Get all uniquely declared methods on a given Class, if methods are overriden only the topmost method is returned.
+     * Get all uniquely declared methods on a given Class, if methods are
+     * overriden only the topmost method is returned.
      *
      * @param klass Class
      * @return List of uniquely declared methods
@@ -500,7 +533,8 @@ public class ReflectionUtils
     }
 
     /**
-     * Returns a multimap of the mapping method-name -> [methods]. Useful to find overloaded methods in a class hierarchy.
+     * Returns a multimap of the mapping method-name -> [methods]. Useful to
+     * find overloaded methods in a class hierarchy.
      *
      * @param klass Class
      * @return Multimap of method-name -> [methods]

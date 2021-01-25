@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
 
 /*
@@ -191,12 +218,13 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
         assertThat( event.getEnrollment(), is( programInstance.getUid() ) );
         assertThat( programInstanceMap.get( event.getUid() ).getUid(), is( programInstance.getUid() ) );
         assertThat( programInstanceMap.get( event.getUid() ).getProgram().getUid(), is( programWithoutReg.getUid() ) );
-        assertThat( sql.getValue(), is( "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
+        assertThat( sql.getValue(), is(
+            "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
     }
 
     @Test
     public void verifyEnrollmentIsNotSetWithProgramWithoutRegistrationAndMultipleProgramStageInstances()
-            throws SQLException
+        throws SQLException
     {
         // crete a Program "without registration"
         Program programWithoutReg = createProgram( 'W' );
@@ -223,7 +251,8 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
         // simulate 2 records returned from query
         //
         when( mockResultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( false );
-        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( programInstance1.getId(), programInstance2.getId() );
+        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( programInstance1.getId(),
+            programInstance2.getId() );
         when( mockResultSet.getString( "uid" ) ).thenReturn( programInstance1.getUid(), programInstance2.getUid() );
 
         // Mock jdbc call
@@ -235,7 +264,8 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
         subject.process( event, workContext );
 
         assertThat( event.getEnrollment(), is( nullValue() ) );
-        assertThat( sql.getValue(), is( "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
+        assertThat( sql.getValue(), is(
+            "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
     }
 
     public void mockResultSetExtractor( ResultSet resultSetMock )

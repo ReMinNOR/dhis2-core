@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dataApproval;
 
 /*
@@ -28,16 +55,16 @@ package org.hisp.dhis.dataApproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.collect.Sets.newHashSet;
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
+
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.*;
 import org.junit.Test;
-
-import java.util.List;
-
-import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Jim Grace
@@ -56,7 +83,8 @@ public class DataApprovalWorkflowTest
         DataApprovalLevel level3 = new DataApprovalLevel( "level3", 3, null );
         level3.setLevel( 3 );
 
-        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "test workflow", new DailyPeriodType(), newHashSet(level3, level2, level1 ) );
+        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "test workflow", new DailyPeriodType(),
+            newHashSet( level3, level2, level1 ) );
 
         List<DataApprovalLevel> levels = workflow.getSortedLevels();
 
@@ -66,11 +94,12 @@ public class DataApprovalWorkflowTest
     }
 
     /**
-     * Note that as part of the following test, we are checking to be sure that the longest
-     * extension to the category option end date is returned from data sets that are
-     * successively added to the workflow. The total extension length (period length
-     * times number of periods) is always increasing as we add data sets to the workflow.
-     * The most recently-added data set always has the longest total extension so far.
+     * Note that as part of the following test, we are checking to be sure that
+     * the longest extension to the category option end date is returned from
+     * data sets that are successively added to the workflow. The total
+     * extension length (period length times number of periods) is always
+     * increasing as we add data sets to the workflow. The most recently-added
+     * data set always has the longest total extension so far.
      */
     @Test
     public void testGetWorkflowSqlCoEnddateExtension()
@@ -97,7 +126,8 @@ public class DataApprovalWorkflowTest
         DataSet financialNovDs = createDataSet( "financialNovDs", new FinancialNovemberPeriodType(), 7 );
         DataSet twoYearlyDs = createDataSet( "twoYearlyDs", new TwoYearlyPeriodType(), 4 );
 
-        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "test workflow", new DailyPeriodType(), newHashSet() );
+        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "test workflow", new DailyPeriodType(),
+            newHashSet() );
 
         assertEquals( "", workflow.getSqlCoEndDateExtension() );
 

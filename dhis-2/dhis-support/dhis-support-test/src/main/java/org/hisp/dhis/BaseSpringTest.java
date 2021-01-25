@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis;
 
 /*
@@ -29,6 +56,7 @@ package org.hisp.dhis;
  */
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hibernate.FlushMode;
@@ -69,16 +97,16 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     protected static JdbcTemplate jdbcTemplate;
 
     /*
-       Flag that determines if the IntegrationTestData annotation has
-       been running the database init script. We only want to run
-       the init script once per unit test
-    */
+     * Flag that determines if the IntegrationTestData annotation has been
+     * running the database init script. We only want to run the init script
+     * once per unit test
+     */
     public static boolean dataInit = false;
 
     protected abstract boolean emptyDatabaseAfterTest();
 
     /*
-    "Special" setter to allow setting JdbcTemplate as static field
+     * "Special" setter to allow setting JdbcTemplate as static field
      */
     @Autowired
     public static void setJdbcTemplate( JdbcTemplate jdbcTemplate )
@@ -99,7 +127,8 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     @BeforeClass
     public static void beforeClass()
     {
-        // We usually don't want all the create db/tables statements in the query logger
+        // We usually don't want all the create db/tables statements in the
+        // query logger
         Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
     }
 
@@ -159,7 +188,8 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
 
         if ( emptyDatabaseAfterTest() )
         {
-            // We normally don't want all the delete/empty db statements in the query logger
+            // We normally don't want all the delete/empty db statements in the
+            // query logger
             Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
 
             transactionTemplate.execute( status -> {
@@ -181,7 +211,8 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
 
         boolean enableQueryLogging = dhisConfigurationProvider.getBoolean( ConfigurationKey.ENABLE_QUERY_LOGGING );
 
-        // Enable to query logger to log only what's happening inside the test method
+        // Enable to query logger to log only what's happening inside the test
+        // method
         if ( enableQueryLogging )
         {
             Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO );
@@ -212,7 +243,8 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     protected void unbindSession()
     {
         SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean( "sessionFactory" );
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.unbindResource( sessionFactory );
+        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager
+            .unbindResource( sessionFactory );
 
         SessionFactoryUtils.closeSession( sessionHolder.getSession() );
     }

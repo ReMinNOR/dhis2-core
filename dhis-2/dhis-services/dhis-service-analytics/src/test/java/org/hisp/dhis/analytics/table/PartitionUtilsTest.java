@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.table;
 
 /*
@@ -57,19 +84,28 @@ import com.google.common.collect.Sets;
 public class PartitionUtilsTest
 {
     private PeriodType quarterly = new QuarterlyPeriodType();
+
     private Period q1 = quarterly.createPeriod( new DateTime( 2018, 7, 1, 0, 0 ).toDate() );
+
     private Period q2 = quarterly.createPeriod( new DateTime( 2018, 10, 1, 0, 0 ).toDate() );
+
     private Period q3 = quarterly.createPeriod( new DateTime( 2019, 1, 1, 0, 0 ).toDate() );
 
     @Test
     public void testGetPartitions()
     {
-        assertEquals( new Partitions( Sets.newHashSet( 2000 ) ), PartitionUtils.getPartitions( createPeriod( "200001" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2001 ) ), PartitionUtils.getPartitions( createPeriod( "200110" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2002 ) ), PartitionUtils.getPartitions( createPeriod( "2002Q2" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2003 ) ), PartitionUtils.getPartitions( createPeriod( "2003S2" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2000, 2001 ) ), PartitionUtils.getPartitions( createPeriod( "2000July" ) ) );
-        assertEquals( new Partitions( Sets.newHashSet( 2001, 2002 ) ), PartitionUtils.getPartitions( createPeriod( "2001April" ) ) );
+        assertEquals( new Partitions( Sets.newHashSet( 2000 ) ),
+            PartitionUtils.getPartitions( createPeriod( "200001" ) ) );
+        assertEquals( new Partitions( Sets.newHashSet( 2001 ) ),
+            PartitionUtils.getPartitions( createPeriod( "200110" ) ) );
+        assertEquals( new Partitions( Sets.newHashSet( 2002 ) ),
+            PartitionUtils.getPartitions( createPeriod( "2002Q2" ) ) );
+        assertEquals( new Partitions( Sets.newHashSet( 2003 ) ),
+            PartitionUtils.getPartitions( createPeriod( "2003S2" ) ) );
+        assertEquals( new Partitions( Sets.newHashSet( 2000, 2001 ) ),
+            PartitionUtils.getPartitions( createPeriod( "2000July" ) ) );
+        assertEquals( new Partitions( Sets.newHashSet( 2001, 2002 ) ),
+            PartitionUtils.getPartitions( createPeriod( "2001April" ) ) );
     }
 
     @Test
@@ -99,8 +135,10 @@ public class PartitionUtilsTest
         List<AnalyticsTableColumn> values = Lists.newArrayList( new AnalyticsTableColumn( "value", DOUBLE, "value" ) );
 
         AnalyticsTable tA = new AnalyticsTable( AnalyticsTableType.DATA_VALUE, dimensions, values );
-        tA.addPartitionTable( 2010, new DateTime( 2010, 1, 1, 0, 0 ).toDate(), new DateTime( 2010, 12, 31, 0, 0 ).toDate() );
-        tA.addPartitionTable( 2011, new DateTime( 2011, 1, 1, 0, 0 ).toDate(), new DateTime( 2011, 12, 31, 0, 0 ).toDate() );
+        tA.addPartitionTable( 2010, new DateTime( 2010, 1, 1, 0, 0 ).toDate(),
+            new DateTime( 2010, 12, 31, 0, 0 ).toDate() );
+        tA.addPartitionTable( 2011, new DateTime( 2011, 1, 1, 0, 0 ).toDate(),
+            new DateTime( 2011, 12, 31, 0, 0 ).toDate() );
 
         AnalyticsTable tB = new AnalyticsTable( AnalyticsTableType.ORG_UNIT_TARGET, dimensions, values );
 

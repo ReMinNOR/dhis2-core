@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.adx;
 
 /*
@@ -58,19 +85,19 @@ public class AdxPeriod
     public enum Duration
     {
         P1D, // daily
-        P7D,// weekly
+        P7D, // weekly
         P1M, // monthly
         P2M, // bi-monthly
         P3M, // quarterly
         P6M, // 6monthly (including 6monthlyApril)
-        P1Y  // yearly, financialApril, financialJuly, financialOctober
+        P1Y // yearly, financialApril, financialJuly, financialOctober
     }
 
-    public static Period parse( String periodString ) 
+    public static Period parse( String periodString )
         throws AdxException
     {
         String[] tokens = periodString.split( "/" );
-        
+
         if ( tokens.length != 2 )
         {
             throw new AdxException( periodString + " not in valid <date>/<duration> format" );
@@ -87,57 +114,57 @@ public class AdxPeriod
 
             switch ( duration )
             {
-                case P1D:
-                    periodType = new DailyPeriodType();
+            case P1D:
+                periodType = new DailyPeriodType();
+                break;
+            case P7D:
+                periodType = new WeeklyPeriodType();
+                break;
+            case P1M:
+                periodType = new MonthlyPeriodType();
+                break;
+            case P2M:
+                periodType = new BiMonthlyPeriodType();
+                break;
+            case P3M:
+                periodType = new QuarterlyPeriodType();
+                break;
+            case P6M:
+                switch ( cal.get( Calendar.MONTH ) )
+                {
+                case 0:
+                    periodType = new SixMonthlyPeriodType();
                     break;
-                case P7D:
-                    periodType = new WeeklyPeriodType();
+                case 6:
+                    periodType = new SixMonthlyAprilPeriodType();
                     break;
-                case P1M:
-                    periodType = new MonthlyPeriodType();
+                default:
+                    throw new AdxException( periodString + "is invalid sixmonthly type" );
+                }
+            case P1Y:
+                switch ( cal.get( Calendar.MONTH ) )
+                {
+                case 0:
+                    periodType = new YearlyPeriodType();
                     break;
-                case P2M:
-                    periodType = new BiMonthlyPeriodType();
+                case 3:
+                    periodType = new FinancialAprilPeriodType();
                     break;
-                case P3M:
-                    periodType = new QuarterlyPeriodType();
+                case 6:
+                    periodType = new FinancialJulyPeriodType();
                     break;
-                case P6M:
-                    switch ( cal.get( Calendar.MONTH ) )
-                    {
-                        case 0:
-                            periodType = new SixMonthlyPeriodType();
-                            break;
-                        case 6:
-                            periodType = new SixMonthlyAprilPeriodType();
-                            break;
-                        default:
-                            throw new AdxException( periodString + "is invalid sixmonthly type" );
-                    }
-                case P1Y:
-                    switch ( cal.get( Calendar.MONTH ) )
-                    {
-                        case 0:
-                            periodType = new YearlyPeriodType();
-                            break;
-                        case 3:
-                            periodType = new FinancialAprilPeriodType();
-                            break;
-                        case 6:
-                            periodType = new FinancialJulyPeriodType();
-                            break;
-                        case 9:
-                            periodType = new FinancialOctoberPeriodType();
-                            break;
-                        default:
-                            throw new AdxException( periodString + "is invalid yearly type" );
-                    }
+                case 9:
+                    periodType = new FinancialOctoberPeriodType();
+                    break;
+                default:
+                    throw new AdxException( periodString + "is invalid yearly type" );
+                }
             }
 
             if ( periodType != null )
             {
                 period = periodType.createPeriod( startDate );
-            } 
+            }
             else
             {
                 throw new AdxException( "Failed to create period type from " + duration );

@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.events;
 
 /*
@@ -28,12 +55,26 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static junit.framework.TestCase.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.exparity.hamcrest.date.DateMatchers;
 import org.hamcrest.CoreMatchers;
 import org.hibernate.SessionFactory;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -76,22 +117,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static junit.framework.TestCase.assertTrue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -191,7 +218,7 @@ public class EventImportTest
 
         Category cat1 = new Category( "cat1", DataDimensionType.DISAGGREGATION );
         cat1.setCategoryOptions( Lists.newArrayList( categoryOption1, categoryOption2 ) );
-        manager.save( Lists.newArrayList( cat1  ) );
+        manager.save( Lists.newArrayList( cat1 ) );
 
         CategoryCombo categoryCombo = manager.getByName( CategoryCombo.class, "default" );
         categoryCombo.setCategories( Lists.newArrayList( cat1 ) );
@@ -295,8 +322,8 @@ public class EventImportTest
     }
 
     /**
-     * TODO:  LUCIANO: this test has been ignored because the Importer should not import an event linked to a Program
-     * with 2 or more Program Instances
+     * TODO: LUCIANO: this test has been ignored because the Importer should not
+     * import an event linked to a Program with 2 or more Program Instances
      */
     @Test
     @Ignore
@@ -559,11 +586,11 @@ public class EventImportTest
 
     @Test
     public void testVerifyEventCanBeUpdatedUsingProgramOnly2()
-            throws IOException
+        throws IOException
     {
         // CREATE A NEW EVENT
         InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
-                organisationUnitB.getUid(), null, dataElementB, "10" );
+            organisationUnitB.getUid(), null, dataElementB, "10" );
 
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
@@ -578,7 +605,7 @@ public class EventImportTest
         event.setStatus( EventStatus.COMPLETED );
 
         final ImportSummary summary = eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(),
-                false );
+            false );
         assertThat( summary.getStatus(), is( ImportStatus.ERROR ) );
         assertThat( summary.getDescription(), is( "Event.program does not point to a valid program: null" ) );
         assertThat( summary.getReference(), is( uid ) );
@@ -586,11 +613,11 @@ public class EventImportTest
 
     @Test
     public void testVerifyEventCanBeUpdatedUsingProgramOnly()
-            throws IOException
+        throws IOException
     {
         // CREATE A NEW EVENT
         InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
-                organisationUnitB.getUid(), null, dataElementB, "10" );
+            organisationUnitB.getUid(), null, dataElementB, "10" );
 
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
@@ -607,7 +634,7 @@ public class EventImportTest
         event.setStatus( EventStatus.COMPLETED );
 
         assertEquals( ImportStatus.SUCCESS,
-                eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
+            eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
 
         cleanSession();
 
@@ -630,11 +657,11 @@ public class EventImportTest
 
     @Test
     public void testVerifyEventUncompleteSetsCompletedDateToNull()
-            throws IOException
+        throws IOException
     {
         // CREATE A NEW EVENT
         InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
-                organisationUnitB.getUid(), null, dataElementB, "10" );
+            organisationUnitB.getUid(), null, dataElementB, "10" );
 
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
@@ -643,7 +670,8 @@ public class EventImportTest
         // FETCH NEWLY CREATED EVENT
         ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
 
-        // UPDATE EVENT (no actual changes, except for empty data value and status
+        // UPDATE EVENT (no actual changes, except for empty data value and
+        // status
         // change)
         Event event = new Event();
         event.setEvent( uid );
@@ -651,7 +679,7 @@ public class EventImportTest
         event.setStatus( EventStatus.ACTIVE );
 
         assertEquals( ImportStatus.SUCCESS,
-                eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
+            eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
 
         cleanSession();
 

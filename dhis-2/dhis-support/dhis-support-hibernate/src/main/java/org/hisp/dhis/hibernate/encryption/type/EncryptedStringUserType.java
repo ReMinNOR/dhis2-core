@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.hibernate.encryption.type;
 
 /*
@@ -28,13 +55,6 @@ package org.hisp.dhis.hibernate.encryption.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.usertype.ParameterizedType;
-import org.hibernate.usertype.UserType;
-import org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry;
-import org.jasypt.encryption.pbe.PBEStringEncryptor;
-
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -42,20 +62,30 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Properties;
 
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.usertype.ParameterizedType;
+import org.hibernate.usertype.UserType;
+import org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+
 /**
- * Hibernate {@link UserType} implementation which employs a {@link PBEStringEncryptor} to
- * perform transparent encryption/decryption of {@link String} properties.
+ * Hibernate {@link UserType} implementation which employs a
+ * {@link PBEStringEncryptor} to perform transparent encryption/decryption of
+ * {@link String} properties.
  *
- * The employed encryptor is resolved from the {@link HibernateEncryptorRegistry}, which must be
- * set up with a named encryptor. The encryptor is resolved through the 'encryptor' parameter,
- * which looks up the given name in the registry.
+ * The employed encryptor is resolved from the
+ * {@link HibernateEncryptorRegistry}, which must be set up with a named
+ * encryptor. The encryptor is resolved through the 'encryptor' parameter, which
+ * looks up the given name in the registry.
  *
  * If no 'encryptor' parameter is given, or the given name does not resolve to a
  * {@link PBEStringEncryptor} in the {@link HibernateEncryptorRegistry}, an
  * {@link IllegalArgumentException} is thrown at initialization.
  *
- * This class implements a similar pattern to the encrypted types provided by the
- * org.jasypt.hibernate4 package, but serves to avoid this dependency (which breaks on Hibernate > 5.1.x).
+ * This class implements a similar pattern to the encrypted types provided by
+ * the org.jasypt.hibernate4 package, but serves to avoid this dependency (which
+ * breaks on Hibernate > 5.1.x).
  *
  * @author Halvdan Hoem Grelland
  */
@@ -86,7 +116,7 @@ public class EncryptedStringUserType
     public boolean equals( Object x, Object y )
         throws HibernateException
     {
-        return x == y || ( x != null && y != null && x.equals( y ) );
+        return x == y || (x != null && y != null && x.equals( y ));
     }
 
     @Override
@@ -96,9 +126,10 @@ public class EncryptedStringUserType
         return x.hashCode();
     }
 
-       @Override
+    @Override
     public Object nullSafeGet( ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner )
-        throws HibernateException, SQLException
+        throws HibernateException,
+        SQLException
     {
         ensureEncryptorInit();
 
@@ -109,7 +140,8 @@ public class EncryptedStringUserType
 
     @Override
     public void nullSafeSet( PreparedStatement st, Object value, int index, SharedSessionContractImplementor session )
-        throws HibernateException, SQLException
+        throws HibernateException,
+        SQLException
     {
         ensureEncryptorInit();
 
@@ -137,19 +169,22 @@ public class EncryptedStringUserType
     }
 
     @Override
-    public Serializable disassemble( Object value ) throws HibernateException
+    public Serializable disassemble( Object value )
+        throws HibernateException
     {
         return value == null ? null : (Serializable) deepCopy( value );
     }
 
     @Override
-    public Object assemble( Serializable cached, Object owner ) throws HibernateException
+    public Object assemble( Serializable cached, Object owner )
+        throws HibernateException
     {
         return cached == null ? null : deepCopy( cached );
     }
 
     @Override
-    public Object replace( Object original, Object target, Object owner ) throws HibernateException
+    public Object replace( Object original, Object target, Object owner )
+        throws HibernateException
     {
         return original;
     }

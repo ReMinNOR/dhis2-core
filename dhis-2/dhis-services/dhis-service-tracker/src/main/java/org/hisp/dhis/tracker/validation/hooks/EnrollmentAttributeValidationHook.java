@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.tracker.validation.hooks;
 
 /*
@@ -133,7 +160,8 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     {
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
-        // Build a data structures of attributes eligible for mandatory validations:
+        // Build a data structures of attributes eligible for mandatory
+        // validations:
         // 1 - attributes from enrollments whose value is not empty or null
         // 2 - attributes already existing in TEI (from preheat)
 
@@ -142,7 +170,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .map( Enrollment::getAttributes )
             .orElse( Collections.emptyList() )
             .stream()
-            .filter( this::isNonEmpty)
+            .filter( this::isNonEmpty )
             .collect( Collectors.toMap(
                 Attribute::getAttribute,
                 Attribute::getValue ) );
@@ -170,7 +198,8 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
                 () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ), reporter, E1018,
                 mandatoryProgramAttributeUid, program.getUid(), enrollment.getEnrollment() ) );
 
-        // enrollment must not contain any attribute which is not defined in program
+        // enrollment must not contain any attribute which is not defined in
+        // program
         enrollmentNonEmptyAttributeUids
             .forEach(
                 ( attrUid, attrVal ) -> addErrorIf( () -> !programAttributesMap.containsKey( attrUid ), reporter, E1019,
@@ -192,9 +221,9 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .collect( Collectors.toSet() );
     }
 
-    private boolean isNonEmpty(Attribute attribute )
+    private boolean isNonEmpty( Attribute attribute )
     {
-        return StringUtils.isNotBlank( attribute.getValue() ) && StringUtils.isNotBlank(attribute.getAttribute());
+        return StringUtils.isNotBlank( attribute.getValue() ) && StringUtils.isNotBlank( attribute.getAttribute() );
     }
 
     private String getOrgUnitUidFromTei( TrackerImportValidationContext context, String teiUid )

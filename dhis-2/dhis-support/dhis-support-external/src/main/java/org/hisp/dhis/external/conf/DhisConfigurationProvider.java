@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.external.conf;
 
 /*
@@ -28,13 +55,14 @@ package org.hisp.dhis.external.conf;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import org.hisp.dhis.encryption.EncryptionStatus;
-
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+
+import org.hisp.dhis.encryption.EncryptionStatus;
+
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
 /**
  * Interface which provides access to the DHIS 2 configuration specified through
@@ -65,7 +93,7 @@ public interface DhisConfigurationProvider
      * Get the property value for the given key, or the default value if not
      * exists.
      *
-     * @param key          the configuration key.
+     * @param key the configuration key.
      * @param defaultValue the default value.
      * @return the property value.
      */
@@ -92,7 +120,7 @@ public interface DhisConfigurationProvider
      * Returns value as boolean, will return false if value is null.
      *
      * @param key the configuration key.
-     * @return Will  return true if the value is "true" or "TRUE"
+     * @return Will return true if the value is "true" or "TRUE"
      */
     boolean getBoolean( ConfigurationKey key );
 
@@ -105,7 +133,8 @@ public interface DhisConfigurationProvider
     boolean isDisabled( ConfigurationKey key );
 
     /**
-     * Returns a GoogleCredential, if a Google service account has been configured.
+     * Returns a GoogleCredential, if a Google service account has been
+     * configured.
      *
      * @return a GoogleCredential
      */
@@ -116,7 +145,8 @@ public interface DhisConfigurationProvider
      * has been configured, or if no refresh token could be retrieved.
      *
      * @return a GoogleAccessToken.
-     * @throws IllegalStateException if an error occurred while retrieving a token.
+     * @throws IllegalStateException if an error occurred while retrieving a
+     *         token.
      */
     Optional<GoogleAccessToken> getGoogleAccessToken();
 

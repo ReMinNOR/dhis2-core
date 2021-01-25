@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.user;
 
 /*
@@ -28,6 +55,8 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -49,12 +78,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Declare transactions on individual methods. The get-methods do not have
  * transactions declared, instead a programmatic transaction is initiated on
- * cache miss in order to reduce the number of transactions to improve performance.
+ * cache miss in order to reduce the number of transactions to improve
+ * performance.
  *
  * @author Torgeir Lorange Ostby
  */
@@ -63,7 +91,8 @@ public class DefaultUserSettingService
     implements UserSettingService
 {
     /**
-     * Cache for user settings. Does not accept nulls. Disabled during test phase.
+     * Cache for user settings. Does not accept nulls. Disabled during test
+     * phase.
      */
     private Cache<SerializableOptional> userSettingCache;
 
@@ -86,7 +115,8 @@ public class DefaultUserSettingService
 
     private final SystemSettingManager systemSettingManager;
 
-    public DefaultUserSettingService( Environment env, CacheProvider cacheProvider, CurrentUserService currentUserService,
+    public DefaultUserSettingService( Environment env, CacheProvider cacheProvider,
+        CurrentUserService currentUserService,
         UserSettingStore userSettingStore, UserService userService, SystemSettingManager systemSettingManager )
     {
         checkNotNull( env );
@@ -208,8 +238,9 @@ public class DefaultUserSettingService
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the
-     * store level behind the cache to avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at
+     * the store level behind the cache to avoid the transaction overhead for
+     * cache hits.
      */
     @Override
     public Serializable getUserSetting( UserSettingKey key )
@@ -218,8 +249,9 @@ public class DefaultUserSettingService
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the
-     * store level behind the cache to avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at
+     * the store level behind the cache to avoid the transaction overhead for
+     * cache hits.
      */
     @Override
     public Serializable getUserSetting( UserSettingKey key, User user )
@@ -237,11 +269,13 @@ public class DefaultUserSettingService
     }
 
     @Override
-    public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<UserSettingKey> userSettingKeys,
+    public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user,
+        Set<UserSettingKey> userSettingKeys,
         boolean useFallback )
     {
         Map<String, Serializable> result = Sets.newHashSet( getUserSettings( user ) ).stream()
-            .filter( userSetting -> userSetting != null && userSetting.getName() != null && userSetting.getValue() != null )
+            .filter(
+                userSetting -> userSetting != null && userSetting.getName() != null && userSetting.getValue() != null )
             .collect( Collectors.toMap( UserSetting::getName, UserSetting::getValue ) );
 
         userSettingKeys.forEach( userSettingKey -> {
@@ -251,7 +285,8 @@ public class DefaultUserSettingService
 
                 if ( useFallback && systemSettingKey.isPresent() )
                 {
-                    result.put( userSettingKey.getName(), systemSettingManager.getSystemSetting( systemSettingKey.get() ) );
+                    result.put( userSettingKey.getName(),
+                        systemSettingManager.getSystemSetting( systemSettingKey.get() ) );
                 }
                 else
                 {
@@ -275,7 +310,8 @@ public class DefaultUserSettingService
         List<UserSetting> userSettings = userSettingStore.getAllUserSettings( user );
         Set<UserSetting> defaultUserSettings = UserSettingKey.getDefaultUserSettings( user );
 
-        userSettings.addAll( defaultUserSettings.stream().filter( x -> !userSettings.contains( x ) ).collect( Collectors.toList() ) );
+        userSettings.addAll(
+            defaultUserSettings.stream().filter( x -> !userSettings.contains( x ) ).collect( Collectors.toList() ) );
 
         return userSettings;
     }
@@ -299,8 +335,8 @@ public class DefaultUserSettingService
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a user setting optional. If the user settings does not have
-     * a value or default value, a corresponding system setting will be looked up.
+     * Returns a user setting optional. If the user settings does not have a
+     * value or default value, a corresponding system setting will be looked up.
      *
      * @param key the user setting key.
      * @param user an optional {@link User}.
@@ -332,10 +368,11 @@ public class DefaultUserSettingService
     }
 
     /**
-     * Get user setting optional. If the user setting exists and has a value, the
-     * value is returned. If not, the default value for the key is returned, if not
-     * present, an empty optional is returned. The return object is never null in
-     * order to cache requests for system settings which have no value or default value.
+     * Get user setting optional. If the user setting exists and has a value,
+     * the value is returned. If not, the default value for the key is returned,
+     * if not present, an empty optional is returned. The return object is never
+     * null in order to cache requests for system settings which have no value
+     * or default value.
      *
      * @param key the user setting key.
      * @param username the username of the user.

@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.metadata.version;
 
 /*
@@ -36,6 +63,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dxf2.metadata.sync.exception.RemoteServerUnavailableException;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
@@ -51,8 +80,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Handling remote calls for metadata version.
  *
@@ -60,7 +87,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component( "org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" )
-@Scope("prototype")
+@Scope( "prototype" )
 public class MetadataVersionDelegate
 {
     private DefaultMetadataSystemSettingService metadataSystemSettingService;
@@ -75,10 +102,10 @@ public class MetadataVersionDelegate
         SynchronizationManager synchronizationManager, RenderService renderService,
         MetadataVersionService metadataVersionService )
     {
-        checkNotNull(metadataSystemSettingService);
-        checkNotNull(synchronizationManager);
-        checkNotNull(renderService);
-        checkNotNull(metadataVersionService);
+        checkNotNull( metadataSystemSettingService );
+        checkNotNull( synchronizationManager );
+        checkNotNull( renderService );
+        checkNotNull( metadataVersionService );
 
         this.metadataSystemSettingService = metadataSystemSettingService;
         this.synchronizationManager = synchronizationManager;
@@ -117,7 +144,7 @@ public class MetadataVersionDelegate
     {
         String url;
         List<MetadataVersion> metadataVersions = new ArrayList<>();
-        
+
         if ( metadataVersion == null )
         {
             url = metadataSystemSettingService.getEntireVersionHistory();
@@ -140,8 +167,8 @@ public class MetadataVersionDelegate
             }
             catch ( IOException io )
             {
-                String message =
-                    "Exception occurred while trying to do JSON conversion. Caused by:  " + io.getMessage();
+                String message = "Exception occurred while trying to do JSON conversion. Caused by:  "
+                    + io.getMessage();
                 log.error( message, io );
                 throw new MetadataVersionServiceException( message, io );
             }
@@ -151,10 +178,11 @@ public class MetadataVersionDelegate
         return metadataVersions;
     }
 
-    public String downloadMetadataVersionSnapshot(MetadataVersion version )
+    public String downloadMetadataVersionSnapshot( MetadataVersion version )
         throws MetadataVersionServiceException
     {
-        String downloadVersionSnapshotURL = metadataSystemSettingService.getDownloadVersionSnapshotURL( version.getName() );
+        String downloadVersionSnapshotURL = metadataSystemSettingService
+            .getDownloadVersionSnapshotURL( version.getName() );
         DhisHttpResponse dhisHttpResponse = getDhisHttpResponse( downloadVersionSnapshotURL, DOWNLOAD_TIMEOUT );
 
         if ( isValidDhisHttpResponse( dhisHttpResponse ) )
@@ -175,19 +203,20 @@ public class MetadataVersionDelegate
         }
         catch ( Exception e )
         {
-            throw new MetadataVersionServiceException( "Exception occurred while trying to add metadata version" + version, e );
+            throw new MetadataVersionServiceException(
+                "Exception occurred while trying to add metadata version" + version, e );
         }
     }
 
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
     // Private Methods
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
 
     private DhisHttpResponse getDhisHttpResponse( String url, int timeout )
     {
         AvailabilityStatus remoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
 
-        if ( !( remoteServerAvailable.isAvailable() ) )
+        if ( !(remoteServerAvailable.isAvailable()) )
         {
             String message = remoteServerAvailable.getMessage();
             log.error( message );

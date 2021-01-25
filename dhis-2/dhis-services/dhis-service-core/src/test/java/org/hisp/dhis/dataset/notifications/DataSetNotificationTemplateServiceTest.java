@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dataset.notifications;
 
 /*
@@ -28,6 +55,13 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.dataset.DataSet;
@@ -42,13 +76,6 @@ import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by zubair@dhis2.org on 28.07.17.
@@ -72,24 +99,33 @@ public class DataSetNotificationTemplateServiceTest
     private UserGroupService userGroupService;
 
     private Set<DataSet> dataSets = new HashSet<>();
+
     private Set<User> users = new HashSet<>();
+
     private Set<DeliveryChannel> channels = new HashSet<>();
 
     private DataSet dataSetA;
+
     private DataSet dataSetB;
+
     private DataSet dataSetC;
 
     private User userA;
+
     private User userB;
 
     private DeliveryChannel smsChannel = DeliveryChannel.SMS;
+
     private DeliveryChannel emailChannel = DeliveryChannel.EMAIL;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private OrganisationUnit ouC;
 
     private UserGroup userGroupA;
+
     private UserGroup userGroupB;
 
     private DataSetNotificationRecipient notificationRecipient;
@@ -97,11 +133,15 @@ public class DataSetNotificationTemplateServiceTest
     private DataSetNotificationTrigger completion = DataSetNotificationTrigger.DATA_SET_COMPLETION;
 
     private DataSetNotificationTemplate templateA;
+
     private DataSetNotificationTemplate templateB;
 
     private String templateNameA = "TemplateA";
+
     private String templateNameB = "TemplateB";
+
     private String message = "message";
+
     private String subject = "subject";
 
     // -------------------------------------------------------------------------
@@ -109,7 +149,8 @@ public class DataSetNotificationTemplateServiceTest
     // -------------------------------------------------------------------------
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
 
         ouA = createOrganisationUnit( "ouA" );
@@ -159,7 +200,8 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testSaveGet()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
@@ -174,11 +216,13 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testDelete()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
-        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateB.setAutoFields();
         templateB.setName( templateNameB );
 
@@ -203,11 +247,13 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testGetAll()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
-        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateB.setAutoFields();
         templateB.setName( templateNameB );
 
@@ -223,11 +269,13 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testGetNotificationsByTriggerType()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
-        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateB.setAutoFields();
         templateB.setName( templateNameB );
 

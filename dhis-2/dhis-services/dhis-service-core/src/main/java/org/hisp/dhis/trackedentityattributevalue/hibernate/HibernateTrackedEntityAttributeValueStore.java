@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.trackedentityattributevalue.hibernate;
 
 /*
@@ -28,6 +55,11 @@ package org.hisp.dhis.trackedentityattributevalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -41,11 +73,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  * @author Abyot Asalefew
  */
@@ -54,7 +81,8 @@ public class HibernateTrackedEntityAttributeValueStore
     extends HibernateGenericStore<TrackedEntityAttributeValue>
     implements TrackedEntityAttributeValueStore
 {
-    public HibernateTrackedEntityAttributeValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    public HibernateTrackedEntityAttributeValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityAttributeValue.class, false );
     }
@@ -71,7 +99,8 @@ public class HibernateTrackedEntityAttributeValueStore
     @Override
     public int deleteByTrackedEntityInstance( TrackedEntityInstance entityInstance )
     {
-        Query<TrackedEntityAttributeValue> query = getQuery( "delete from TrackedEntityAttributeValue where entityInstance = :entityInstance" );
+        Query<TrackedEntityAttributeValue> query = getQuery(
+            "delete from TrackedEntityAttributeValue where entityInstance = :entityInstance" );
         query.setParameter( "entityInstance", entityInstance );
         return query.executeUpdate();
     }
@@ -93,7 +122,8 @@ public class HibernateTrackedEntityAttributeValueStore
     {
         String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance";
 
-        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstance", entityInstance );
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstance",
+            entityInstance );
 
         return getList( typedQuery );
     }
@@ -118,7 +148,8 @@ public class HibernateTrackedEntityAttributeValueStore
 
         String query = " from TrackedEntityAttributeValue v where v.entityInstance  in :entityInstances";
 
-        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstances", entityInstances );
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstances",
+            entityInstances );
 
         return getList( typedQuery );
     }
@@ -130,7 +161,7 @@ public class HibernateTrackedEntityAttributeValueStore
 
         Query<TrackedEntityAttributeValue> typedQuery = getQuery( query )
             .setParameter( "attribute", attribute )
-            .setParameter( "searchText", "%" + StringUtils.lowerCase( searchText  ) + "%");
+            .setParameter( "searchText", "%" + StringUtils.lowerCase( searchText ) + "%" );
 
         return getList( typedQuery );
     }
@@ -174,7 +205,8 @@ public class HibernateTrackedEntityAttributeValueStore
     @Override
     public int getCountOfAssignedTEAValues( TrackedEntityAttribute attribute )
     {
-        Query query = getQuery( "select count(distinct c) from TrackedEntityAttributeValue c where c.attribute = :attribute" );
+        Query query = getQuery(
+            "select count(distinct c) from TrackedEntityAttributeValue c where c.attribute = :attribute" );
         query.setParameter( "attribute", attribute );
 
         return ((Long) query.getSingleResult()).intValue();

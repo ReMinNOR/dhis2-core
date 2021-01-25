@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.program;
 
 /*
@@ -28,7 +55,17 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -40,16 +77,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 /**
  * @author Chau Thu Tran
@@ -282,17 +310,20 @@ public class ProgramInstanceServiceTest
     {
         programInstanceService.addProgramInstance( programInstanceA );
 
-        ProgramInstance programInstance1 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programA, enrollmentDate,
+        ProgramInstance programInstance1 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
+            programA, enrollmentDate,
             incidenDate, organisationUnitA );
         programInstance1.setStatus( ProgramStatus.COMPLETED );
         programInstanceService.updateProgramInstance( programInstance1 );
 
-        ProgramInstance programInstance2 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programA, enrollmentDate,
+        ProgramInstance programInstance2 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
+            programA, enrollmentDate,
             incidenDate, organisationUnitA );
         programInstance2.setStatus( ProgramStatus.COMPLETED );
         programInstanceService.updateProgramInstance( programInstance2 );
 
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( entityInstanceA, programA, ProgramStatus.COMPLETED );
+        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( entityInstanceA, programA,
+            ProgramStatus.COMPLETED );
         assertEquals( 2, programInstances.size() );
         assertTrue( programInstances.contains( programInstance1 ) );
         assertTrue( programInstances.contains( programInstance2 ) );
@@ -310,7 +341,8 @@ public class ProgramInstanceServiceTest
         programInstanceService.addProgramInstance( programInstanceC );
         programInstanceService.addProgramInstance( programInstanceD );
 
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( new ProgramInstanceQueryParams()
+        List<ProgramInstance> programInstances = programInstanceService
+            .getProgramInstances( new ProgramInstanceQueryParams()
                 .setProgram( programA )
                 .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) )
                 .setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) );
@@ -321,7 +353,8 @@ public class ProgramInstanceServiceTest
     @Test
     public void testEnrollTrackedEntityInstance()
     {
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programB, enrollmentDate,
+        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programB,
+            enrollmentDate,
             incidenDate, organisationUnitA );
 
         assertNotNull( programInstanceService.getProgramInstance( programInstance.getId() ) );

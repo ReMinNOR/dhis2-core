@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.metadata;
 
 /*
@@ -28,10 +55,25 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.xml.xpath.XPathExpressionException;
+
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.MappingException;
+
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -67,21 +109,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import javax.xml.xpath.XPathExpressionException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -301,12 +330,14 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUserUid() );
         assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroupUid() );
 
-//        Visualization dataElementOperandVisualization = manager.get( Visualization.class, "qD72aBqsHvt" );
-//        assertNotNull( dataElementOperandVisualization );
-//        assertEquals( 2, dataElementOperandVisualization.getDataDimensionItems().size() );
-//        dataElementOperandVisualization.getDataDimensionItems()
-//            .stream()
-//            .forEach( item -> assertNotNull( item.getDataElementOperand() ) );
+        // Visualization dataElementOperandVisualization = manager.get(
+        // Visualization.class, "qD72aBqsHvt" );
+        // assertNotNull( dataElementOperandVisualization );
+        // assertEquals( 2,
+        // dataElementOperandVisualization.getDataDimensionItems().size() );
+        // dataElementOperandVisualization.getDataDimensionItems()
+        // .stream()
+        // .forEach( item -> assertNotNull( item.getDataElementOperand() ) );
 
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
@@ -324,7 +355,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         final List<ErrorReport> errorReports = report.getErrorReports();
         for ( ErrorReport errorReport : errorReports )
         {
-            log.error( "Error report:"+errorReport );
+            log.error( "Error report:" + errorReport );
         }
         assertEquals( Status.OK, report.getStatus() );
 
@@ -333,7 +364,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( 1, visualization.getUserGroupAccesses().size() );
         assertEquals( 1, visualization.getUserAccesses().size() );
         assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUser().getUid() );
-        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroup().getUid() );
+        assertEquals( userGroup.getUid(),
+            visualization.getUserGroupAccesses().iterator().next().getUserGroup().getUid() );
     }
 
     @Test
@@ -368,7 +400,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( 1, visualization.getUserGroupAccesses().size() );
         assertEquals( 1, visualization.getUserAccesses().size() );
         assertEquals( user.getUid(), visualization.getUserAccesses().iterator().next().getUser().getUid() );
-        assertEquals( userGroup.getUid(), visualization.getUserGroupAccesses().iterator().next().getUserGroup().getUid() );
+        assertEquals( userGroup.getUid(),
+            visualization.getUserGroupAccesses().iterator().next().getUserGroup().getUid() );
 
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_visualization_with_accesses_update.json" ).getInputStream(),
@@ -448,7 +481,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( dataset.getSections() );
         assertNotNull( manager.get( Section.class, "JwcV2ZifEQf" ) );
 
-        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/dataset_with_removed_section.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_removed_section.json" ).getInputStream(), RenderFormat.JSON );
         params.setImportMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( metadata );
@@ -468,7 +502,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( 1, dataset.getSections().size() );
         assertNull( manager.get( Section.class, "JwcV2ZifEQf" ) );
 
-        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/dataset_with_all_section_removed.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_all_section_removed.json" ).getInputStream(), RenderFormat.JSON );
         params.setImportMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
         params.setObjects( metadata );
@@ -632,7 +667,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setObjects( metadata );
         params.setUser( userB );
-
 
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );

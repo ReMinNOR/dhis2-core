@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.scheduling;
 
 /*
@@ -55,15 +82,18 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * This class defines configuration for a job in the system. The job is defined with general identifiers, as well as job
- * specific, such as jobType {@link JobType}.
+ * This class defines configuration for a job in the system. The job is defined
+ * with general identifiers, as well as job specific, such as jobType
+ * {@link JobType}.
  * <p>
- * All system jobs should be included in JobType enum and can be scheduled/executed with {@link SchedulingManager}.
+ * All system jobs should be included in JobType enum and can be
+ * scheduled/executed with {@link SchedulingManager}.
  * <p>
- * The class uses a custom deserializer to handle several potential {@link JobParameters}.
+ * The class uses a custom deserializer to handle several potential
+ * {@link JobParameters}.
  *
- * Note that this class uses {@link JobConfigurationSanitizer} for serialization which needs to be update when new
- * properties are added.
+ * Note that this class uses {@link JobConfigurationSanitizer} for serialization
+ * which needs to be update when new properties are added.
  *
  * @author Henning Håkonsen
  */
@@ -89,12 +119,14 @@ public class JobConfiguration
 
     /**
      * The delay in seconds between the completion of one job execution and the
-     * start of the next. Relevant for scheduling type {@link SchedulingType#FIXED_DELAY}.
+     * start of the next. Relevant for scheduling type
+     * {@link SchedulingType#FIXED_DELAY}.
      */
     private Integer delay;
 
     /**
-     * Parameters of the job. Jobs can use their own implementation of the {@link JobParameters} class.
+     * Parameters of the job. Jobs can use their own implementation of the
+     * {@link JobParameters} class.
      */
     private JobParameters jobParameters;
 
@@ -193,12 +225,13 @@ public class JobConfiguration
     }
 
     /**
-     * Checks if this job has changes compared to the specified job configuration that are only
-     * allowed for configurable jobs.
+     * Checks if this job has changes compared to the specified job
+     * configuration that are only allowed for configurable jobs.
      *
      * @param other the job configuration that should be checked.
-     * @return <code>true</code> if this job configuration has changes in fields that are only
-     *          allowed for configurable jobs, <code>false</code> otherwise.
+     * @return <code>true</code> if this job configuration has changes in fields
+     *         that are only allowed for configurable jobs, <code>false</code>
+     *         otherwise.
      */
     public boolean hasNonConfigurableJobChanges( @Nonnull JobConfiguration other )
     {
@@ -299,7 +332,8 @@ public class JobConfiguration
     }
 
     /**
-     * The sub type names refer to the {@link JobType} enumeration. Defaults to null for unmapped job types.
+     * The sub type names refer to the {@link JobType} enumeration. Defaults to
+     * null for unmapped job types.
      */
     @JacksonXmlProperty
     @JsonProperty

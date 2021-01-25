@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.query;
 
 /*
@@ -28,13 +55,15 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
+import java.util.Date;
+import java.util.Objects;
+
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
-import javax.annotation.Nonnull;
-import java.util.Date;
-import java.util.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -94,7 +123,8 @@ public class Order
             return 0;
         }
 
-        // for null values use the same order like PostgreSQL in order to have same effect like DB ordering
+        // for null values use the same order like PostgreSQL in order to have
+        // same effect like DB ordering
         // (NULLs are greater than other values)
         if ( o1 == null || o2 == null )
         {
@@ -134,7 +164,8 @@ public class Order
         }
         else if ( Enum.class.isInstance( o1 ) && Enum.class.isInstance( o2 ) )
         {
-            return isAscending() ? String.valueOf( o1 ).compareTo( String.valueOf( o2 ) ) : String.valueOf( o2 ).compareTo( String.valueOf( o1 ) );
+            return isAscending() ? String.valueOf( o1 ).compareTo( String.valueOf( o2 ) )
+                : String.valueOf( o2 ).compareTo( String.valueOf( o1 ) );
         }
 
         return 0;
@@ -164,16 +195,16 @@ public class Order
     {
         switch ( direction )
         {
-            case "asc":
-                return Order.asc( property );
-            case "iasc":
-                return Order.iasc( property );
-            case "desc":
-                return Order.desc( property );
-            case "idesc":
-                return Order.idesc( property );
-            default:
-                return Order.asc( property );
+        case "asc":
+            return Order.asc( property );
+        case "iasc":
+            return Order.iasc( property );
+        case "desc":
+            return Order.desc( property );
+        case "idesc":
+            return Order.idesc( property );
+        default:
+            return Order.asc( property );
         }
     }
 

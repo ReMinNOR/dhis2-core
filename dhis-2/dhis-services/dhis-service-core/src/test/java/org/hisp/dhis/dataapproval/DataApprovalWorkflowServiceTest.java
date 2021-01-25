@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dataapproval;
 
 /*
@@ -29,18 +56,17 @@ package org.hisp.dhis.dataapproval;
  */
 
 import static com.google.common.collect.Sets.newHashSet;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Jim Grace
@@ -59,11 +85,15 @@ public class DataApprovalWorkflowServiceTest
     // -------------------------------------------------------------------------
 
     private DataApprovalWorkflow workflowA;
+
     private DataApprovalWorkflow workflowB;
+
     private DataApprovalWorkflow workflowC;
 
     private DataApprovalLevel level1;
+
     private DataApprovalLevel level2;
+
     private DataApprovalLevel level3;
 
     PeriodType periodType;
@@ -73,7 +103,8 @@ public class DataApprovalWorkflowServiceTest
     // -------------------------------------------------------------------------
 
     @Override
-    public void setUpTest() throws Exception
+    public void setUpTest()
+        throws Exception
     {
         // ---------------------------------------------------------------------
         // Add supporting data
@@ -89,17 +120,18 @@ public class DataApprovalWorkflowServiceTest
 
         periodType = PeriodType.getPeriodTypeByName( "Monthly" );
 
-        workflowA = new DataApprovalWorkflow("A", periodType, newHashSet( level1, level2 ) );
-        workflowB = new DataApprovalWorkflow("B", periodType, newHashSet( level2, level3 ) );
-        workflowC = new DataApprovalWorkflow("C", periodType, newHashSet( level1, level3 ) );
+        workflowA = new DataApprovalWorkflow( "A", periodType, newHashSet( level1, level2 ) );
+        workflowB = new DataApprovalWorkflow( "B", periodType, newHashSet( level2, level3 ) );
+        workflowC = new DataApprovalWorkflow( "C", periodType, newHashSet( level1, level3 ) );
     }
-    
+
     // -------------------------------------------------------------------------
     // Basic DataApprovalWorkflow
     // -------------------------------------------------------------------------
 
     @Test
-    public void testAddDataApprovalWorkflow() throws Exception
+    public void testAddDataApprovalWorkflow()
+        throws Exception
     {
         long id = dataApprovalService.addWorkflow( workflowA );
 
@@ -111,14 +143,15 @@ public class DataApprovalWorkflowServiceTest
 
         Set<DataApprovalLevel> members = workflow.getLevels();
 
-        assertEquals(2, members.size() );
+        assertEquals( 2, members.size() );
 
         assertTrue( members.contains( level1 ) );
         assertTrue( members.contains( level2 ) );
     }
 
     @Test
-    public void testUpdateDataApprovalWorkflow() throws Exception
+    public void testUpdateDataApprovalWorkflow()
+        throws Exception
     {
         long id = dataApprovalService.addWorkflow( workflowA );
 
@@ -138,14 +171,15 @@ public class DataApprovalWorkflowServiceTest
 
         Set<DataApprovalLevel> members = workflow.getLevels();
 
-        assertEquals(2, members.size() );
+        assertEquals( 2, members.size() );
 
         assertTrue( members.contains( level2 ) );
         assertTrue( members.contains( level3 ) );
     }
 
     @Test
-    public void testDeleteDataApprovalWorkflow() throws Exception
+    public void testDeleteDataApprovalWorkflow()
+        throws Exception
     {
         long id = dataApprovalService.addWorkflow( workflowA );
 
@@ -161,7 +195,8 @@ public class DataApprovalWorkflowServiceTest
     }
 
     @Test
-    public void testGetDataApprovalWorkflow() throws Exception
+    public void testGetDataApprovalWorkflow()
+        throws Exception
     {
         long idA = dataApprovalService.addWorkflow( workflowA );
         long idB = dataApprovalService.addWorkflow( workflowB );
@@ -176,7 +211,8 @@ public class DataApprovalWorkflowServiceTest
     }
 
     @Test
-    public void testGetAllDataApprovalWorkflows() throws Exception
+    public void testGetAllDataApprovalWorkflows()
+        throws Exception
     {
         List<DataApprovalWorkflow> workflows = dataApprovalService.getAllWorkflows();
         assertEquals( 0, workflows.size() );

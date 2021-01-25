@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.resolver;
 
 /*
@@ -36,7 +63,6 @@ import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Joiner;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
@@ -45,6 +71,8 @@ import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.base.Joiner;
 
 /**
  * @author Luciano Fiandesio
@@ -60,7 +88,8 @@ public class CategoryOptionGroupResolver
 
     private final CategoryOptionComboStore categoryOptionComboStore;
 
-    public CategoryOptionGroupResolver( CategoryOptionGroupStore categoryOptionGroupStore, CategoryOptionComboStore categoryOptionComboStore,
+    public CategoryOptionGroupResolver( CategoryOptionGroupStore categoryOptionGroupStore,
+        CategoryOptionComboStore categoryOptionComboStore,
         ExpressionService expressionService )
     {
         checkNotNull( categoryOptionGroupStore );
@@ -79,41 +108,46 @@ public class CategoryOptionGroupResolver
     }
 
     /**
-     * Resolves a Data Element Operand expression containing one or two Category Option Group UID to an equivalent
-     * expression where the associated Category Option Combos for the given Category Option Group are "exploded" into
-     * the expression.
+     * Resolves a Data Element Operand expression containing one or two Category
+     * Option Group UID to an equivalent expression where the associated
+     * Category Option Combos for the given Category Option Group are "exploded"
+     * into the expression.
      *
      * Resolves one of the expressions below:
      *
-     * 1) #{DEUID.COGUID.AOCUID}
-     * 2) #{DEUID.COCUID.COGUID}
-     * 3) #{DEUID.COG1UID.COG2UID}
+     * 1) #{DEUID.COGUID.AOCUID} 2) #{DEUID.COCUID.COGUID} 3)
+     * #{DEUID.COG1UID.COG2UID}
      *
      * to:
      *
-     * 1) #{DEUID.COCUID1.AOCUID} + #{DEUID.COCUID2.AOCUID} + #{DEUID.COCUID3.AOCUID}
-     * where COCUID1,2,3... are resolved by fetching all COCUID by COGUID
+     * 1) #{DEUID.COCUID1.AOCUID} + #{DEUID.COCUID2.AOCUID} +
+     * #{DEUID.COCUID3.AOCUID} where COCUID1,2,3... are resolved by fetching all
+     * COCUID by COGUID
      *
-     * 2) #{DEUID.COCUID} + #{DEUID.COCUID1} + #{DEUID.COCUID2} + #{DEUID.COCUID3} + #{DEUID.COCUID4}
-     * where COCUID1,2,3... are resolved by fetching all COCUID by COGUID
+     * 2) #{DEUID.COCUID} + #{DEUID.COCUID1} + #{DEUID.COCUID2} +
+     * #{DEUID.COCUID3} + #{DEUID.COCUID4} where COCUID1,2,3... are resolved by
+     * fetching all COCUID by COGUID
      *
-     * 3) #{DEUID.COCUID1} + #{DEUID.COCUID2} + #{DEUID.COCUID3} + #{DEUID.COCUID4}
-     * where COCUID1 and COCUID2 are resolved from COG1UID and COCUID3 and COCUID4 are resolved from COGUID2
+     * 3) #{DEUID.COCUID1} + #{DEUID.COCUID2} + #{DEUID.COCUID3} +
+     * #{DEUID.COCUID4} where COCUID1 and COCUID2 are resolved from COG1UID and
+     * COCUID3 and COCUID4 are resolved from COGUID2
      *
-     * DEUID = Data Element UID
-     * COCUID = Category Option Combo UID
-     * COGUID = Category Option Group UID
+     * DEUID = Data Element UID COCUID = Category Option Combo UID COGUID =
+     * Category Option Group UID
      *
      * @param expression a Data Element Expression
-     * @return an expression containing additional CategoryOptionCombos based on the given Category Option Group
+     * @return an expression containing additional CategoryOptionCombos based on
+     *         the given Category Option Group
      */
     @Override
     @Transactional( readOnly = true )
     public String resolve( String expression )
     {
-        // Get a DimensionalItemId from the expression. The expression is parsed and
+        // Get a DimensionalItemId from the expression. The expression is parsed
+        // and
         // each element placed in the DimensionalItemId
-        Set<DimensionalItemId> dimItemIds = expressionService.getExpressionDimensionalItemIds( expression, INDICATOR_EXPRESSION );
+        Set<DimensionalItemId> dimItemIds = expressionService.getExpressionDimensionalItemIds( expression,
+            INDICATOR_EXPRESSION );
         List<String> resolvedOperands = new ArrayList<>();
         if ( isDataElementOperand( dimItemIds ) )
         {
@@ -157,7 +191,7 @@ public class CategoryOptionGroupResolver
 
     private boolean isAoc( String uid )
     {
-        return (uid != null && categoryOptionComboStore.getByUid(uid) != null);
+        return (uid != null && categoryOptionComboStore.getByUid( uid ) != null);
     }
 
     private Optional<String> getCategoryOptionGroupUid( String uid )

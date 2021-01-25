@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.events.security;
 
 /*
@@ -28,9 +55,18 @@ package org.hisp.dhis.dxf2.events.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
-import org.hibernate.SessionFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
@@ -62,16 +98,7 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -213,7 +240,8 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTest
         enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
             ImportOptions.getDefaultImportOptions() );
 
-        // this is required because the event import takes place through JDBC and
+        // this is required because the event import takes place through JDBC
+        // and
         // hibernate does not see
         // the values inserted by the JDBC session. Clearing the session, forces
         // hibernate to reload from db rather than
@@ -501,7 +529,8 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTest
         }
 
         // Cannot create events with evemntOu outside capture scope
-        assertHasError( trackerAccessManager.canCreate( user, psi, false ), "User has no create access to organisation unit:" );
+        assertHasError( trackerAccessManager.canCreate( user, psi, false ),
+            "User has no create access to organisation unit:" );
 
         // Can read events if ownerOu falls into users search scope
         assertNoErrors( trackerAccessManager.canRead( user, psi, false ) );
@@ -514,9 +543,11 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTest
 
         trackerOwnershipManager.transferOwnership( tei, programA, organisationUnitB, true, true );
 
-        // Cannot create events with eventOu outside capture scope, even if ownerOu is
+        // Cannot create events with eventOu outside capture scope, even if
+        // ownerOu is
         // also in capture scope
-        assertHasError( trackerAccessManager.canCreate( user, psi, false ), "User has no create access to organisation unit:" );
+        assertHasError( trackerAccessManager.canCreate( user, psi, false ),
+            "User has no create access to organisation unit:" );
 
         // Can read events if ownerOu falls into users capture scope
         assertNoErrors( trackerAccessManager.canRead( user, psi, false ) );

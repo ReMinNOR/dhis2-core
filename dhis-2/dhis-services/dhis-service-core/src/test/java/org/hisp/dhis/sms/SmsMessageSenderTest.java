@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.sms;
 
 /*
@@ -122,19 +149,22 @@ public class SmsMessageSenderTest
 
         smsGateways.add( bulkSmsGateway );
 
-        smsMessageSender = new SmsMessageSender( gatewayAdministrationService, smsGateways, userSettingService, outboundSmsService );
+        smsMessageSender = new SmsMessageSender( gatewayAdministrationService, smsGateways, userSettingService,
+            outboundSmsService );
     }
 
     private void mockGateway()
     {
         // stub for SmsGateways
         when( bulkSmsGateway.accept( any() ) ).thenReturn( true );
-        Mockito.lenient().when( bulkSmsGateway.send( anyString(), anyString(), anySet(), isA( BulkSmsGatewayConfig.class ) ) )
+        Mockito.lenient()
+            .when( bulkSmsGateway.send( anyString(), anyString(), anySet(), isA( BulkSmsGatewayConfig.class ) ) )
             .thenReturn( okStatus );
-        Mockito.lenient().when( bulkSmsGateway.sendBatch( any(), any( BulkSmsGatewayConfig.class ) ) ).thenReturn( summaryResponses );
+        Mockito.lenient().when( bulkSmsGateway.sendBatch( any(), any( BulkSmsGatewayConfig.class ) ) )
+            .thenReturn( summaryResponses );
 
     }
-    
+
     @Test
     public void testSendMessageWithGatewayConfig()
     {
@@ -149,7 +179,7 @@ public class SmsMessageSenderTest
 
         verify( gatewayAdministrationService, times( 1 ) ).getDefaultGateway();
         verify( bulkSmsGateway, times( 1 ) ).accept( any() );
-        verify( bulkSmsGateway, times( 1 ) ).send( anyString(), anyString(), anySet( ), any() );
+        verify( bulkSmsGateway, times( 1 ) ).send( anyString(), anyString(), anySet(), any() );
     }
 
     @Test
@@ -194,7 +224,7 @@ public class SmsMessageSenderTest
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         when( userSettingService.getUserSetting( any(), any() ) ).thenReturn( Boolean.TRUE );
         when( bulkSmsGateway.send( anyString(), anyString(), anySet(), isA( BulkSmsGatewayConfig.class ) ) )
-                .thenReturn( okStatus );
+            .thenReturn( okStatus );
         when( bulkSmsGateway.accept( any() ) ).thenReturn( true );
 
         OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, footer, sender, users, false );
@@ -207,7 +237,8 @@ public class SmsMessageSenderTest
     @Test
     public void testSendMessageWithEmptyUserList()
     {
-        OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, footer, sender, new HashSet<>(), false );
+        OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, footer, sender, new HashSet<>(),
+            false );
 
         assertFalse( status.isOk() );
         assertEquals( GatewayResponse.NO_RECIPIENT, status.getResponseObject() );
@@ -217,7 +248,7 @@ public class SmsMessageSenderTest
     @Test
     public void testSendMessageWithUserSMSSettingsDisabled()
     {
-        when( userSettingService.getUserSetting( any(), any() ) ).thenReturn(Boolean.FALSE);
+        when( userSettingService.getUserSetting( any(), any() ) ).thenReturn( Boolean.FALSE );
 
         OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, footer, sender, users, false );
 
@@ -247,7 +278,8 @@ public class SmsMessageSenderTest
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         mockGateway();
 
-        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ), isA( BulkSmsGatewayConfig.class ) ) ).thenReturn( failedStatus );
+        when( bulkSmsGateway.send( anyString(), anyString(), anySet(), isA( BulkSmsGatewayConfig.class ) ) )
+            .thenReturn( failedStatus );
 
         OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, recipientsNormalized );
 
@@ -257,7 +289,7 @@ public class SmsMessageSenderTest
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void testNumberNormalization()
     {
         // stub for GateAdministrationService
@@ -266,12 +298,12 @@ public class SmsMessageSenderTest
 
         Set<String> tempRecipients = Sets.newHashSet();
 
-        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ), any( BulkSmsGatewayConfig.class ) ) ).thenAnswer( invocation ->
-        {
-            tempRecipients.addAll( (Set<String>) invocation.getArguments()[2] );
-            return okStatus;
+        when( bulkSmsGateway.send( anyString(), anyString(), anySet(), any( BulkSmsGatewayConfig.class ) ) )
+            .thenAnswer( invocation -> {
+                tempRecipients.addAll( (Set<String>) invocation.getArguments()[2] );
+                return okStatus;
 
-        });
+            } );
 
         OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, recipientsNonNormalized );
 
@@ -279,13 +311,13 @@ public class SmsMessageSenderTest
         assertEquals( GatewayResponse.RESULT_CODE_0, status.getResponseObject() );
         assertEquals( "success", status.getDescription() );
 
-        Sets.SetView<String> setDifference = Sets.difference( tempRecipients, recipientsNormalized);
+        Sets.SetView<String> setDifference = Sets.difference( tempRecipients, recipientsNormalized );
 
         assertEquals( 0, setDifference.size() );
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void testSendMessageWithMaxRecipients()
     {
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
@@ -294,19 +326,19 @@ public class SmsMessageSenderTest
 
         generateRecipients( 500 );
 
-        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ), any( BulkSmsGatewayConfig.class ) ) ).then( invocation ->
-        {
-            recipientList.add( (Set<String>) invocation.getArguments()[2] );
+        when( bulkSmsGateway.send( anyString(), anyString(), anySet(), any( BulkSmsGatewayConfig.class ) ) )
+            .then( invocation -> {
+                recipientList.add( (Set<String>) invocation.getArguments()[2] );
 
-            return okStatus;
-        });
+                return okStatus;
+            } );
 
         OutboundMessageResponse status = smsMessageSender.sendMessage( subject, text, generatedRecipients );
 
         assertNotNull( status );
         assertTrue( status.isOk() );
 
-        recipientList.forEach(set -> assertTrue( set.size() <= MAX_ALLOWED_RECIPIENTS ) );
+        recipientList.forEach( set -> assertTrue( set.size() <= MAX_ALLOWED_RECIPIENTS ) );
     }
 
     @Test
@@ -372,8 +404,7 @@ public class SmsMessageSenderTest
 
         summaryResponses.clear();
 
-        when ( bulkSmsGateway.sendBatch( any(), isA( BulkSmsGatewayConfig.class ) ) ).then( invocation ->
-        {
+        when( bulkSmsGateway.sendBatch( any(), isA( BulkSmsGatewayConfig.class ) ) ).then( invocation -> {
             OutboundMessageBatch batch = (OutboundMessageBatch) invocation.getArguments()[0];
 
             summaryResponses.addAll( batch.getMessages().stream()
@@ -381,13 +412,13 @@ public class SmsMessageSenderTest
                 .collect( Collectors.toList() ) );
 
             return summaryResponses;
-        });
+        } );
 
         createOutBoundMessagesWithMaxRecipients();
 
         ArgumentCaptor<OutboundMessageBatch> argumentCaptor = ArgumentCaptor.forClass( OutboundMessageBatch.class );
 
-        OutboundMessageBatch batch = new OutboundMessageBatch( outboundMessages , DeliveryChannel.SMS );
+        OutboundMessageBatch batch = new OutboundMessageBatch( outboundMessages, DeliveryChannel.SMS );
 
         OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( batch );
 
@@ -416,7 +447,7 @@ public class SmsMessageSenderTest
 
         ArgumentCaptor<OutboundMessageBatch> argumentCaptor = ArgumentCaptor.forClass( OutboundMessageBatch.class );
 
-        OutboundMessageBatch batch = new OutboundMessageBatch( outboundMessages , DeliveryChannel.SMS );
+        OutboundMessageBatch batch = new OutboundMessageBatch( outboundMessages, DeliveryChannel.SMS );
 
         OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( batch );
 
@@ -478,14 +509,14 @@ public class SmsMessageSenderTest
         failedStatus.setResponseObject( GatewayResponse.FAILED );
 
         smsGatewayConfig = new BulkSmsGatewayConfig();
-        smsGatewayConfig.setUrlTemplate("");
-        smsGatewayConfig.setName(gateway);
-        smsGatewayConfig.setUsername(" ");
-        smsGatewayConfig.setPassword("");
-        smsGatewayConfig.setUrlTemplate("");
-        smsGatewayConfig.setDefault(true);
+        smsGatewayConfig.setUrlTemplate( "" );
+        smsGatewayConfig.setName( gateway );
+        smsGatewayConfig.setUsername( " " );
+        smsGatewayConfig.setPassword( "" );
+        smsGatewayConfig.setUrlTemplate( "" );
+        smsGatewayConfig.setDefault( true );
 
-        configMap.put(gateway, smsGatewayConfig);
+        configMap.put( gateway, smsGatewayConfig );
 
         OutboundMessage outboundMessageA = new OutboundMessage( subject, text, recipientsNormalized );
         OutboundMessage outboundMessageB = new OutboundMessage( subject, text, recipientsNonNormalized );
@@ -514,19 +545,27 @@ public class SmsMessageSenderTest
     private void responseForFailedBatch()
     {
         summaryResponses.clear();
-        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
-        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
-        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
-        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.FAILED.getResponseMessage(), GatewayResponse.FAILED, false ) );
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(),
+            GatewayResponse.RESULT_CODE_0, true ) );
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(),
+            GatewayResponse.RESULT_CODE_0, true ) );
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(),
+            GatewayResponse.RESULT_CODE_0, true ) );
+        summaryResponses.add(
+            new OutboundMessageResponse( GatewayResponse.FAILED.getResponseMessage(), GatewayResponse.FAILED, false ) );
     }
 
     private void responseForCompletedBatch()
     {
         summaryResponses.clear();
-        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
-        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
-        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
-        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(), GatewayResponse.RESULT_CODE_0, true ) );
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(),
+            GatewayResponse.RESULT_CODE_0, true ) );
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(),
+            GatewayResponse.RESULT_CODE_0, true ) );
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(),
+            GatewayResponse.RESULT_CODE_0, true ) );
+        summaryResponses.add( new OutboundMessageResponse( GatewayResponse.RESULT_CODE_0.getResponseMessage(),
+            GatewayResponse.RESULT_CODE_0, true ) );
     }
 
     private void createOutBoundMessagesWithMaxRecipients()

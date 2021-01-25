@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.event.data;
 
 /*
@@ -38,6 +65,8 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -63,8 +92,6 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Markus Bekken
  */
@@ -72,13 +99,14 @@ import lombok.extern.slf4j.Slf4j;
 @Component( "org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager" )
 public class JdbcEnrollmentAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
-        implements EnrollmentAnalyticsManager
+    implements EnrollmentAnalyticsManager
 {
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-        ProgramIndicatorService programIndicatorService, ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+        ProgramIndicatorService programIndicatorService,
+        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
     }
@@ -90,7 +118,8 @@ public class JdbcEnrollmentAnalyticsManager
     }
 
     /**
-     * Adds enrollments to the given grid based on the given parameters and SQL statement.
+     * Adds enrollments to the given grid based on the given parameters and SQL
+     * statement.
      *
      * @param params the {@link EventQueryParams}.
      * @param grid the {@link Grid}.
@@ -167,11 +196,13 @@ public class JdbcEnrollmentAnalyticsManager
     }
 
     /**
-     * Returns a from and where SQL clause. If this is a program indicator with non-default boundaries, the relationship
-     * with the reporting period is specified with where conditions on the enrollment or incident dates. If the default
-     * boundaries is used, or the params does not include program indicators, the periods are joined in from the analytics
-     * tables the normal way. A where clause can never have a mix of indicators with non-default boundaries and regular
-     * analytics table periods.
+     * Returns a from and where SQL clause. If this is a program indicator with
+     * non-default boundaries, the relationship with the reporting period is
+     * specified with where conditions on the enrollment or incident dates. If
+     * the default boundaries is used, or the params does not include program
+     * indicators, the periods are joined in from the analytics tables the
+     * normal way. A where clause can never have a mix of indicators with
+     * non-default boundaries and regular analytics table periods.
      *
      * @param params the {@link EventQueryParams}.
      */
@@ -187,18 +218,23 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.hasNonDefaultBoundaries() )
         {
-            sql += statementBuilder.getBoundaryCondition( params.getProgramIndicator(), params.getEarliestStartDate(), params.getLatestEndDate(), sqlHelper );
+            sql += statementBuilder.getBoundaryCondition( params.getProgramIndicator(), params.getEarliestStartDate(),
+                params.getLatestEndDate(), sqlHelper );
         }
         else
         {
             if ( params.hasStartEndDate() )
             {
-                sql += sqlHelper.whereAnd() + " enrollmentdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+                sql += sqlHelper.whereAnd() + " enrollmentdate >= '" + getMediumDateString( params.getStartDate() )
+                    + "' ";
                 sql += "and enrollmentdate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
             }
             else // Periods
             {
-                sql += sqlHelper.whereAnd() + " " + quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() ) + " in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
+                sql += sqlHelper.whereAnd() + " " + quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() )
+                    + " in ("
+                    + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) )
+                    + ") ";
             }
         }
 
@@ -208,11 +244,13 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) )
         {
-            sql += sqlHelper.whereAnd() + " ou in (" + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
+            sql += sqlHelper.whereAnd() + " ou in ("
+                + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
         }
         else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
         {
-            sql += sqlHelper.whereAnd() + " ou in (" + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
+            sql += sqlHelper.whereAnd() + " ou in ("
+                + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
         }
         else // Descendants
         {
@@ -260,7 +298,8 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += "and " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                    sql += "and " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) + " "
+                        + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
         }
@@ -271,7 +310,8 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += "and " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                    sql += "and " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) + " "
+                        + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
         }
@@ -316,7 +356,8 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.hasBbox() )
         {
-            sql += "and " + quoteAlias( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
+            sql += "and " + quoteAlias( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox()
+                + ",4326) ";
         }
 
         return sql;
@@ -327,7 +368,7 @@ public class JdbcEnrollmentAnalyticsManager
     {
         List<String> selectCols = ListUtils.distinctUnion( COLUMNS, getSelectColumns( params ) );
 
-        return  "select " + StringUtils.join( selectCols, "," ) + " ";
+        return "select " + StringUtils.join( selectCols, "," ) + " ";
     }
 
     /**
@@ -344,12 +385,13 @@ public class JdbcEnrollmentAnalyticsManager
         if ( item.hasProgramStage() )
         {
             colName = quote( colName );
-            Assert.isTrue( item.hasProgram(), "Can not query item with program stage but no program:" + item.getItemName() );
+            Assert.isTrue( item.hasProgram(),
+                "Can not query item with program stage but no program:" + item.getItemName() );
             String eventTableName = "analytics_event_" + item.getProgram().getUid();
-            return "(select " +  colName  + " from " + eventTableName +
-            " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
-            "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-            "order by executiondate " + "desc limit 1 )";
+            return "(select " + colName + " from " + eventTableName +
+                " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+                "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
+                "order by executiondate " + "desc limit 1 )";
         }
         else
         {

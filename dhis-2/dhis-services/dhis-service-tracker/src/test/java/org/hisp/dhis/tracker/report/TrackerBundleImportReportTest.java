@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.tracker.report;
 
 /*
@@ -62,14 +89,15 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
 {
     @Autowired
     private TrackerImportService trackerImportService;
-    
+
     @Autowired
     private ObjectMapper jsonMapper;
 
     @Test
-    public void  testImportReportErrors()
+    public void testImportReportErrors()
     {
-        TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(), TrackerBundleReportMode.ERRORS );
+        TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(),
+            TrackerBundleReportMode.ERRORS );
 
         assertEquals( TrackerStatus.OK, report.getStatus() );
         assertStats( report );
@@ -83,7 +111,8 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
     @Test
     public void testImportReportWarnings()
     {
-        TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(), TrackerBundleReportMode.WARNINGS );
+        TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(),
+            TrackerBundleReportMode.WARNINGS );
 
         assertEquals( TrackerStatus.OK, report.getStatus() );
         assertStats( report );
@@ -97,7 +126,8 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
     @Test
     public void testImportReportFull()
     {
-        TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(), TrackerBundleReportMode.FULL );
+        TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(),
+            TrackerBundleReportMode.FULL );
 
         assertEquals( TrackerStatus.OK, report.getStatus() );
         assertStats( report );
@@ -106,16 +136,17 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
         assertNotNull( report.getValidationReport().getErrorReports() );
         assertNotNull( report.getValidationReport().getWarningReports() );
         assertNotNull( report.getTimingsStats() );
-        assertEquals("1 sec.", report.getTimingsStats().getProgramRule() );
-        assertEquals("2 sec.", report.getTimingsStats().getCommit() );
-        assertEquals("3 sec.", report.getTimingsStats().getPreheat() );
-        assertEquals("4 sec.", report.getTimingsStats().getValidation() );
-        assertEquals("10 sec.", report.getTimingsStats().getTotalImport() );
+        assertEquals( "1 sec.", report.getTimingsStats().getProgramRule() );
+        assertEquals( "2 sec.", report.getTimingsStats().getCommit() );
+        assertEquals( "3 sec.", report.getTimingsStats().getPreheat() );
+        assertEquals( "4 sec.", report.getTimingsStats().getValidation() );
+        assertEquals( "10 sec.", report.getTimingsStats().getTotalImport() );
     }
-    
+
     @Test
     public void testSerializingAndDeserializingImportReport()
-            throws JsonProcessingException {
+        throws JsonProcessingException
+    {
 
         // Build BundleReport
         Map<TrackerType, TrackerTypeReport> typeReportMap = new HashMap<>();
@@ -133,15 +164,15 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
         trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
         trackerObjectReport.setIndex( 0 );
         trackerObjectReport.setUid( "BltTZV9HvEZ" );
-        
+
         typeReport.addObjectReport( trackerObjectReport );
         typeReport.getStats().setCreated( 1 );
         typeReport.getStats().setUpdated( 2 );
         typeReport.getStats().setDeleted( 3 );
         typeReportMap.put( TRACKED_ENTITY, typeReport );
-        
+
         TrackerBundleReport bundleReport = new TrackerBundleReport( TrackerStatus.ERROR, typeReportMap );
-        
+
         // Build TimingsStats
         TrackerTimingsStats timingsStats = new TrackerTimingsStats();
 
@@ -153,45 +184,44 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
         timingsStats.set( PREPARE_REQUEST_OPS, "0.5 sec." );
         timingsStats.set( TOTAL_REQUEST_OPS, "0.6 sec." );
 
-        // Build ValidationReport 
+        // Build ValidationReport
         TrackerValidationReport tvr = new TrackerValidationReport();
 
-        //Error Reports - Validation Report
+        // Error Reports - Validation Report
         tvr.getErrorReports()
             .add( new TrackerErrorReport( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
                 TrackerErrorCode.E1049,
                 TRACKED_ENTITY, "BltTZV9HvEZ" ) );
 
-        
-        //Warning Reports - Validation Report
+        // Warning Reports - Validation Report
         tvr.getWarningReports()
             .add( new TrackerWarningReport( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
                 TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) );
-      
-        //Create the TrackerImportReport
+
+        // Create the TrackerImportReport
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
         bundleSize.put( TRACKED_ENTITY, 1 );
         TrackerImportReport toSerializeReport = TrackerImportReport.withImportCompleted( TrackerStatus.ERROR,
-            bundleReport, tvr, timingsStats, bundleSize);
+            bundleReport, tvr, timingsStats, bundleSize );
 
-        //Serialize TrackerImportReport into String
+        // Serialize TrackerImportReport into String
         String jsonString = jsonMapper.writeValueAsString( toSerializeReport );
 
         // Deserialize the String back into TrackerImportReport
         TrackerImportReport deserializedReport = jsonMapper.readValue( jsonString, TrackerImportReport.class );
 
-        //Verify Stats
+        // Verify Stats
         assertEquals( toSerializeReport.getStats().getIgnored(), deserializedReport.getStats().getIgnored() );
         assertEquals( toSerializeReport.getStats().getDeleted(), deserializedReport.getStats().getDeleted() );
         assertEquals( toSerializeReport.getStats().getUpdated(), deserializedReport.getStats().getUpdated() );
         assertEquals( toSerializeReport.getStats().getCreated(), deserializedReport.getStats().getCreated() );
         assertEquals( toSerializeReport.getStats().getTotal(), deserializedReport.getStats().getTotal() );
 
-        //Verify Status
+        // Verify Status
         assertEquals( toSerializeReport.getBundleReport().getStatus(),
             deserializedReport.getBundleReport().getStatus() );
 
-        //Verify BundleReport 
+        // Verify BundleReport
         assertEquals( toSerializeReport.getBundleReport().getStats().getIgnored(),
             deserializedReport.getBundleReport().getStats().getIgnored() );
         assertEquals( toSerializeReport.getBundleReport().getStats().getDeleted(),
@@ -203,24 +233,30 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
         assertEquals( toSerializeReport.getBundleReport().getStats().getTotal(),
             deserializedReport.getBundleReport().getStats().getTotal() );
 
-        TrackerTypeReport serializedReportTrackerTypeReport = toSerializeReport.getBundleReport().getTypeReportMap().get( TRACKED_ENTITY );
-        TrackerTypeReport deserializedReportTrackerTypeReport = deserializedReport.getBundleReport().getTypeReportMap().get( TRACKED_ENTITY );
+        TrackerTypeReport serializedReportTrackerTypeReport = toSerializeReport.getBundleReport().getTypeReportMap()
+            .get( TRACKED_ENTITY );
+        TrackerTypeReport deserializedReportTrackerTypeReport = deserializedReport.getBundleReport().getTypeReportMap()
+            .get( TRACKED_ENTITY );
 
-        // sideEffectsDataBundle is no more relevant to object equivalence, so just asserting on all other fields.
-        assertEquals( serializedReportTrackerTypeReport.getTrackerType(), deserializedReportTrackerTypeReport.getTrackerType() );
-        assertEquals( serializedReportTrackerTypeReport.getObjectReportMap(), deserializedReportTrackerTypeReport.getObjectReportMap() );
-        assertEquals( serializedReportTrackerTypeReport.getObjectReports(), deserializedReportTrackerTypeReport.getObjectReports() );
+        // sideEffectsDataBundle is no more relevant to object equivalence, so
+        // just asserting on all other fields.
+        assertEquals( serializedReportTrackerTypeReport.getTrackerType(),
+            deserializedReportTrackerTypeReport.getTrackerType() );
+        assertEquals( serializedReportTrackerTypeReport.getObjectReportMap(),
+            deserializedReportTrackerTypeReport.getObjectReportMap() );
+        assertEquals( serializedReportTrackerTypeReport.getObjectReports(),
+            deserializedReportTrackerTypeReport.getObjectReports() );
         assertEquals( serializedReportTrackerTypeReport.getStats(), deserializedReportTrackerTypeReport.getStats() );
 
-        //Verify Validation Report - Error Reports
+        // Verify Validation Report - Error Reports
         assertEquals( toSerializeReport.getValidationReport().getErrorReports().get( 0 ).getErrorMessage(),
             deserializedReport.getValidationReport().getErrorReports().get( 0 ).getErrorMessage() );
         assertEquals( toSerializeReport.getValidationReport().getErrorReports().get( 0 ).getErrorCode(),
             deserializedReport.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
         assertEquals( toSerializeReport.getValidationReport().getErrorReports().get( 0 ).getUid(),
             deserializedReport.getValidationReport().getErrorReports().get( 0 ).getUid() );
-        
-        //Verify Validation Report - Warning Reports
+
+        // Verify Validation Report - Warning Reports
         assertEquals( toSerializeReport.getValidationReport().getWarningReports().get( 0 ).getWarningMessage(),
             deserializedReport.getValidationReport().getWarningReports().get( 0 ).getWarningMessage() );
         assertEquals( toSerializeReport.getValidationReport().getWarningReports().get( 0 ).getWarningCode(),
@@ -230,8 +266,7 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
         assertEquals( toSerializeReport.getValidationReport().getWarningReports().get( 0 ).getTrackerType(),
             deserializedReport.getValidationReport().getWarningReports().get( 0 ).getTrackerType() );
 
-
-        //Verify TimingsStats
+        // Verify TimingsStats
         assertEquals( toSerializeReport.getTimingsStats().getCommit(),
             deserializedReport.getTimingsStats().getCommit() );
         assertEquals( toSerializeReport.getTimingsStats().getPreheat(),

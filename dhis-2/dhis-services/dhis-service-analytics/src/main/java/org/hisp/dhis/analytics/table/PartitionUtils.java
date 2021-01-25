@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.table;
 
 /*
@@ -71,8 +98,8 @@ public class PartitionUtils
     }
 
     /**
-     * Returns the end date for the given year, exclusive, i.e.
-     * the start date of the year after the given year.
+     * Returns the end date for the given year, exclusive, i.e. the start date
+     * of the year after the given year.
      *
      * @param calendar the calendar to base the date on.
      * @param year the year.
@@ -143,8 +170,8 @@ public class PartitionUtils
 
     /**
      * Returns partitions for the given {@link DataQueryParams} and
-     * {@link AnalyticsTableType}. Includes a "latest" partition depending
-     * on the given table type.
+     * {@link AnalyticsTableType}. Includes a "latest" partition depending on
+     * the given table type.
      *
      * @param params the {@link DataQueryParams}.
      * @param tableType the {@link AnalyticsTableType}.
@@ -152,9 +179,8 @@ public class PartitionUtils
      */
     public static Partitions getPartitions( DataQueryParams params, AnalyticsTableType tableType )
     {
-        Partitions partitions = params.hasStartEndDate() ?
-            getPartitions( params.getStartDate(), params.getEndDate() ) :
-            getPartitions( params.getAllPeriods() );
+        Partitions partitions = params.hasStartEndDate() ? getPartitions( params.getStartDate(), params.getEndDate() )
+            : getPartitions( params.getAllPeriods() );
 
         if ( tableType.hasLatestPartition() )
         {
@@ -187,9 +213,11 @@ public class PartitionUtils
     }
 
     /**
-     * Creates a mapping between period type name and period for the given periods.
+     * Creates a mapping between period type name and period for the given
+     * periods.
      */
-    public static ListMap<String, DimensionalItemObject> getPeriodTypePeriodMap( Collection<DimensionalItemObject> periods )
+    public static ListMap<String, DimensionalItemObject> getPeriodTypePeriodMap(
+        Collection<DimensionalItemObject> periods )
     {
         ListMap<String, DimensionalItemObject> map = new ListMap<>();
 
@@ -204,9 +232,9 @@ public class PartitionUtils
     }
 
     /**
-     * Returns a list of table partitions based on the given analytics tables. For
-     * master tables with no partitions, a fake partition representing the master
-     * table is used.
+     * Returns a list of table partitions based on the given analytics tables.
+     * For master tables with no partitions, a fake partition representing the
+     * master table is used.
      *
      * @param tables the list of {@link AnalyticsTable}.
      * @return a list of {@link AnalyticsTablePartition}.
@@ -233,12 +261,13 @@ public class PartitionUtils
     }
 
     /**
-     * Returns the latest table partition based on the given list. Expects a single
-     * analytics table in the given list.
+     * Returns the latest table partition based on the given list. Expects a
+     * single analytics table in the given list.
      *
      * @param tables list of {@link AnalyticsTable}.
-     * @return the  {@link AnalyticsTablePartition}.
-     * @throws IllegalArgumentException if the given list does not contain exactly one item.
+     * @return the {@link AnalyticsTablePartition}.
+     * @throws IllegalArgumentException if the given list does not contain
+     *         exactly one item.
      */
     public static AnalyticsTablePartition getLatestTablePartition( List<AnalyticsTable> tables )
     {

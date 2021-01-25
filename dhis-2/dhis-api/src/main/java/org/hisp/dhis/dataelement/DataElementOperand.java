@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dataelement;
 
 /*
@@ -28,10 +55,11 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+
+import java.util.Objects;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -41,18 +69,18 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
 
-import java.util.Objects;
-
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * This object can act both as a hydrated persisted object and as a wrapper
  * object (but not both at the same time).
  * <p>
  * This object implements IdentifiableObject but does not have any UID. Instead
- * the UID is generated based on the data element and category option combo which
- * this object is based on.
+ * the UID is generated based on the data element and category option combo
+ * which this object is based on.
  *
  * @author Abyot Asalefew
  */
@@ -94,7 +122,8 @@ public class DataElementOperand
         this.categoryOptionCombo = categoryOptionCombo;
     }
 
-    public DataElementOperand( DataElement dataElement, CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
+    public DataElementOperand( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo )
     {
         this.dataElement = dataElement;
         this.categoryOptionCombo = categoryOptionCombo;
@@ -288,7 +317,7 @@ public class DataElementOperand
     /**
      * Creates a {@link DataElementOperand} instance from the given identifiers.
      *
-     * @param dataElementUid         the data element identifier.
+     * @param dataElementUid the data element identifier.
      * @param categoryOptionComboUid the category option combo identifier.
      * @return a data element operand instance.
      */
@@ -309,8 +338,8 @@ public class DataElementOperand
     }
 
     /**
-     * Indicates whether this operand specifies a data element only
-     * with no option combinations.
+     * Indicates whether this operand specifies a data element only with no
+     * option combinations.
      *
      * @return true if operand specifies a data element only.
      */
@@ -329,8 +358,8 @@ public class DataElementOperand
     }
 
     /**
-     * Indicates whether an attribute option combination exists which is different
-     * from default.
+     * Indicates whether an attribute option combination exists which is
+     * different from default.
      */
     public boolean hasNonDefaultAttributeOptionCombo()
     {
@@ -430,7 +459,9 @@ public class DataElementOperand
         NONE( false, false, 0 );
 
         private boolean coc;
+
         private boolean aoc;
+
         private int propertyCount;
 
         TotalType()

@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.program;
 
 /*
@@ -91,8 +118,8 @@ public interface ProgramIndicatorService
     /**
      * Returns all {@link ProgramIndicator}.
      *
-     * @return a List of all ProgramIndicator, or an empty List if
-     * there are no ProgramIndicators.
+     * @return a List of all ProgramIndicator, or an empty List if there are no
+     *         ProgramIndicators.
      */
     List<ProgramIndicator> getAllProgramIndicators();
 
@@ -106,13 +133,15 @@ public interface ProgramIndicatorService
      * Get the description of any program indicator expression (expression or
      * filter).
      *
-     * @deprecated Does not do type-checking on the expression.
-     * Use getExpressionDescriptionRegEx or getFilterDescription instead.
+     * @deprecated Does not do type-checking on the expression. Use
+     *             getExpressionDescriptionRegEx or getFilterDescription
+     *             instead.
      *
      * @param expression A program indicator expression or filter string
      * @return The description
      */
-    @Deprecated String getUntypedDescription( String expression );
+    @Deprecated
+    String getUntypedDescription( String expression );
 
     /**
      * Gets a program indicator expression description (must evaluate to a
@@ -124,8 +153,7 @@ public interface ProgramIndicatorService
     String getExpressionDescription( String expression );
 
     /**
-     * Gets a program indicator expression filter (must evaluate to a
-     * Boolean).
+     * Gets a program indicator expression filter (must evaluate to a Boolean).
      *
      * @param expression A program indicator expression or filter string
      * @return The description
@@ -149,12 +177,12 @@ public interface ProgramIndicatorService
     boolean filterIsValid( String filter );
 
     /**
-     * Validates that an expression returns a value from a class.
-     * Also collects descriptions of individual items, so that an
-     * expression description may be formed if the caller desires.
+     * Validates that an expression returns a value from a class. Also collects
+     * descriptions of individual items, so that an expression description may
+     * be formed if the caller desires.
      * <p/>
-     * This method is made public so that the parser validation routines
-     * can use it to validate quoted sub-expressions.
+     * This method is made public so that the parser validation routines can use
+     * it to validate quoted sub-expressions.
      *
      * @param expression the expression to validate.
      * @param clazz the class to check the expression's value against.
@@ -163,8 +191,8 @@ public interface ProgramIndicatorService
     void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions );
 
     /**
-     * Gets the the analytics SQL clause of an expression.
-     * Does not ignore missing numeric values for data elements and attributes.
+     * Gets the the analytics SQL clause of an expression. Does not ignore
+     * missing numeric values for data elements and attributes.
      *
      * @param expression the expression.
      * @param programIndicator the program indicator to evaluate.
@@ -175,18 +203,20 @@ public interface ProgramIndicatorService
     String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate );
 
     /**
-     * Gets the the analytics SQL clause of an expression.
-     * Does not ignore missing numeric values for data elements and attributes.
+     * Gets the the analytics SQL clause of an expression. Does not ignore
+     * missing numeric values for data elements and attributes.
      *
      * @param expression the expression.
      * @param programIndicator the program indicator to evaluate.
      * @param startDate the start date.
      * @param endDate the end date.
-     * @param tableAlias use this table alias for expression returning a inner query
+     * @param tableAlias use this table alias for expression returning a inner
+     *        query
      * @return the SQL string.
      */
 
-    String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias );
+    String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate,
+        String tableAlias );
 
     /**
      * Returns a SQL clause which matches any value for the data elements and

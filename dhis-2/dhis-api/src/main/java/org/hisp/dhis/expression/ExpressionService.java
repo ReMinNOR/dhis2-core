@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.expression;
 
 /*
@@ -28,6 +55,11 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
@@ -38,11 +70,6 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Expressions are mathematical formulas and can contain references to various
@@ -57,10 +84,13 @@ public interface ExpressionService
     String ID = ExpressionService.class.getName();
 
     String DAYS_DESCRIPTION = "[Number of days]";
+
     String SYMBOL_DAYS = "[days]";
+
     String SYMBOL_WILDCARD = "*";
 
     String UID_EXPRESSION = "[a-zA-Z]\\w{10}";
+
     String INT_EXPRESSION = "^(0|-?[1-9]\\d*)$";
 
     // -------------------------------------------------------------------------
@@ -174,11 +204,11 @@ public interface ExpressionService
     String getExpressionDescription( String expression, ParseType parseType );
 
     /**
-     * Returns UIDs of Data Elements and associated Option Combos (if any)
-     * found in the Data Element Operands an expression.
+     * Returns UIDs of Data Elements and associated Option Combos (if any) found
+     * in the Data Element Operands an expression.
      * <p/>
-     * If the Data Element Operand consists of just a Data Element, or if
-     * the Option Combo is a wildcard "*", returns just dataElementUID.
+     * If the Data Element Operand consists of just a Data Element, or if the
+     * Option Combo is a wildcard "*", returns just dataElementUID.
      * <p/>
      * If an Option Combo is present, returns dataElementUID.optionComboUID.
      *
@@ -189,9 +219,9 @@ public interface ExpressionService
     Set<String> getExpressionElementAndOptionComboIds( String expression, ParseType parseType );
 
     /**
-     * Returns all data elements found in the given expression string,
-     * including those found in data element operands.
-     * Returns an empty set if the given expression is null.
+     * Returns all data elements found in the given expression string, including
+     * those found in data element operands. Returns an empty set if the given
+     * expression is null.
      *
      * @param expression the expression string.
      * @param parseType the type of expression to parse.
@@ -200,9 +230,9 @@ public interface ExpressionService
     Set<DataElement> getExpressionDataElements( String expression, ParseType parseType );
 
     /**
-     * Returns, in data element operand format, all data elements and all
-     * data element operands found in an expression. Returns an empty set
-     * if the expression is null.
+     * Returns, in data element operand format, all data elements and all data
+     * element operands found in an expression. Returns an empty set if the
+     * expression is null.
      *
      * @param expression The expression string.
      * @param parseType the type of expression to parse.
@@ -211,8 +241,8 @@ public interface ExpressionService
     Set<DataElementOperand> getExpressionOperands( String expression, ParseType parseType );
 
     /**
-     * Returns all CategoryOptionCombo uids in the given expression string
-     * that are used as a data element operand categoryOptionCombo or
+     * Returns all CategoryOptionCombo uids in the given expression string that
+     * are used as a data element operand categoryOptionCombo or
      * attributeOptionCombo. Returns an empty set if the expression is null.
      *
      * @param expression the expression string.
@@ -231,8 +261,8 @@ public interface ExpressionService
     Set<DimensionalItemObject> getExpressionDimensionalItemObjects( String expression, ParseType parseType );
 
     /**
-     * Returns all dimensional item objects in the given expression,
-     * returning separately the items to be sampled inside any vector functions.
+     * Returns all dimensional item objects in the given expression, returning
+     * separately the items to be sampled inside any vector functions.
      *
      * @param expression the expression to parse.
      * @param parseType the type of expression to parse.

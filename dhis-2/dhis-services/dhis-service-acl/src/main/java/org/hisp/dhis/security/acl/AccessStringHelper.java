@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.security.acl;
 
 /*
@@ -40,8 +67,10 @@ public class AccessStringHelper
 {
     public enum Permission
     {
-        READ( 'r', 0 ), WRITE( 'w', 1 ),
-        DATA_READ( 'r', 2 ), DATA_WRITE( 'w', 3 );
+        READ( 'r', 0 ),
+        WRITE( 'w', 1 ),
+        DATA_READ( 'r', 2 ),
+        DATA_WRITE( 'w', 3 );
 
         private char value;
 
@@ -68,9 +97,11 @@ public class AccessStringHelper
 
     public static final String DEFAULT = "--------";
 
-    //This should be used only when creating a default CategoryOption
+    // This should be used only when creating a default CategoryOption
     public static final String CATEGORY_OPTION_DEFAULT = "rwrw----";
-    //This should be used only when creating a default Category, CategoryCombo and CategoryOptionCombo
+
+    // This should be used only when creating a default Category, CategoryCombo
+    // and CategoryOptionCombo
     public static final String CATEGORY_NO_DATA_SHARING_DEFAULT = "rw------";
 
     public static final String READ = AccessStringHelper.newInstance()
@@ -196,7 +227,8 @@ public class AccessStringHelper
 
     public static boolean isEnabled( String access, Permission permission )
     {
-        return access == null || (validateAccessString( access ) && access.charAt( permission.getPosition() ) == permission.getValue());
+        return access == null
+            || (validateAccessString( access ) && access.charAt( permission.getPosition() ) == permission.getValue());
     }
 
     public static boolean isValid( String access )
@@ -234,6 +266,7 @@ public class AccessStringHelper
 
     public static String disableDataSharing( String access )
     {
-       return AccessStringHelper.newInstance( access.toCharArray() ).disable( Permission.DATA_READ ).disable( Permission.DATA_WRITE ).toString();
+        return AccessStringHelper.newInstance( access.toCharArray() ).disable( Permission.DATA_READ )
+            .disable( Permission.DATA_WRITE ).toString();
     }
 }

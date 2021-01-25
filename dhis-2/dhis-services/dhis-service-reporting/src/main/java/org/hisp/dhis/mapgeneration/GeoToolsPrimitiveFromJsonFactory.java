@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.mapgeneration;
 
 /*
@@ -31,15 +58,16 @@ package org.hisp.dhis.mapgeneration;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
  * Factory for producing GeoTools geometric primitives from coordinates in json.
- * 
+ *
  * @author Olai Solheim <olais@ifi.uio.no>
  */
 public class GeoToolsPrimitiveFromJsonFactory
@@ -49,7 +77,7 @@ public class GeoToolsPrimitiveFromJsonFactory
 
     /**
      * Create a GeoTools geometric point primitive from coordinates in json.
-     * 
+     *
      * @param json the json array of components
      * @return the point
      */
@@ -61,7 +89,7 @@ public class GeoToolsPrimitiveFromJsonFactory
     /**
      * Create a GeoTools geometric coordinate primitive from coordinates in
      * json.
-     * 
+     *
      * @param json the json array of components
      * @return the coordinate
      */
@@ -74,7 +102,7 @@ public class GeoToolsPrimitiveFromJsonFactory
     /**
      * Create a GeoTools geometric multi-polygon primitive from coordinates in
      * json.
-     * 
+     *
      * @param json the json array of polygons
      * @return the multi-polygon
      */
@@ -87,7 +115,7 @@ public class GeoToolsPrimitiveFromJsonFactory
         for ( int i = 0; i < json.size(); i++ )
         {
             JsonNode node = json.get( i );
-            
+
             if ( MapUtils.nodeIsNonEmpty( node ) )
             {
                 polygons[i] = createPolygonFromJson( node );
@@ -100,7 +128,7 @@ public class GeoToolsPrimitiveFromJsonFactory
 
     /**
      * Create a GeoTools geometric polygon primitive from coordinates in json.
-     * 
+     *
      * @param json the json array of linear ring
      * @return the polygon
      */
@@ -124,7 +152,7 @@ public class GeoToolsPrimitiveFromJsonFactory
             for ( int i = 1; i < shell.size(); i++ )
             {
                 JsonNode hole = json.get( i );
-                
+
                 if ( hole != null && hole.size() > 0 )
                 {
                     holes[i] = createLinearRingFromJson( hole );
@@ -138,7 +166,7 @@ public class GeoToolsPrimitiveFromJsonFactory
 
     /**
      * Create a GeoTools geometric linear-ring from coordinates in json.
-     * 
+     *
      * @param json the json array of coordinates
      * @return the linear-ring
      */
@@ -151,7 +179,7 @@ public class GeoToolsPrimitiveFromJsonFactory
         for ( int i = 0; i < json.size(); i++ )
         {
             JsonNode node = json.get( i );
-            
+
             if ( MapUtils.nodeIsNonEmpty( node ) )
             {
                 coords[i] = createCoordinateFromJson( node );

@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.security.oidc.provider;
 
 /*
@@ -28,7 +55,15 @@ package org.hisp.dhis.security.oidc.provider;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_CLIENT_ID;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_CLIENT_SECRET;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_DISPLAY_ALIAS;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_ENABLE_LOGOUT;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_MAPPING_CLAIM;
+import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_SERVER_URL;
+
+import java.util.Objects;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -37,14 +72,7 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
-import java.util.Objects;
-
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_CLIENT_ID;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_CLIENT_SECRET;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_DISPLAY_ALIAS;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_ENABLE_LOGOUT;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_MAPPING_CLAIM;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_SERVER_URL;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

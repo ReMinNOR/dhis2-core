@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.event.data;
 
 /*
@@ -52,6 +79,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
@@ -94,11 +123,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * TODO could use row_number() and filtering for paging.
- * TODO introduce dedicated "year" partition column.
+ * TODO could use row_number() and filtering for paging. TODO introduce
+ * dedicated "year" partition column.
  *
  * @author Lars Helge Overland
  */
@@ -112,8 +139,8 @@ public class JdbcEventAnalyticsManager
     private static final String OPEN_IN = " in (";
 
     public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-                                     ProgramIndicatorService programIndicatorService,
-                                     ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+        ProgramIndicatorService programIndicatorService,
+        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
     }
@@ -127,7 +154,8 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Adds event to the given grid based on the given parameters and SQL statement.
+     * Adds event to the given grid based on the given parameters and SQL
+     * statement.
      *
      * @param params the {@link EventQueryParams}.
      * @param grid the {@link Grid}.
@@ -180,9 +208,8 @@ public class JdbcEventAnalyticsManager
             + "), ','), 6) "
             + "else ST_AsGeoJSON(ST_Centroid(ST_Collect(" + quotedClusterField + ")), 6) end as center" );
 
-        columns.add( params.isIncludeClusterPoints() ?
-            "array_to_string(array_agg(psi), ',') as points" :
-            "case when count(psi) = 1 then array_to_string(array_agg(psi), ',') end as points" );
+        columns.add( params.isIncludeClusterPoints() ? "array_to_string(array_agg(psi), ',') as points"
+            : "case when count(psi) = 1 then array_to_string(array_agg(psi), ',') end as points" );
 
         String sql = "select " + StringUtils.join( columns, "," ) + " ";
 
@@ -250,7 +277,8 @@ public class JdbcEventAnalyticsManager
         String clusterField = params.getCoordinateField();
         String quotedClusterField = quoteAlias( clusterField );
 
-        String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + quotedClusterField + ") as " + COL_EXTENT + " ";
+        String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + quotedClusterField + ") as " + COL_EXTENT
+            + " ";
 
         sql += getFromClause( params );
 
@@ -361,14 +389,17 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Returns a from and where SQL clause. If this is a program indicator with non-default boundaries, the relationship
-     * with the reporting period is specified with where conditions on the enrollment or incident dates. If the default
-     * boundaries is used, or the query does not include program indicators, the periods are joined in from the analytics
-     * tables the normal way. A where clause can never have a mix of indicators with non-default boundaries and regular
-     * analytics table periods.
+     * Returns a from and where SQL clause. If this is a program indicator with
+     * non-default boundaries, the relationship with the reporting period is
+     * specified with where conditions on the enrollment or incident dates. If
+     * the default boundaries is used, or the query does not include program
+     * indicators, the periods are joined in from the analytics tables the
+     * normal way. A where clause can never have a mix of indicators with
+     * non-default boundaries and regular analytics table periods.
      * <p>
-     * If the query has a non-default time field specified, the query will use the period type columns from the
-     * {@code date period structure} resource table through an alias to reflect the period aggregation.
+     * If the query has a non-default time field specified, the query will use
+     * the period type columns from the {@code date period structure} resource
+     * table through an alias to reflect the period aggregation.
      *
      * @param params the {@link EventQueryParams}.
      */
@@ -388,7 +419,8 @@ public class JdbcEventAnalyticsManager
             {
                 sql += sqlHelper.whereAnd() + " "
                     + statementBuilder.getBoundaryCondition( boundary, params.getProgramIndicator(),
-                        params.getEarliestStartDate(), params.getLatestEndDate() ) + " ";
+                        params.getEarliestStartDate(), params.getLatestEndDate() )
+                    + " ";
             }
         }
         else if ( params.hasStartEndDate() )
@@ -579,8 +611,9 @@ public class JdbcEventAnalyticsManager
     /**
      * Generates a sub query which provides a view of the data where each row is
      * ranked by the execution date, latest first. The events are partitioned by
-     * org unit and attribute option combo. A column {@code pe_rank} defines the rank.
-     * Only data for the last 10 years relative to the period end date is included.
+     * org unit and attribute option combo. A column {@code pe_rank} defines the
+     * rank. Only data for the last 10 years relative to the period end date is
+     * included.
      *
      * @param the {@link EventQueryParams}.
      */
@@ -615,9 +648,9 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Returns quoted names of columns for the {@link AggregationType#LAST} sub query.
-     * The period dimension is replaced by the name of the single period in the given
-     * query.
+     * Returns quoted names of columns for the {@link AggregationType#LAST} sub
+     * query. The period dimension is replaced by the name of the single period
+     * in the given query.
      *
      * @param the {@link EventQueryParams}.
      */
@@ -638,7 +671,8 @@ public class JdbcEventAnalyticsManager
                 String alias = quote( dim.getDimensionName() );
                 String col = "cast('" + period.getDimensionItem() + "' as text) as " + alias;
 
-                cols.remove( alias ); // Remove column if already present, i.e. "yearly"
+                cols.remove( alias ); // Remove column if already present, i.e.
+                                      // "yearly"
                 cols.add( col );
             }
             else
@@ -657,8 +691,8 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * If the coordinateField points to an Item of type ORG UNIT, add the "_geom"
-     * suffix to the field name.
+     * If the coordinateField points to an Item of type ORG UNIT, add the
+     * "_geom" suffix to the field name.
      */
     private String resolveCoordinateFieldColumnName( String coordinateField, EventQueryParams params )
     {

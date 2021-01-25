@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.parser.expression;
 
 /*
@@ -309,13 +336,13 @@ public class CommonExpressionVisitor
     /**
      * Handles nulls and missing values.
      * <p/>
-     * If we should replace nulls with the default value, then do so, and remember
-     * how many items found, and how many of them had values, for subsequent
-     * MissingValueStrategy analysis.
+     * If we should replace nulls with the default value, then do so, and
+     * remember how many items found, and how many of them had values, for
+     * subsequent MissingValueStrategy analysis.
      * <p/>
-     * If we should not replace nulls with the default value, then don't, as this is
-     * likely for some function that is testing for nulls, and a missing value
-     * should not count towards the MissingValueStrategy.
+     * If we should not replace nulls with the default value, then don't, as
+     * this is likely for some function that is testing for nulls, and a missing
+     * value should not count towards the MissingValueStrategy.
      *
      * @param value the (possibly null) value
      * @return the value we should return.
@@ -342,8 +369,8 @@ public class CommonExpressionVisitor
     /**
      * Validates a program stage id / data element id pair
      *
-     * @param text expression text containing both program stage id and data element
-     *        id
+     * @param text expression text containing both program stage id and data
+     *        element id
      * @param programStageId the program stage id
      * @param dataElementId the data element id
      * @return the ValueType of the data element
@@ -373,8 +400,8 @@ public class CommonExpressionVisitor
     }
 
     /**
-     * Regenerates an expression by visiting all the children of the expression node
-     * (including any terminal nodes).
+     * Regenerates an expression by visiting all the children of the expression
+     * node (including any terminal nodes).
      *
      * @param ctx the expression context
      * @return the regenerated expression (as a String)

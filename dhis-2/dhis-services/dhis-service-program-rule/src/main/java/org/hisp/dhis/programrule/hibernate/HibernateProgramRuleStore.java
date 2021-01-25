@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.programrule.hibernate;
 
 /*
@@ -100,9 +127,9 @@ public class HibernateProgramRuleStore
     {
         return getQuery(
             "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes )" )
-            .setParameter( "programId", program )
-            .setParameter( "implementableTypes", types )
-            .getResultList();
+                .setParameter( "programId", program )
+                .setParameter( "implementableTypes", types )
+                .getResultList();
     }
 
     @Override
@@ -112,7 +139,8 @@ public class HibernateProgramRuleStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), key, JpaQueryUtils.StringSearchMode.ANYWHERE ) )
+            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), key,
+                JpaQueryUtils.StringSearchMode.ANYWHERE ) )
             .addOrder( root -> builder.asc( root.get( "name" ) ) ) );
     }
 
@@ -128,9 +156,10 @@ public class HibernateProgramRuleStore
     @Override
     public List<ProgramRule> getProgramRulesWithNoPriority()
     {
-        return getQuery( "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType" )
-            .setParameter( "actionType", ProgramRuleActionType.ASSIGN )
-            .getResultList();
+        return getQuery(
+            "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType" )
+                .setParameter( "actionType", ProgramRuleActionType.ASSIGN )
+                .getResultList();
     }
 
     @Override
@@ -148,13 +177,14 @@ public class HibernateProgramRuleStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
         ProgramRuleActionEvaluationEnvironment environment )
     {
         List<BigInteger> bigIntegerList = getSession().createNativeQuery(
-            "select pra.programruleactionid from programrule pr JOIN programruleaction pra ON pr.programruleid=pra.programruleid " +
-                "where environments@> '[\"" + environment + "\"]';")
+            "select pra.programruleactionid from programrule pr JOIN programruleaction pra ON pr.programruleid=pra.programruleid "
+                +
+                "where environments@> '[\"" + environment + "\"]';" )
             .list();
         List<Long> idList = bigIntegerList
             .stream()
@@ -164,7 +194,8 @@ public class HibernateProgramRuleStore
         Session session = getSession();
         session.clear();
         return session.createQuery(
-            "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pra.id in (:ids)", ProgramRule.class )
+            "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pra.id in (:ids)",
+            ProgramRule.class )
             .setParameterList( "ids", idList )
             .getResultList();
     }

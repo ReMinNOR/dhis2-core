@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.tracker.validation;
 
 /*
@@ -43,6 +70,7 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.SneakyThrows;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -107,7 +135,6 @@ public class TrackedEntityImportValidationTest
         User systemUser = createUser( "systemUser", "ALL" );
         userService.addUser( systemUser );
         injectSecurityContext( systemUser );
-
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "tracker/tracker_basic_metadata.json" ).getInputStream(), RenderFormat.JSON );
@@ -328,7 +355,8 @@ public class TrackedEntityImportValidationTest
         assertThat( report.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1002 ) ) ) );
 
-        // Tracker should now have 13 teis removed from the collection, since they all failed.
+        // Tracker should now have 13 teis removed from the collection, since
+        // they all failed.
         assertEquals( 0, trackerBundle.getTrackedEntities().size() );
 
         printReport( report );
@@ -443,8 +471,8 @@ public class TrackedEntityImportValidationTest
         // isInactive should now be true
         TrackedEntityInstance nCc1rCEOKaY = trackedEntityInstanceService.getTrackedEntityInstance( "NCc1rCEOKaY" );
         assertEquals( true, nCc1rCEOKaY.isInactive() );
-        //TODO: NOT WORKING... yet? should it not be deleted?
-//        assertEquals( true, nCc1rCEOKaY.isDeleted() );
+        // TODO: NOT WORKING... yet? should it not be deleted?
+        // assertEquals( true, nCc1rCEOKaY.isDeleted() );
     }
 
     @Test
@@ -477,16 +505,17 @@ public class TrackedEntityImportValidationTest
     }
 
     @SneakyThrows
-    private void testDeletedTrackedEntityFails(TrackerImportStrategy importStrategy) {
+    private void testDeletedTrackedEntityFails( TrackerImportStrategy importStrategy )
+    {
         // Given -> Creates a tracked entity
-        createTrackedEntityInstance("tracker/validations/te-data_ok_soft_deleted_test.json");
+        createTrackedEntityInstance( "tracker/validations/te-data_ok_soft_deleted_test.json" );
 
         // When -> Soft-delete the tracked entity
         trackedEntityInstanceService
-                .deleteTrackedEntityInstance(trackedEntityInstanceService.getTrackedEntityInstance("YNCc1rCEOKa") );
+            .deleteTrackedEntityInstance( trackedEntityInstanceService.getTrackedEntityInstance( "YNCc1rCEOKa" ) );
 
         TrackerImportParams trackerBundleParams = createBundleFromJson(
-                "tracker/validations/te-data_ok_soft_deleted_test.json" );
+            "tracker/validations/te-data_ok_soft_deleted_test.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, importStrategy );
 
@@ -495,26 +524,25 @@ public class TrackedEntityImportValidationTest
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
         assertThat( report.getErrorReports(),
-                everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1114 ) ) ) );
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1114 ) ) ) );
     }
 
     @Test
     public void testUpdateDeletedTrackedEntityFails()
-            throws IOException
+        throws IOException
     {
-       testDeletedTrackedEntityFails( UPDATE );
+        testDeletedTrackedEntityFails( UPDATE );
     }
 
     @Test
     public void testInserDeletedTrackedEntityFails()
-            throws IOException
+        throws IOException
     {
         testDeletedTrackedEntityFails( CREATE_AND_UPDATE );
     }
 
-
     private ValidateAndCommitTestUnit createTrackedEntityInstance( String jsonPayload )
-            throws IOException
+        throws IOException
     {
         // Given
         TrackerImportParams trackerBundleParams = createBundleFromJson( jsonPayload );

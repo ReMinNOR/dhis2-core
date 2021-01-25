@@ -897,7 +897,8 @@ public class ValidationResultStoreTest
             validationResultBA, validationResultBB, validationResultBC ) );
 
         ValidationResultsDeletionRequest request = new ValidationResultsDeletionRequest();
-        request.setNotificationSent( true ); // AB is saved with true, others with false
+        request.setNotificationSent( true ); // AB is saved with true, others
+                                             // with false
         validationResultStore.delete( request );
 
         assertEqualSets( asList(

@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.data;
 
 /*
@@ -39,6 +66,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
@@ -55,11 +84,8 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * Class responsible for retrieving raw data from the
- * analytics tables.
+ * Class responsible for retrieving raw data from the analytics tables.
  *
  * @author Lars Helge Overland
  */
@@ -93,8 +119,10 @@ public class JdbcRawAnalyticsManager
 
         if ( params.isIncludePeriodStartEndDates() )
         {
-            dimensions.add( new BaseDimensionalObject( PERIOD_START_DATE_ID, DimensionType.STATIC, PERIOD_START_DATE_NAME, new ArrayList<>() ) );
-            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME, new ArrayList<>() ) );
+            dimensions.add( new BaseDimensionalObject( PERIOD_START_DATE_ID, DimensionType.STATIC,
+                PERIOD_START_DATE_NAME, new ArrayList<>() ) );
+            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME,
+                new ArrayList<>() ) );
         }
 
         String sql = getSelectStatement( params, dimensions );
@@ -131,7 +159,8 @@ public class JdbcRawAnalyticsManager
      */
     private String getSelectStatement( DataQueryParams params, List<DimensionalObject> dimensions )
     {
-        String idScheme = ObjectUtils.firstNonNull( params.getOutputIdScheme(), IdScheme.UID ).getIdentifiableString().toLowerCase();
+        String idScheme = ObjectUtils.firstNonNull( params.getOutputIdScheme(), IdScheme.UID ).getIdentifiableString()
+            .toLowerCase();
 
         List<String> dimensionColumns = dimensions.stream()
             .map( d -> asColumnSelect( d, idScheme ) )
@@ -139,8 +168,7 @@ public class JdbcRawAnalyticsManager
 
         SqlHelper sqlHelper = new SqlHelper();
 
-        String sql =
-            "select " + StringUtils.join( dimensionColumns, ", " ) + ", " +  DIM_NAME_OU + ", value " +
+        String sql = "select " + StringUtils.join( dimensionColumns, ", " ) + ", " + DIM_NAME_OU + ", value " +
             "from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " " +
             "inner join organisationunit ou on ax.ou = ou.uid " +
             "inner join _orgunitstructure ous on ax.ou = ous.organisationunituid " +
@@ -167,7 +195,8 @@ public class JdbcRawAnalyticsManager
                 }
                 else
                 {
-                    sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+                    sql += sqlHelper.whereAnd() + " " + col + " in ("
+                        + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
                 }
             }
         }
@@ -180,8 +209,8 @@ public class JdbcRawAnalyticsManager
     }
 
     /**
-     * Converts the given dimension to a column select statement according to the
-     * given identifier scheme.
+     * Converts the given dimension to a column select statement according to
+     * the given identifier scheme.
      *
      * @param dimension the dimensional object.
      * @param idScheme the identifier scheme.
@@ -191,13 +220,13 @@ public class JdbcRawAnalyticsManager
     {
         if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() )
         {
-            return ( "ou." + idScheme + " as " + quote( dimension.getDimensionName() ) );
+            return ("ou." + idScheme + " as " + quote( dimension.getDimensionName() ));
         }
         else if ( DimensionType.ORGANISATION_UNIT_LEVEL == dimension.getDimensionType() )
         {
             int level = AnalyticsUtils.getLevelFromOrgUnitDimensionName( dimension.getDimensionName() );
 
-            return ( "ous." + idScheme + "level" + level + " as " + quote( dimension.getDimensionName() ) );
+            return ("ous." + idScheme + "level" + level + " as " + quote( dimension.getDimensionName() ));
         }
         else
         {

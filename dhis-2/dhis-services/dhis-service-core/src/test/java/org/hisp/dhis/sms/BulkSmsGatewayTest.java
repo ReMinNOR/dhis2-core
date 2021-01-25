@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.sms;
 
 /*
@@ -74,9 +101,13 @@ import org.springframework.web.client.RestTemplate;
 public class BulkSmsGatewayTest extends DhisConvenienceTest
 {
     private static final String MESSAGE = "text-MESSAGE";
+
     private static final String SUBJECT = "subject";
+
     private static final String PHONE_NUMBER = "4X000000";
+
     private static final String SUCCESS_RESPONSE_STRING = "0|abc|5656";
+
     private static final String ERROR_RESPONSE_STRING = "24|abc|5656";
 
     @Rule
@@ -109,9 +140,9 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
 
         recipients.add( PHONE_NUMBER );
 
-        outboundMessageList.add( new OutboundMessage( SUBJECT,MESSAGE, recipients ) );
-        outboundMessageList.add( new OutboundMessage( SUBJECT,MESSAGE, recipients ) );
-        outboundMessageList.add( new OutboundMessage( SUBJECT,MESSAGE, recipients ) );
+        outboundMessageList.add( new OutboundMessage( SUBJECT, MESSAGE, recipients ) );
+        outboundMessageList.add( new OutboundMessage( SUBJECT, MESSAGE, recipients ) );
+        outboundMessageList.add( new OutboundMessage( SUBJECT, MESSAGE, recipients ) );
 
         batch = new OutboundMessageBatch( outboundMessageList, DeliveryChannel.SMS );
 
@@ -136,8 +167,9 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     {
         ResponseEntity<String> successResponse = new ResponseEntity<>( SUCCESS_RESPONSE_STRING, HttpStatus.OK );
 
-        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenReturn( successResponse );
+        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ), any( HttpEntity.class ),
+            eq( String.class ) ) )
+                .thenReturn( successResponse );
 
         OutboundMessageResponse status = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 
@@ -150,8 +182,9 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     {
         ResponseEntity<String> successResponse = new ResponseEntity<>( SUCCESS_RESPONSE_STRING, HttpStatus.OK );
 
-        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenReturn( successResponse );
+        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ), any( HttpEntity.class ),
+            eq( String.class ) ) )
+                .thenReturn( successResponse );
 
         List<OutboundMessageResponse> responses = bulkSmsGateway.sendBatch( batch, smsGatewayConfig );
 
@@ -164,8 +197,9 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     {
         ResponseEntity<String> errorResponse = new ResponseEntity<>( ERROR_RESPONSE_STRING, HttpStatus.CONFLICT );
 
-        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenReturn( errorResponse );
+        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ), any( HttpEntity.class ),
+            eq( String.class ) ) )
+                .thenReturn( errorResponse );
 
         OutboundMessageResponse status = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 
@@ -177,8 +211,9 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     @Test
     public void testWhenServerResponseIsNull()
     {
-        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenReturn( null );
+        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ), any( HttpEntity.class ),
+            eq( String.class ) ) )
+                .thenReturn( null );
 
         OutboundMessageResponse status2 = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 
@@ -190,8 +225,9 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     @Test
     public void testException()
     {
-        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenThrow( HttpClientErrorException.class );
+        when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ), any( HttpEntity.class ),
+            eq( String.class ) ) )
+                .thenThrow( HttpClientErrorException.class );
 
         OutboundMessageResponse status2 = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 

@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.query;
 
 /*
@@ -28,7 +55,16 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -45,15 +81,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -192,9 +220,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getEqQueryUrl() throws QueryParserException
+    public void getEqQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "id:eq:deabcdefghA" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "id:eq:deabcdefghA" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 1, objects.size() );
@@ -219,9 +249,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getNeQueryUrl() throws QueryParserException
+    public void getNeQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "id:ne:deabcdefghA" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "id:ne:deabcdefghA" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 5, objects.size() );
@@ -246,9 +278,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getLikeQueryUrl() throws QueryParserException
+    public void getLikeQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "name:like:F" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "name:like:F" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 1, objects.size() );
@@ -270,9 +304,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getGtQueryUrl() throws QueryParserException
+    public void getGtQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:gt:2003" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:gt:2003" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 3, objects.size() );
@@ -296,9 +332,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getLtQueryUrl() throws QueryParserException
+    public void getLtQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:lt:2003" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:lt:2003" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 2, objects.size() );
@@ -323,9 +361,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getGeQueryUrl() throws QueryParserException
+    public void getGeQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:ge:2003" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:ge:2003" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 4, objects.size() );
@@ -351,9 +391,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getLeQueryUrl() throws QueryParserException
+    public void getLeQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:le:2003" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:le:2003" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 3, objects.size() );
@@ -367,7 +409,8 @@ public class QueryServiceTest
     public void getBetweenQuery()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-        query.add( Restrictions.between( "created", Year.parseYear( "2003" ).getStart(), Year.parseYear( "2005" ).getStart() ) );
+        query.add( Restrictions.between( "created", Year.parseYear( "2003" ).getStart(),
+            Year.parseYear( "2005" ).getStart() ) );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 3, objects.size() );
@@ -567,9 +610,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void testIsNotNullUrl() throws QueryParserException
+    public void testIsNotNullUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "categoryCombo:!null" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "categoryCombo:!null" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 6, objects.size() );

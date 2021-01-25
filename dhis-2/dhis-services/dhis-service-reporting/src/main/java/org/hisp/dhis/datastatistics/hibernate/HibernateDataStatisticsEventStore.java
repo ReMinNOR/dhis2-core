@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.datastatistics.hibernate;
 
 /*
@@ -59,7 +86,8 @@ public class HibernateDataStatisticsEventStore
     extends HibernateGenericStore<DataStatisticsEvent>
     implements DataStatisticsEventStore
 {
-    public HibernateDataStatisticsEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    public HibernateDataStatisticsEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher )
     {
         super( sessionFactory, jdbcTemplate, publisher, DataStatisticsEvent.class, false );
     }
@@ -69,8 +97,7 @@ public class HibernateDataStatisticsEventStore
     {
         Map<DataStatisticsEventType, Double> eventTypeCountMap = new HashMap<>();
 
-        final String sql =
-            "select eventtype as eventtype, count(eventtype) as numberofviews " +
+        final String sql = "select eventtype as eventtype, count(eventtype) as numberofviews " +
             "from datastatisticsevent " +
             "where timestamp between ? and ? " +
             "group by eventtype;";
@@ -82,12 +109,12 @@ public class HibernateDataStatisticsEventStore
         };
 
         jdbcTemplate.query( sql, pss, ( rs, i ) -> {
-            eventTypeCountMap.put( DataStatisticsEventType.valueOf( rs.getString( "eventtype" ) ), rs.getDouble( "numberofviews" ) );
+            eventTypeCountMap.put( DataStatisticsEventType.valueOf( rs.getString( "eventtype" ) ),
+                rs.getDouble( "numberofviews" ) );
             return eventTypeCountMap;
         } );
 
-        final String totalSql =
-            "select count(eventtype) as total " +
+        final String totalSql = "select count(eventtype) as total " +
             "from datastatisticsevent " +
             "where timestamp between ? and ?;";
 
@@ -99,13 +126,13 @@ public class HibernateDataStatisticsEventStore
     }
 
     @Override
-    public List<FavoriteStatistics> getFavoritesData( DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username )
+    public List<FavoriteStatistics> getFavoritesData( DataStatisticsEventType eventType, int pageSize,
+        SortOrder sortOrder, String username )
     {
         Assert.notNull( eventType, "Data statistics event type cannot be null" );
         Assert.notNull( sortOrder, "Sort order cannot be null" );
 
-        String sql =
-            "select c.uid, views, c.name, c.created from ( " +
+        String sql = "select c.uid, views, c.name, c.created from ( " +
             "select favoriteuid as uid, count(favoriteuid) as views " +
             "from datastatisticsevent ";
 
@@ -114,8 +141,7 @@ public class HibernateDataStatisticsEventStore
             sql += "where username = ? ";
         }
 
-        sql +=
-            "group by uid) as events " +
+        sql += "group by uid) as events " +
             "inner join " + eventType.getTable() + " c on c.uid = events.uid " +
             "order by events.views " + sortOrder.getValue() + " " +
             "limit ?;";
@@ -147,8 +173,7 @@ public class HibernateDataStatisticsEventStore
     @Override
     public FavoriteStatistics getFavoriteStatistics( String uid )
     {
-        String sql =
-            "select count(dse.favoriteuid) " +
+        String sql = "select count(dse.favoriteuid) " +
             "from datastatisticsevent dse " +
             "where dse.favoriteuid = ?;";
 
@@ -161,4 +186,3 @@ public class HibernateDataStatisticsEventStore
         return stats;
     }
 }
-

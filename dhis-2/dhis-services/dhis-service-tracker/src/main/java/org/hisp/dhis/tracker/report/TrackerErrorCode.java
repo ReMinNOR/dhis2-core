@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.tracker.report;
 
 /*
@@ -81,7 +108,7 @@ public enum TrackerErrorCode
     E1070( "Could not find OrganisationUnit: `{0}`, linked to Enrollment." ),
     E1080( "Enrollment: `{0}`, already exists." ),
     E1081( "Enrollment: `{0}`, do not exist." ),
-    E1029( "Event OrganisationUnit: `{0}`, and Program: `{1}`, don't match."),
+    E1029( "Event OrganisationUnit: `{0}`, and Program: `{1}`, don't match." ),
     E1030( "Event: `{0}`, already exists." ),
     E1032( "Event: `{0}`, do not exist." ),
     E1035( "Event: `{0}`, ProgramStage value is NULL." ),
@@ -112,21 +139,21 @@ public enum TrackerErrorCode
     E1082( "Event: `{0}`, is already deleted and can't be modified." ),
     E1113( "Enrollment: `{0}`, is already deleted and can't be modified." ),
     E1114( "TrackedEntity: `{0}`, is already deleted and can't be modified." ),
-    E1118( "Assigned user `{0}` is not a valid uid."),
-    E1119( "A Tracker Note with uid `{0}` already exists."),
-    E1120( "ProgramStage `{0}` does not allow user assignment"),
+    E1118( "Assigned user `{0}` is not a valid uid." ),
+    E1119( "A Tracker Note with uid `{0}` already exists." ),
+    E1120( "ProgramStage `{0}` does not allow user assignment" ),
 
-    //TODO: See TODO on error usage
+    // TODO: See TODO on error usage
     E1017( "Attribute: `{0}`, does not exist." ),
-    //TODO: See TODO on error usage
+    // TODO: See TODO on error usage
     E1093( "User: `{0}`, has no search access to OrganisationUnit: `{1}`." ),
-    //TODO: See TODO on error usage
+    // TODO: See TODO on error usage
     E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
-    //TODO: See TODO on error usage
+    // TODO: See TODO on error usage
     E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
-    //TODO: See TODO on error usage
+    // TODO: See TODO on error usage
     E1111( "We have a generated attribute: `{0}`, but no pattern." ),
-    //TODO: See TODO on error usage
+    // TODO: See TODO on error usage
     E1040( "Multiple active enrollments exists for Program: `{0}`." ),
     // TODO See TODO on error usage
     E1045( "Program: `{0}`, expiry date has passed. It is not possible to make changes to this event." ),

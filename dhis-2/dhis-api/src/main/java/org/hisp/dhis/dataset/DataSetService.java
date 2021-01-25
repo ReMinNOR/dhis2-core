@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dataset;
 
 /*
@@ -28,16 +55,16 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -136,14 +163,14 @@ public interface DataSetService
     List<DataSet> getUserDataRead( User user );
 
     /**
-     * Returns the data sets which current user have WRITE access. If the current
-     * user has the ALL authority then all data sets are returned.
+     * Returns the data sets which current user have WRITE access. If the
+     * current user has the ALL authority then all data sets are returned.
      */
     List<DataSet> getAllDataWrite();
 
     /**
-     * Returns the data sets which current user have WRITE access. If the current
-     * user has the ALL authority then all data sets are returned.
+     * Returns the data sets which current user have WRITE access. If the
+     * current user has the ALL authority then all data sets are returned.
      *
      * @param user the user to query for data set list.
      * @return a list of data sets which given user has data write access to.
@@ -202,33 +229,35 @@ public interface DataSetService
      * Get all LockExceptions within a specific range
      *
      * @param first Index to start at
-     * @param max   Number of results wanted
+     * @param max Number of results wanted
      * @return List of LockExceptions withing the range specified
      */
     List<LockException> getLockExceptionsBetween( int first, int max );
 
     /**
-     * Find all unique dataSet + period combinations
-     * (mainly used for batch removal)
+     * Find all unique dataSet + period combinations (mainly used for batch
+     * removal)
      *
-     * @return A list of all unique combinations (only dataSet and period is set)
+     * @return A list of all unique combinations (only dataSet and period is
+     *         set)
      */
     List<LockException> getLockExceptionCombinations();
 
     /**
-     * Delete a dataSet + period combination, used for batch removal, e.g. when you
-     * have a lock exception set on 100 OUs with the same dataSet + period combination.
+     * Delete a dataSet + period combination, used for batch removal, e.g. when
+     * you have a lock exception set on 100 OUs with the same dataSet + period
+     * combination.
      *
      * @param dataSet DataSet part of the combination
-     * @param period  Period part of the combination
+     * @param period Period part of the combination
      */
     void deleteLockExceptionCombination( DataSet dataSet, Period period );
 
     /**
      * Delete a dataSet + period + organisationUnit combination
      *
-     * @param dataSet          DataSet part of the combination
-     * @param period           Period part of the combination
+     * @param dataSet DataSet part of the combination
+     * @param period Period part of the combination
      * @param organisationUnit OrganisationUnit part of the combination
      */
     void deleteLockExceptionCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
@@ -237,10 +266,10 @@ public interface DataSetService
      * Checks whether the period is locked for data entry for the given input,
      * checking the dataset's expiryDays and lockExceptions.
      *
-     * @param dataSet          the data set
-     * @param period           the period.
+     * @param dataSet the data set
+     * @param period the period.
      * @param organisationUnit the organisation unit.
-     * @param now              the base date for deciding locked date, current date if null.
+     * @param now the base date for deciding locked date, current date if null.
      * @return true or false indicating whether the system is locked or not.
      */
     boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now );
@@ -249,41 +278,45 @@ public interface DataSetService
      * Checks whether the system is locked for data entry for the given input,
      * checking expiryDays, lockExceptions and approvals.
      *
-     * @param dataSet              the data set
-     * @param period               the period.
-     * @param organisationUnit     the organisation unit.
+     * @param dataSet the data set
+     * @param period the period.
+     * @param organisationUnit the organisation unit.
      * @param attributeOptionCombo the attribute option combo.
-     * @param now                  the base date for deciding locked date, current date if null.
+     * @param now the base date for deciding locked date, current date if null.
      * @return true or false indicating whether the system is locked or not.
      */
-    boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now );
+    boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, Date now );
 
     /**
      * Checks whether the system is locked for data entry for the given input,
      * checking expiryDays, lockExceptions and approvals.
      *
-     * @param dataSet              the data set
-     * @param period               the period.
-     * @param organisationUnit     the organisation unit.
+     * @param dataSet the data set
+     * @param period the period.
+     * @param organisationUnit the organisation unit.
      * @param attributeOptionCombo the attribute option combo.
-     * @param now                  the base date for deciding locked date, current date if null.
-     * @param useOrgUnitChildren   whether to check children of the given org unit or the org unit only.
+     * @param now the base date for deciding locked date, current date if null.
+     * @param useOrgUnitChildren whether to check children of the given org unit
+     *        or the org unit only.
      * @return true or false indicating whether the system is locked or not.
      */
-    boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren );
+    boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren );
 
     /**
      * Checks whether the system is locked for data entry for the given input,
      * checking expiryDays, lockExceptions and approvals.
      *
-     * @param dataElement          the data element.
-     * @param period               the period.
-     * @param organisationUnit     the organisation unit.
+     * @param dataElement the data element.
+     * @param period the period.
+     * @param organisationUnit the organisation unit.
      * @param attributeOptionCombo the attribute option combo.
-     * @param now                  the base date for deciding locked date, current date if null.
+     * @param now the base date for deciding locked date, current date if null.
      * @return true or false indicating whether the system is locked or not.
      */
-    boolean isLocked( User user, DataElement dataElement, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now );
+    boolean isLocked( User user, DataElement dataElement, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, Date now );
 
     /**
      * Return a list of LockException with given filter list

@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.metadata.version;
 
 /*
@@ -38,6 +65,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.dxf2.common.HashCodeGenerator;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
@@ -60,8 +89,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Service implementation for the MetadataVersionService.
  *
@@ -69,8 +96,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Service( "org.hisp.dhis.metadata.version.MetadataVersionService" )
-public class
-DefaultMetadataVersionService
+public class DefaultMetadataVersionService
     implements MetadataVersionService
 {
     // -------------------------------------------------------------------------
@@ -78,10 +104,15 @@ DefaultMetadataVersionService
     // -------------------------------------------------------------------------
 
     private final MetadataVersionStore versionStore;
+
     private final MetadataExportService metadataExportService;
+
     private final MetadataKeyJsonService metaDataKeyJsonService;
+
     private final NodeService nodeService;
+
     private final MetadataSystemSettingService metadataSystemSettingService;
+
     private final RenderService renderService;
 
     public DefaultMetadataVersionService( MetadataVersionStore metadataVersionStore,
@@ -166,7 +197,9 @@ DefaultMetadataVersionService
         {
             return versionStore.getCurrentVersion();
         }
-        catch ( Exception ex ) // Will have to catch Exception, as we want to throw a deterministic exception from this layer
+        catch ( Exception ex ) // Will have to catch Exception, as we want to
+                               // throw a deterministic exception from this
+                               // layer
         {
             log.error( ex.getMessage(), ex );
             throw new MetadataVersionServiceException( ex.getMessage(), ex );
@@ -204,10 +237,9 @@ DefaultMetadataVersionService
     }
 
     /**
-     * This method is taking care of 3 steps:
-     * 1. Generating a metadata snapshot (using the ExportService)
-     * 2. Saving that snapshot to the DataStore
-     * 3. Creating the actual MetadataVersion entry.
+     * This method is taking care of 3 steps: 1. Generating a metadata snapshot
+     * (using the ExportService) 2. Saving that snapshot to the DataStore 3.
+     * Creating the actual MetadataVersion entry.
      */
     @Override
     @Transactional
@@ -227,14 +259,14 @@ DefaultMetadataVersionService
             minDate = currentVersion.getCreated();
         }
 
-        //1. Get export of metadata
+        // 1. Get export of metadata
         ByteArrayOutputStream os = getMetadataExport( minDate );
 
-        //2. Save the metadata snapshot in DHIS Data Store
+        // 2. Save the metadata snapshot in DHIS Data Store
         String value = getBodyAsString( StandardCharsets.UTF_8, os );
         createMetadataVersionInDataStore( versionName, value );
 
-        //3. Create an entry for the MetadataVersion
+        // 3. Create an entry for the MetadataVersion
         MetadataVersion version = new MetadataVersion();
         version.setName( versionName );
         version.setCreated( new Date() );
@@ -293,14 +325,16 @@ DefaultMetadataVersionService
     {
         if ( StringUtils.isEmpty( versionSnapshot ) )
         {
-            throw new MetadataVersionServiceException( "The Metadata Snapshot is null while trying to create a Metadata Version entry in DataStore." );
+            throw new MetadataVersionServiceException(
+                "The Metadata Snapshot is null while trying to create a Metadata Version entry in DataStore." );
         }
 
         KeyJsonValue keyJsonValue = new KeyJsonValue();
         keyJsonValue.setKey( versionName );
         keyJsonValue.setNamespace( MetadataVersionService.METADATASTORE );
 
-        //MetadataWrapper is used to avoid Metadata keys reordering by jsonb (jsonb does not preserve keys order)
+        // MetadataWrapper is used to avoid Metadata keys reordering by jsonb
+        // (jsonb does not preserve keys order)
         keyJsonValue.setValue( renderService.toJsonAsString( new MetadataWrapper( versionSnapshot ) ) );
 
         try
@@ -320,7 +354,7 @@ DefaultMetadataVersionService
     @Transactional
     public void deleteMetadataVersionInDataStore( String nameSpaceKey )
     {
-        KeyJsonValue keyJsonValue = metaDataKeyJsonService.getMetaDataVersion(  nameSpaceKey );
+        KeyJsonValue keyJsonValue = metaDataKeyJsonService.getMetaDataVersion( nameSpaceKey );
 
         try
         {
@@ -328,7 +362,8 @@ DefaultMetadataVersionService
         }
         catch ( Exception ex )
         {
-            String message = "Exception occurred while trying to delete the metadata snapshot in Data Store" + ex.getMessage();
+            String message = "Exception occurred while trying to delete the metadata snapshot in Data Store"
+                + ex.getMessage();
             log.error( message, ex );
             throw new MetadataVersionServiceException( message, ex );
         }
@@ -356,12 +391,13 @@ DefaultMetadataVersionService
         return (metadataVersionHashCode.equals( version.getHashCode() ));
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Private methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     /**
-     * Generates the metadata export based on the created date of the current version.
+     * Generates the metadata export based on the created date of the current
+     * version.
      */
     private ByteArrayOutputStream getMetadataExport( Date minDate )
     {
@@ -376,7 +412,7 @@ DefaultMetadataVersionService
                 List<String> defaultFilterList = new ArrayList<>();
                 defaultFilterList.add( "lastUpdated:gte:" + DateUtils.getLongGmtDateString( minDate ) );
                 exportParams.setDefaultFilter( defaultFilterList );
-                exportParams.setDefaultFields(Lists.newArrayList( ":all" ) );
+                exportParams.setDefaultFields( Lists.newArrayList( ":all" ) );
                 metadataExportService.validate( exportParams );
             }
 
@@ -384,9 +420,11 @@ DefaultMetadataVersionService
             RootNode metadata = metadataExportService.getMetadataAsNode( exportParams );
             nodeService.serialize( metadata, "application/json", os );
         }
-        catch ( Exception ex ) //We have to catch the "Exception" object as no specific exception on the contract.
+        catch ( Exception ex ) // We have to catch the "Exception" object as no
+                               // specific exception on the contract.
         {
-            String message = "Exception occurred while exporting metadata for capturing a metadata version" + ex.getMessage();
+            String message = "Exception occurred while exporting metadata for capturing a metadata version"
+                + ex.getMessage();
             log.error( message, ex );
             throw new MetadataVersionServiceException( message, ex );
         }
@@ -407,7 +445,7 @@ DefaultMetadataVersionService
             }
             catch ( UnsupportedEncodingException ex )
             {
-               log.error("Exception occurred while trying to convert ByteArray to String. ", ex );
+                log.error( "Exception occurred while trying to convert ByteArray to String. ", ex );
             }
         }
 

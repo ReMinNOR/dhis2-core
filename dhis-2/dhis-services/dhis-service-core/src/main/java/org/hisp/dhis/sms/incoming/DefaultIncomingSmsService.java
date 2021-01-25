@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.sms.incoming;
 
 /*
@@ -28,15 +55,17 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Date;
 import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.sms.MessageQueue;
 import org.hisp.dhis.user.User;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service( "org.hisp.dhis.sms.incoming.IncomingSmsService" )
 public class DefaultIncomingSmsService
@@ -52,7 +81,8 @@ public class DefaultIncomingSmsService
 
     private final MessageQueue incomingSmsQueue;
 
-    public DefaultIncomingSmsService(IncomingSmsStore incomingSmsStore, @Lazy MessageQueue incomingSmsQueue) {
+    public DefaultIncomingSmsService( IncomingSmsStore incomingSmsStore, @Lazy MessageQueue incomingSmsQueue )
+    {
 
         checkNotNull( incomingSmsQueue );
         checkNotNull( incomingSmsStore );
@@ -118,9 +148,9 @@ public class DefaultIncomingSmsService
         {
             sms.setSentDate( new Date() );
         }
-        
+
         sms.setReceivedDate( new Date() );
-        
+
         return save( sms );
     }
 
@@ -178,7 +208,8 @@ public class DefaultIncomingSmsService
 
     @Override
     @Transactional( readOnly = true )
-    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination )
+    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max,
+        boolean hasPagination )
     {
         return incomingSmsStore.getSmsByStatus( status, keyword, min, max, hasPagination );
     }

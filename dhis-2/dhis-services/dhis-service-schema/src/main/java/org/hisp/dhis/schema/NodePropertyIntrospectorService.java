@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.schema;
 
 /*
@@ -38,6 +65,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -49,8 +78,6 @@ import org.springframework.util.StringUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -79,6 +106,7 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
 
         return property;
     }
+
     @Override
     protected Map<String, Property> scanClass( Class<?> klass )
     {
@@ -90,7 +118,8 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
 
             for ( Annotation annotation : field.getAnnotations() )
             {
-                // search for and add all annotations that meta-annotated with NodeAnnotation
+                // search for and add all annotations that meta-annotated with
+                // NodeAnnotation
                 if ( annotation.annotationType().isAnnotationPresent( NodeAnnotation.class ) )
                 {
                     Method getter = getGetter( klass, field );
@@ -221,7 +250,8 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
         {
             property.setName( nodeCollection.itemName() );
         }
-        else // if itemName is not set, check to see if itemKlass have a @RootNode with a name
+        else // if itemName is not set, check to see if itemKlass have a
+             // @RootNode with a name
         {
             if ( property.getItemKlass() != null && property.getItemKlass().isAnnotationPresent( NodeRoot.class ) )
             {
@@ -254,7 +284,8 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
         {
             try
             {
-                Method method = includeType ? klass.getMethod( prefix + name, field.getType() ) : klass.getMethod( prefix + name );
+                Method method = includeType ? klass.getMethod( prefix + name, field.getType() )
+                    : klass.getMethod( prefix + name );
 
                 if ( method != null )
                 {
@@ -266,7 +297,8 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
             }
         }
 
-        // TODO should we just return null in this case? if this happens, its clearly a mistake
+        // TODO should we just return null in this case? if this happens, its
+        // clearly a mistake
         if ( methods.size() > 1 )
         {
             log.error( "More than one method found for field " + field.getName() + " on class " + klass.getName()

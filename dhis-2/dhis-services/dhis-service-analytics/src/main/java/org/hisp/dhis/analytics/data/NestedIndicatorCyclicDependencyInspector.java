@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.data;
 
 /*
@@ -78,7 +105,8 @@ public class NestedIndicatorCyclicDependencyInspector
     /**
      * Initiate the inspection, by invoking the recursive 'inspect' function.
      *
-     * @param dimensionalItemObjects a List of root {@link DimensionalItemObject} as Indicators.
+     * @param dimensionalItemObjects a List of root
+     *        {@link DimensionalItemObject} as Indicators.
      */
     public void inspect( List<DimensionalItemObject> dimensionalItemObjects )
     {
@@ -93,8 +121,8 @@ public class NestedIndicatorCyclicDependencyInspector
     }
 
     /**
-     * Recursively add all the given Indicator's nested Indicators (if any) to the
-     * tree.
+     * Recursively add all the given Indicator's nested Indicators (if any) to
+     * the tree.
      *
      * @param indicator The Indicator to add to the main Indicators tree.
      * @param tree the complete Indicator tree.
@@ -117,12 +145,13 @@ public class NestedIndicatorCyclicDependencyInspector
     }
 
     /**
-     * Add the List of Indicators as Nodes to the given Tree. Fails if any of the
-     * indicator UIDs is already present in the tree as direct ancestors.
+     * Add the List of Indicators as Nodes to the given Tree. Fails if any of
+     * the indicator UIDs is already present in the tree as direct ancestors.
      *
      * @param indicators list of Indicators to add to the tree.
      * @param tree the full tree built so far.
-     * @param parent the UID of the parent node to which to attach the indicators.
+     * @param parent the UID of the parent node to which to attach the
+     *        indicators.
      */
     public void add( List<Indicator> indicators, TreeNode<String> tree, String parent )
     {
@@ -138,7 +167,8 @@ public class NestedIndicatorCyclicDependencyInspector
             {
                 TreeNode<String> mNode = parentNode;
 
-                // Navigate backward from the parent node to verify that a direct ancestor
+                // Navigate backward from the parent node to verify that a
+                // direct ancestor
                 // doesn't have the same UID as the current indicator
                 do
                 {
@@ -151,7 +181,8 @@ public class NestedIndicatorCyclicDependencyInspector
                 while ( !mNode.isRoot() );
             }
 
-            // Check that the node to add doesn't have the same value as the parent
+            // Check that the node to add doesn't have the same value as the
+            // parent
             if ( parentNode.data().equals( indicator.getUid() ) )
             {
                 throw new CyclicReferenceException( format( ERROR_STRING, indicator.getUid() ) );
@@ -164,12 +195,12 @@ public class NestedIndicatorCyclicDependencyInspector
     }
 
     /**
-     * Fetch the indicators referenced in the numerator and denominator expression
-     * for the given indicator.
+     * Fetch the indicators referenced in the numerator and denominator
+     * expression for the given indicator.
      *
      * @param indicator an {@link Indicator}.
-     * @return a List of direct descendants indicators of the current indicator, or
-     *         an empty List if the current indicator has no descendants.
+     * @return a List of direct descendants indicators of the current indicator,
+     *         or an empty List if the current indicator has no descendants.
      */
     private List<Indicator> getDescendants( Indicator indicator )
     {

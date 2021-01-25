@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.appmanager;
 
 /*
@@ -38,6 +65,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.FileUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.external.location.LocationManager;
@@ -51,13 +80,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Stian Sandvold
  *
- * NB! This class is mostly code from pre 2.28's DefaultAppManager. This is to support apps
- * installed before 2.28. post 2.28, all installations using DHIS2 will use JCloudsAppStorageService.
+ *         NB! This class is mostly code from pre 2.28's DefaultAppManager. This
+ *         is to support apps installed before 2.28. post 2.28, all
+ *         installations using DHIS2 will use JCloudsAppStorageService.
  */
 @Slf4j
 @Service( "org.hisp.dhis.appmanager.LocalAppStorageService" )
@@ -171,12 +199,11 @@ public class LocalAppStorageService
                 apps.put( app.getUrlFriendlyName(), app );
 
                 log.info( "Discovered app '" + app.getName() + "' from local storage " );
-            }
-        );
+            } );
 
         if ( appList.isEmpty() )
         {
-            log.info( "No apps found during local discovery.");
+            log.info( "No apps found during local discovery." );
         }
 
         return appMap;
@@ -191,7 +218,8 @@ public class LocalAppStorageService
     @Override
     public App installApp( File file, String fileName, Cache<App> appCache )
     {
-        throw new UnsupportedOperationException( "LocalAppStorageService.installApp is deprecated and should no longer be used." );
+        throw new UnsupportedOperationException(
+            "LocalAppStorageService.installApp is deprecated and should no longer be used." );
     }
 
     @Override
@@ -245,8 +273,7 @@ public class LocalAppStorageService
     {
         List<Resource> locations = Lists.newArrayList(
             resourceLoader.getResource( "file:" + getAppFolderPath() + "/" + app.getFolderName() + "/" ),
-            resourceLoader.getResource( "classpath*:/apps/" + app.getFolderName() + "/" )
-        );
+            resourceLoader.getResource( "classpath*:/apps/" + app.getFolderName() + "/" ) );
 
         for ( Resource location : locations )
         {

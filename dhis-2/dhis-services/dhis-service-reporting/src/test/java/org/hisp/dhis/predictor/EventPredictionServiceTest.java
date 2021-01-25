@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.predictor;
 
 /*
@@ -152,17 +179,25 @@ public class EventPredictionServiceTest
     private int testYear;
 
     private Period periodMar;
+
     private Period periodApr;
+
     private Period periodMay;
 
     private DataElement predictorOutputA;
+
     private DataElement predictorOutputD;
+
     private DataElement predictorOutputI;
+
     private DataElement predictorOutputT;
 
     private Predictor predictorA;
+
     private Predictor predictorD;
+
     private Predictor predictorI;
+
     private Predictor predictorT;
 
     @Override
@@ -178,17 +213,38 @@ public class EventPredictionServiceTest
         final String PROGRAM_UID = "ProgramUidA";
         final String PROGRAM_INDICATOR_A_UID = "ProgramIndA";
         final String PROGRAM_INDICATOR_B_UID = "ProgramIndB";
-        final String PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM = PROGRAM_UID + SEPARATOR + TRACKED_ENTITY_ATTRIBUTE_UID;
+        final String PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM = PROGRAM_UID + SEPARATOR
+            + TRACKED_ENTITY_ATTRIBUTE_UID;
         final String PROGRAM_DATA_ELEMENT_DIMENSION_ITEM = PROGRAM_UID + SEPARATOR + DATA_ELEMENT_X_UID;
 
-        final String EXPRESSION_A = "sum( A{" + PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM + "} )"; // A - ProgramTrackedEntityAttribute
-        final String EXPRESSION_D = "sum( D{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} )"; // D - ProgramDataElement
-        final String EXPRESSION_I = "sum( I{" + PROGRAM_INDICATOR_A_UID + "} + I{" + PROGRAM_INDICATOR_B_UID + "} )"; // I - ProgramIndicators
-        final String EXPRESSION_E = "sum( #{" + DATA_ELEMENT_E_UID + "} )"; // E - Data element
-        final String EXPRESSION_T = EXPRESSION_A + " + " + EXPRESSION_E; // T - Two things, event and data elemeent
+        final String EXPRESSION_A = "sum( A{" + PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM + "} )"; // A
+                                                                                                         // -
+                                                                                                         // ProgramTrackedEntityAttribute
+        final String EXPRESSION_D = "sum( D{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} )"; // D
+                                                                                             // -
+                                                                                             // ProgramDataElement
+        final String EXPRESSION_I = "sum( I{" + PROGRAM_INDICATOR_A_UID + "} + I{" + PROGRAM_INDICATOR_B_UID + "} )"; // I
+                                                                                                                      // -
+                                                                                                                      // ProgramIndicators
+        final String EXPRESSION_E = "sum( #{" + DATA_ELEMENT_E_UID + "} )"; // E
+                                                                            // -
+                                                                            // Data
+                                                                            // element
+        final String EXPRESSION_T = EXPRESSION_A + " + " + EXPRESSION_E; // T -
+                                                                         // Two
+                                                                         // things,
+                                                                         // event
+                                                                         // and
+                                                                         // data
+                                                                         // elemeent
 
-        final String EX_INDICATOR_A = "#{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} + 4"; // Program Indicator A expression
-        final String EX_INDICATOR_B = "V{enrollment_count}"; // Program Indicator B expression
+        final String EX_INDICATOR_A = "#{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} + 4"; // Program
+                                                                                            // Indicator
+                                                                                            // A
+                                                                                            // expression
+        final String EX_INDICATOR_B = "V{enrollment_count}"; // Program
+                                                             // Indicator B
+                                                             // expression
 
         defaultCombo = categoryService.getDefaultCategoryOptionCombo();
 
@@ -216,7 +272,8 @@ public class EventPredictionServiceTest
         predictorOutputI = createDataElement( 'I' );
         predictorOutputT = createDataElement( 'T' );
         DataElement dataElementE = createDataElement( 'E' );
-        DataElement dataElementX = createDataElement( 'P', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
+        DataElement dataElementX = createDataElement( 'P', ValueType.INTEGER, AggregationType.SUM,
+            DataElementDomain.TRACKER );
 
         predictorOutputA.setUid( DATA_ELEMENT_A_UID );
         predictorOutputD.setUid( DATA_ELEMENT_D_UID );
@@ -240,7 +297,8 @@ public class EventPredictionServiceTest
         TrackedEntityInstance entityInstance = createTrackedEntityInstance( 'A', orgUnitA, entityAttribute );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
 
-        TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue( entityAttribute, entityInstance );
+        TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue( entityAttribute,
+            entityInstance );
         trackedEntityAttributeValue.setValue( "123" );
         entityAttributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
 
@@ -273,11 +331,14 @@ public class EventPredictionServiceTest
         program.getProgramIndicators().add( programIndicatorB );
         programService.updateProgram( program );
 
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program, dateMar20, dateMar20, orgUnitA );
+        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
+            dateMar20, dateMar20, orgUnitA );
         programInstanceService.addProgramInstance( programInstance );
 
-        ProgramStageInstance stageInstanceA = programStageInstanceService.createProgramStageInstance( programInstance, stageA, dateMar20, dateMar20, orgUnitA );
-        ProgramStageInstance stageInstanceB = programStageInstanceService.createProgramStageInstance( programInstance, stageA, dateApr10, dateApr10, orgUnitA );
+        ProgramStageInstance stageInstanceA = programStageInstanceService.createProgramStageInstance( programInstance,
+            stageA, dateMar20, dateMar20, orgUnitA );
+        ProgramStageInstance stageInstanceB = programStageInstanceService.createProgramStageInstance( programInstance,
+            stageA, dateApr10, dateApr10, orgUnitA );
 
         stageInstanceA.setExecutionDate( dateMar20 );
         stageInstanceB.setExecutionDate( dateApr10 );
@@ -315,8 +376,10 @@ public class EventPredictionServiceTest
         predictorService.addPredictor( predictorI );
 
         Map<String, Grid> itemGridMap = new HashMap<>();
-        itemGridMap.put( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, newGrid( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, 1.0, 1.0 ) );
-        itemGridMap.put( PROGRAM_DATA_ELEMENT_DIMENSION_ITEM, newGrid( PROGRAM_DATA_ELEMENT_DIMENSION_ITEM, 4.0, 5.0 ) );
+        itemGridMap.put( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM,
+            newGrid( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, 1.0, 1.0 ) );
+        itemGridMap.put( PROGRAM_DATA_ELEMENT_DIMENSION_ITEM,
+            newGrid( PROGRAM_DATA_ELEMENT_DIMENSION_ITEM, 4.0, 5.0 ) );
         itemGridMap.put( PROGRAM_INDICATOR_A_UID, newGrid( PROGRAM_INDICATOR_A_UID, 8.0, 9.0 ) );
         itemGridMap.put( PROGRAM_INDICATOR_B_UID, newGrid( PROGRAM_INDICATOR_B_UID, 10.0, 11.0 ) );
 
@@ -328,9 +391,12 @@ public class EventPredictionServiceTest
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, orgUnitASet, orgUnitASet );
         setDependency( predictionService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
 
-        dataValueService.addDataValue( createDataValue( dataElementE, periodMar, orgUnitA, defaultCombo, defaultCombo, "100" ) );
-        dataValueService.addDataValue( createDataValue( dataElementE, periodApr, orgUnitA, defaultCombo, defaultCombo, "200" ) );
-        dataValueService.addDataValue( createDataValue( dataElementE, periodMay, orgUnitA, defaultCombo, defaultCombo, "300" ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementE, periodMar, orgUnitA, defaultCombo, defaultCombo, "100" ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementE, periodApr, orgUnitA, defaultCombo, defaultCombo, "200" ) );
+        dataValueService
+            .addDataValue( createDataValue( dataElementE, periodMay, orgUnitA, defaultCombo, defaultCombo, "300" ) );
     }
 
     @Override
@@ -351,7 +417,7 @@ public class EventPredictionServiceTest
      * @param values (if any), starting with March 2017
      * @return the Grid, as would be returned by analytics
      */
-    private Grid newGrid( String dimensionItem, double ...values )
+    private Grid newGrid( String dimensionItem, double... values )
     {
         Grid grid = new ListGrid();
         grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
@@ -405,22 +471,22 @@ public class EventPredictionServiceTest
 
         predictionService.predict( predictorA, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
 
-        assertEquals("1", getDataValue( predictorOutputA, periodApr ) );
-        assertEquals("2", getDataValue( predictorOutputA, periodMay ) );
+        assertEquals( "1", getDataValue( predictorOutputA, periodApr ) );
+        assertEquals( "2", getDataValue( predictorOutputA, periodMay ) );
 
         predictionService.predict( predictorD, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
 
-        assertEquals("4", getDataValue( predictorOutputD, periodApr ) );
-        assertEquals("9", getDataValue( predictorOutputD, periodMay ) );
+        assertEquals( "4", getDataValue( predictorOutputD, periodApr ) );
+        assertEquals( "9", getDataValue( predictorOutputD, periodMay ) );
 
         predictionService.predict( predictorI, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
 
-        assertEquals("18", getDataValue( predictorOutputI, periodApr ) );
-        assertEquals("38", getDataValue( predictorOutputI, periodMay ) );
+        assertEquals( "18", getDataValue( predictorOutputI, periodApr ) );
+        assertEquals( "38", getDataValue( predictorOutputI, periodMay ) );
 
         predictionService.predict( predictorT, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
 
-        assertEquals("101", getDataValue( predictorOutputT, periodApr ) );
-        assertEquals("302", getDataValue( predictorOutputT, periodMay ) );
+        assertEquals( "101", getDataValue( predictorOutputT, periodApr ) );
+        assertEquals( "302", getDataValue( predictorOutputT, periodMay ) );
     }
 }

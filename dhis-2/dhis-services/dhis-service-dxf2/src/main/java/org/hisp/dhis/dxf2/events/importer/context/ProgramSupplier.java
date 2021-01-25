@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.events.importer.context;
 
 /*
@@ -28,10 +55,22 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
@@ -61,18 +100,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * This supplier builds and caches a Map of all the Programs in the system.
@@ -125,28 +154,37 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private final static String ATTRIBUTESCHEME_COL = "attributevalues";
 
     private final static String PROGRAM_ID = "programid";
+
     private final static String PROGRAM_STAGE_ID = "programstageid";
+
     private final static String COMPULSORY = "compulsory";
+
     private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
 
-    // Caches the entire Program hierarchy, including Program Stages and ACL data
-    private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
+    // Caches the entire Program hierarchy, including Program Stages and ACL
+    // data
+    private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>()
+    {
+    }
         .name( "eventImportProgramCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
     // Caches the User Groups and the Users belonging to each group
-    private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>() {}
+    private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>()
+    {
+    }
         .name( "eventImportUserGroupCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
         .expireAfterWrite( 5, TimeUnit.MINUTES )
         .permitNullValues( true )
         .loader( new CacheLoader<Long, Set<User>>()
         {
             @Override
-            public Set<User> load( Long userGroupId ) {
+            public Set<User> load( Long userGroupId )
+            {
                 return loadUserGroups( userGroupId );
             }
-        } ).build() ;
+        } ).build();
 
     public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper jsonMapper, Environment env )
     {
@@ -201,7 +239,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     private void aggregateProgramAndAclData( Map<String, Program> programMap,
-        Map<Long, DataElementSets> dataElementSetsMap  )
+        Map<Long, DataElementSets> dataElementSetsMap )
     {
         for ( Program program : programMap.values() )
         {
@@ -236,7 +274,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     //
-    // Load all DataElements for each Program Stage, partitioned into compulsory and
+    // Load all DataElements for each Program Stage, partitioned into compulsory
+    // and
     // non-compulsory
     //
     private Map<Long, DataElementSets> loadProgramStageDataElementSets()
@@ -299,7 +338,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private Map<String, Program> loadPrograms( IdSchemes idSchemes )
     {
         //
-        // Get the IdScheme for Programs. Programs should support also the Attribute
+        // Get the IdScheme for Programs. Programs should support also the
+        // Attribute
         // Scheme, based on JSONB
         //
         IdScheme idScheme = idSchemes.getProgramIdScheme();
@@ -345,8 +385,10 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
                     program.setProgramType( ProgramType.fromValue( rs.getString( "type" ) ) );
                     program.setSharing( toSharing( rs.getString( "program_sharing" ) ) );
-                    // Do not add program stages without primary key (this should not really happen,
-                    // but the database does allow Program Stage without a Program Id
+                    // Do not add program stages without primary key (this
+                    // should not really happen,
+                    // but the database does allow Program Stage without a
+                    // Program Id
                     if ( rs.getLong( "ps_id" ) != 0 )
                     {
                         programStages.add( toProgramStage( rs ) );
@@ -385,9 +427,9 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     /**
-     * Resolve the key to place in the Program Map, based on the Scheme specified in
-     * the request If the scheme is of type Attribute, use the attribute value from
-     * the JSONB column
+     * Resolve the key to place in the Program Map, based on the Scheme
+     * specified in the request If the scheme is of type Attribute, use the
+     * attribute value from the JSONB column
      */
     private String getProgramKey( IdScheme programIdScheme, ResultSet rs )
         throws SQLException
@@ -434,7 +476,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         {
             try
             {
-                ou.setAttributeValues( EventUtils.getAttributeValues( jsonMapper, rs.getObject( ATTRIBUTESCHEME_COL ) ) );
+                ou.setAttributeValues(
+                    EventUtils.getAttributeValues( jsonMapper, rs.getObject( ATTRIBUTESCHEME_COL ) ) );
             }
             catch ( JsonProcessingException e )
             {
@@ -479,9 +522,9 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     /**
-     * Check if the list of incoming Events contains one or more Program uid which
-     * is not in cache. Reload the entire program cache if a Program UID is not
-     * found
+     * Check if the list of incoming Events contains one or more Program uid
+     * which is not in cache. Reload the entire program cache if a Program UID
+     * is not found
      */
     private boolean requiresCacheReload( List<Event> events, Map<String, Program> programMap )
     {
@@ -505,7 +548,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Sharing toSharing( String json )
     {
-        if ( StringUtils.isEmpty( json ) ) return null;
+        if ( StringUtils.isEmpty( json ) )
+            return null;
 
         try
         {

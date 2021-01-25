@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.render;
 
 /*
@@ -30,14 +57,15 @@ package org.hisp.dhis.render;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.util.JSONPObject;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,14 +76,14 @@ import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.util.JSONPObject;
 
 /**
  * Default implementation that uses Jackson to serialize/deserialize
@@ -87,9 +115,9 @@ public class DefaultRenderService
         this.schemaService = schemaService;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // RenderService
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public void toJson( OutputStream output, Object value )
@@ -177,7 +205,8 @@ public class DefaultRenderService
     }
 
     @Override
-    public JsonNode getSystemObject( InputStream inputStream, RenderFormat format ) throws IOException
+    public JsonNode getSystemObject( InputStream inputStream, RenderFormat format )
+        throws IOException
     {
         ObjectMapper mapper;
 
@@ -201,7 +230,9 @@ public class DefaultRenderService
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> fromMetadata( InputStream inputStream, RenderFormat format ) throws IOException
+    public Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> fromMetadata( InputStream inputStream,
+        RenderFormat format )
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = new HashMap<>();
 
@@ -245,8 +276,10 @@ public class DefaultRenderService
 
             for ( JsonNode item : node )
             {
-                IdentifiableObject value = mapper.treeToValue( item, (Class<? extends IdentifiableObject>) schema.getKlass() );
-                if ( value != null ) collection.add( value );
+                IdentifiableObject value = mapper.treeToValue( item,
+                    (Class<? extends IdentifiableObject>) schema.getKlass() );
+                if ( value != null )
+                    collection.add( value );
             }
 
             map.put( (Class<? extends IdentifiableObject>) schema.getKlass(), collection );
@@ -256,7 +289,8 @@ public class DefaultRenderService
     }
 
     @Override
-    public List<MetadataVersion> fromMetadataVersion( InputStream versions, RenderFormat format ) throws IOException
+    public List<MetadataVersion> fromMetadataVersion( InputStream versions, RenderFormat format )
+        throws IOException
     {
         List<MetadataVersion> metadataVersions = new ArrayList<>();
 
@@ -271,9 +305,10 @@ public class DefaultRenderService
                 if ( versionsNode instanceof ArrayNode )
                 {
                     ArrayNode arrayVersionsNode = (ArrayNode) versionsNode;
-                    metadataVersions = jsonMapper.readValue( arrayVersionsNode.toString().getBytes(), new TypeReference<List<MetadataVersion>>()
-                    {
-                    } );
+                    metadataVersions = jsonMapper.readValue( arrayVersionsNode.toString().getBytes(),
+                        new TypeReference<List<MetadataVersion>>()
+                        {
+                        } );
                 }
             }
         }

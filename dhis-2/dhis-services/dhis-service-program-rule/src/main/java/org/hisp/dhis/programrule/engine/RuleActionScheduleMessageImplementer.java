@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.programrule.engine;
 
 /*
@@ -28,6 +55,8 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
@@ -45,8 +74,6 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
-
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,13 +95,14 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     private final NotificationTemplateService notificationTemplateService;
 
     public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
-         NotificationLoggingService notificationLoggingService,
-         ProgramInstanceService programInstanceService,
-         ProgramStageInstanceService programStageInstanceService,
-         ProgramNotificationInstanceService programNotificationInstanceService,
-         NotificationTemplateService notificationTemplateService )
+        NotificationLoggingService notificationLoggingService,
+        ProgramInstanceService programInstanceService,
+        ProgramStageInstanceService programStageInstanceService,
+        ProgramNotificationInstanceService programNotificationInstanceService,
+        NotificationTemplateService notificationTemplateService )
     {
-        super( programNotificationTemplateService, notificationLoggingService, programInstanceService, programStageInstanceService );
+        super( programNotificationTemplateService, notificationLoggingService, programInstanceService,
+            programStageInstanceService );
         this.programNotificationInstanceService = programNotificationInstanceService;
         this.notificationTemplateService = notificationTemplateService;
     }
@@ -110,13 +138,14 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
             return;
         }
 
-        ProgramNotificationInstance notificationInstance = notificationTemplateService.createNotificationInstance( template, date );
+        ProgramNotificationInstance notificationInstance = notificationTemplateService
+            .createNotificationInstance( template, date );
         notificationInstance.setProgramStageInstance( null );
         notificationInstance.setProgramInstance( programInstance );
 
         programNotificationInstanceService.save( notificationInstance );
 
-        log.info( String.format( LOG_MESSAGE , template.getUid() ) );
+        log.info( String.format( LOG_MESSAGE, template.getUid() ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
@@ -135,7 +164,6 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
             handleSingleEvent( ruleEffect, programStageInstance );
             return;
         }
-
 
         if ( !validate( ruleEffect, programStageInstance.getProgramInstance() ) )
         {
@@ -158,7 +186,8 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
             return;
         }
 
-        ProgramNotificationInstance notificationInstance = notificationTemplateService.createNotificationInstance( template, date );
+        ProgramNotificationInstance notificationInstance = notificationTemplateService
+            .createNotificationInstance( template, date );
         notificationInstance.setProgramStageInstance( programStageInstance );
         notificationInstance.setProgramInstance( null );
 
@@ -206,7 +235,8 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
             return;
         }
 
-        ProgramNotificationInstance notificationInstance = notificationTemplateService.createNotificationInstance( template, date );
+        ProgramNotificationInstance notificationInstance = notificationTemplateService
+            .createNotificationInstance( template, date );
         notificationInstance.setProgramStageInstance( programStageInstance );
         notificationInstance.setProgramInstance( null );
 

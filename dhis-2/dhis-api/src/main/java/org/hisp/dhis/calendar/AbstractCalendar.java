@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.calendar;
 
 /*
@@ -28,21 +55,22 @@ package org.hisp.dhis.calendar;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.chrono.ISOChronology;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public abstract class AbstractCalendar implements Calendar
 {
-    protected static final String[] DEFAULT_I18N_MONTH_NAMES = new String[]{
+    protected static final String[] DEFAULT_I18N_MONTH_NAMES = new String[] {
         "month.january",
         "month.february",
         "month.march",
@@ -57,7 +85,7 @@ public abstract class AbstractCalendar implements Calendar
         "month.december"
     };
 
-    protected static final String[] DEFAULT_I18N_MONTH_SHORT_NAMES = new String[]{
+    protected static final String[] DEFAULT_I18N_MONTH_SHORT_NAMES = new String[] {
         "month.short.january",
         "month.short.february",
         "month.short.march",
@@ -72,7 +100,7 @@ public abstract class AbstractCalendar implements Calendar
         "month.short.december"
     };
 
-    protected static final String[] DEFAULT_I18N_DAY_NAMES = new String[]{
+    protected static final String[] DEFAULT_I18N_DAY_NAMES = new String[] {
         "weekday.monday",
         "weekday.tuesday",
         "weekday.wednesday",
@@ -82,7 +110,7 @@ public abstract class AbstractCalendar implements Calendar
         "weekday.sunday"
     };
 
-    protected static final String[] DEFAULT_I18N_DAY_SHORT_NAMES = new String[]{
+    protected static final String[] DEFAULT_I18N_DAY_SHORT_NAMES = new String[] {
         "weekday.short.monday",
         "weekday.short.tuesday",
         "weekday.short.wednesday",
@@ -176,7 +204,8 @@ public abstract class AbstractCalendar implements Calendar
     }
 
     @Override
-    public List<DateInterval> toIntervals( DateTimeUnit dateTimeUnit, DateIntervalType type, int offset, int length, int periods )
+    public List<DateInterval> toIntervals( DateTimeUnit dateTimeUnit, DateIntervalType type, int offset, int length,
+        int periods )
     {
         List<DateInterval> dateIntervals = Lists.newArrayList();
 
@@ -192,7 +221,8 @@ public abstract class AbstractCalendar implements Calendar
     public DateTimeUnit today()
     {
         DateTime dateTime = DateTime.now( ISOChronology.getInstance( DateTimeZone.getDefault() ) );
-        DateTimeUnit dateTimeUnit = new DateTimeUnit( dateTime.getYear(), dateTime.getMonthOfYear(), dateTime.getDayOfMonth(), true );
+        DateTimeUnit dateTimeUnit = new DateTimeUnit( dateTime.getYear(), dateTime.getMonthOfYear(),
+            dateTime.getDayOfMonth(), true );
         return fromIso( dateTimeUnit );
     }
 

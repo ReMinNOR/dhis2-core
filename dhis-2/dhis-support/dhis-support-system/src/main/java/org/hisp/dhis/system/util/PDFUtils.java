@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.system.util;
 
 /*
@@ -28,6 +55,11 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.lowagie.text.Element.ALIGN_CENTER;
+import static com.lowagie.text.Element.ALIGN_LEFT;
+
+import java.io.OutputStream;
+
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Font;
@@ -38,11 +70,6 @@ import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
-
-import java.io.OutputStream;
-
-import static com.lowagie.text.Element.ALIGN_CENTER;
-import static com.lowagie.text.Element.ALIGN_LEFT;
 
 /**
  * @author Lars Helge Overland
@@ -67,7 +94,7 @@ public class PDFUtils
      * Creates a document.
      *
      * @param outputStream The output stream to write the document content.
-     * @param pageSize     the page size.
+     * @param pageSize the page size.
      * @return A Document.
      */
     public static Document openDocument( OutputStream outputStream, Rectangle pageSize )
@@ -114,7 +141,7 @@ public class PDFUtils
      * </p>
      *
      * @param keepTogether Indicates whether the table could be broken across
-     *                     multiple pages or should be kept at one page.
+     *        multiple pages or should be kept at one page.
      * @param columnWidths The column widths.
      * @return
      */
@@ -132,7 +159,7 @@ public class PDFUtils
      * Adds a table to a document.
      *
      * @param document The document to add the table to.
-     * @param table    The table to add to the document.
+     * @param table The table to add to the document.
      */
     public static void addTableToDocument( Document document, PdfPTable table )
     {
@@ -172,9 +199,9 @@ public class PDFUtils
     /**
      * Creates a cell.
      *
-     * @param text            The text to include in the cell.
-     * @param colspan         The column span of the cell.
-     * @param font            The font of the cell text.
+     * @param text The text to include in the cell.
+     * @param colspan The column span of the cell.
+     * @param font The font of the cell text.
      * @param horizontalAlign The vertical alignment of the text in the cell.
      * @return A PdfCell.
      */
@@ -238,7 +265,7 @@ public class PDFUtils
      * Creates an empty cell.
      *
      * @param colspan The column span of the cell.
-     * @param height  The height of the column.
+     * @param height The height of the column.
      * @return A PdfCell.
      */
     public static PdfPCell getEmptyCell( int colSpan, int height )

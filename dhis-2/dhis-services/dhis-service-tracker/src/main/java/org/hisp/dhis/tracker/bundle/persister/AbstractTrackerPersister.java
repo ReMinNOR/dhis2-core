@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.tracker.bundle.persister;
 
 /*
@@ -36,6 +63,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
@@ -57,8 +86,6 @@ import org.hisp.dhis.tracker.report.TrackerObjectReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.springframework.util.StringUtils;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Luciano Fiandesio
  */
@@ -77,9 +104,9 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     }
 
     /**
-     * Template method that can be used by classes extending this class to execute
-     * the persistence flow of Tracker entities
-     * 
+     * Template method that can be used by classes extending this class to
+     * execute the persistence flow of Tracker entities
+     *
      * @param session a valid Hibernate Session
      * @param bundle the Bundle to persist
      * @return a {@link TrackerTypeReport}
@@ -167,11 +194,12 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
                 if ( bundle.getAtomicMode().equals( AtomicMode.ALL ) )
                 {
-                    throw new PersistenceException( msg , e );
+                    throw new PersistenceException( msg, e );
                 }
                 else
                 {
-                    // TODO currently we do not keep track of the failed entity in the TrackerObjectReport
+                    // TODO currently we do not keep track of the failed entity
+                    // in the TrackerObjectReport
 
                     log.warn( msg + "\nThe Import process will process remaining entities.", e );
 
@@ -216,15 +244,15 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     protected abstract void persistComments( V entity );
 
     /**
-     * Execute the persistence of Data values linked to the entity
-     * being processed
+     * Execute the persistence of Data values linked to the entity being
+     * processed
      */
     protected abstract void updateDataValues( Session session, TrackerPreheat preheat,
         T trackerDto, V hibernateEntity );
 
     /**
-     * Execute the persistence of Attribute values linked to the entity
-     * being processed
+     * Execute the persistence of Attribute values linked to the entity being
+     * processed
      */
     protected abstract void updateAttributes( Session session, TrackerPreheat preheat,
         T trackerDto, V hibernateEntity );
@@ -328,7 +356,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 "Attribute should never be NULL here if validation is enforced before commit." );
 
             TrackedEntityAttributeValue attributeValue = attributeValueDBMap.get( at.getAttribute() );
-            
+
             if ( attributeValue == null )
             {
                 attributeValue = new TrackedEntityAttributeValue();
@@ -341,7 +369,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 .setValue( at.getValue() )
                 .setStoredBy( at.getStoredBy() );
 
-            // We cannot use attributeValue.getValue() because it uses encryption logic
+            // We cannot use attributeValue.getValue() because it uses
+            // encryption logic
             // So we need to use at.getValue()
             if ( StringUtils.isEmpty( at.getValue() ) )
             {

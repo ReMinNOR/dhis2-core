@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
@@ -28,6 +55,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -46,13 +79,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -82,14 +108,16 @@ public class ObjectBundleServiceUserTest
     }
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         renderService = _renderService;
         userService = _userService;
     }
 
     @Test
-    public void testCreateUsers() throws IOException
+    public void testCreateUsers()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -135,7 +163,8 @@ public class ObjectBundleServiceUserTest
     }
 
     @Test
-    public void testUpdateUsers() throws IOException
+    public void testUpdateUsers()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -153,7 +182,8 @@ public class ObjectBundleServiceUserTest
         assertEquals( 1, validate.getErrorReportsByCode( UserAuthorityGroup.class, ErrorCode.E5003 ).size() );
         objectBundleService.commit( bundle );
 
-        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/users_update.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/users_update.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -191,7 +221,8 @@ public class ObjectBundleServiceUserTest
     }
 
     @Test
-    public void testCreateMetadataWithDuplicateUsername() throws IOException
+    public void testCreateMetadataWithDuplicateUsername()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/user_duplicate_username.json" ).getInputStream(), RenderFormat.JSON );
@@ -210,7 +241,8 @@ public class ObjectBundleServiceUserTest
     }
 
     @Test
-    public void testCreateMetadataWithDuplicateUsernameAndInjectedUser() throws IOException
+    public void testCreateMetadataWithDuplicateUsernameAndInjectedUser()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -231,7 +263,8 @@ public class ObjectBundleServiceUserTest
     }
 
     @Test
-    public void testUpdateAdminUser() throws IOException
+    public void testUpdateAdminUser()
+        throws IOException
     {
         createAndInjectAdminUser();
 
@@ -249,7 +282,8 @@ public class ObjectBundleServiceUserTest
     }
 
     @Test
-    public void testCreateUsersWithInvalidPasswords() throws IOException
+    public void testCreateUsersWithInvalidPasswords()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -291,7 +325,7 @@ public class ObjectBundleServiceUserTest
         assertEquals( 2, userB.getUserCredentials().getUserAuthorityGroups().size() );
 
         UserAuthorityGroup userManagerRole = manager.get( UserAuthorityGroup.class, "xJZBzAHI88H" );
-        assertNotNull(  userManagerRole );
+        assertNotNull( userManagerRole );
         userManagerRole.getSharing().resetUserAccesses();
         userManagerRole.getSharing().addUserAccess( new UserAccess( userB, "rw------" ) );
         userManagerRole.setPublicAccess( "--------" );
@@ -303,7 +337,7 @@ public class ObjectBundleServiceUserTest
         manager.update( userA );
         injectSecurityContext( userA );
 
-       metadata = renderService.fromMetadata(
+        metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/user_userrole_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new ObjectBundleParams();

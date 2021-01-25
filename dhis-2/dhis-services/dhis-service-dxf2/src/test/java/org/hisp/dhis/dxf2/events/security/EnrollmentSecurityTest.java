@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.events.security;
 
 /*
@@ -28,7 +55,11 @@ package org.hisp.dhis.dxf2.events.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.Date;
+import java.util.HashSet;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
@@ -57,11 +88,7 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.HashSet;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -82,16 +109,25 @@ public class EnrollmentSecurityTest
     private UserService _userService;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
 
     private OrganisationUnit organisationUnitA;
+
     private OrganisationUnit organisationUnitB;
+
     private Program programA;
+
     private DataElement dataElementA;
+
     private DataElement dataElementB;
+
     private ProgramStage programStageA;
+
     private ProgramStage programStageB;
 
     @Override
@@ -176,9 +212,7 @@ public class EnrollmentSecurityTest
     }
 
     /**
-     * program = DATA READ/WRITE
-     * orgUnit = Accessible
-     * status = SUCCESS
+     * program = DATA READ/WRITE orgUnit = Accessible status = SUCCESS
      */
     @Test
     public void testUserWithDataReadWrite()
@@ -195,22 +229,24 @@ public class EnrollmentSecurityTest
         injectSecurityContext( user );
 
         assertEquals( ImportStatus.SUCCESS, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.SUCCESS, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.SUCCESS, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.SUCCESS, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
     }
 
     /**
-     * program = DATA READ/WRITE
-     * orgUnit = Not Accessible
-     * status = ERROR
+     * program = DATA READ/WRITE orgUnit = Not Accessible status = ERROR
      */
     @Test( expected = IllegalQueryException.class )
     public void testUserWithDataReadWriteNoOrgUnit()
@@ -223,22 +259,24 @@ public class EnrollmentSecurityTest
         injectSecurityContext( user );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
     }
 
     /**
-     * program = DATA READ
-     * orgUnit = Accessible
-     * status = ERROR
+     * program = DATA READ orgUnit = Accessible status = ERROR
      */
     @Test( expected = IllegalQueryException.class )
     public void testUserWithDataReadOrgUnit()
@@ -252,22 +290,24 @@ public class EnrollmentSecurityTest
         injectSecurityContext( user );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
     }
 
     /**
-     * program =
-     * orgUnit = Accessible
-     * status = ERROR
+     * program = orgUnit = Accessible status = ERROR
      */
     @Test( expected = IllegalQueryException.class )
     public void testUserNoDataAccessOrgUnit()
@@ -281,22 +321,24 @@ public class EnrollmentSecurityTest
         injectSecurityContext( user );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
     }
 
     /**
-     * program =
-     * orgUnit = Not Accessible
-     * status = ERROR
+     * program = orgUnit = Not Accessible status = ERROR
      */
     @Test( expected = IllegalQueryException.class )
     public void testUserNoDataAccessNoOrgUnit()
@@ -309,22 +351,24 @@ public class EnrollmentSecurityTest
         injectSecurityContext( user );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() ).getStatus() );
+            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+            .getStatus() );
     }
 
     /**
-     * program = DATA READ/WRITE
-     * orgUnit = Accessible
-     * status = SUCCESS
+     * program = DATA READ/WRITE orgUnit = Accessible status = SUCCESS
      */
     @Test
     public void testGetEnrollmentUserWithDataReadWrite()
@@ -348,9 +392,7 @@ public class EnrollmentSecurityTest
     }
 
     /**
-     * program = DATA READ
-     * orgUnit = Accessible
-     * status = SUCCESS
+     * program = DATA READ orgUnit = Accessible status = SUCCESS
      */
     @Test
     public void testGetEnrollmentUserWithDataRead()
@@ -374,14 +416,13 @@ public class EnrollmentSecurityTest
     }
 
     /**
-     * program = DATA READ
-     * orgUnit = Accessible in search scope
-     * status = SUCCESS
+     * program = DATA READ orgUnit = Accessible in search scope status = SUCCESS
      */
     @Test
     public void testGetEnrollmentsInSearchScopeForUser()
     {
-        ImportSummary importSummary = enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
+        ImportSummary importSummary = enrollmentService.addEnrollment(
+            createEnrollment( programA.getUid(), maleA.getUid() ),
             ImportOptions.getDefaultImportOptions() );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -409,9 +450,7 @@ public class EnrollmentSecurityTest
     }
 
     /**
-     * program = DATA READ
-     * orgUnit = Not Accessible
-     * status = ERROR
+     * program = DATA READ orgUnit = Not Accessible status = ERROR
      */
     @Test( expected = IllegalQueryException.class )
     public void testGetEnrollmentUserWithDataReadNoOrgUnit()
@@ -432,9 +471,7 @@ public class EnrollmentSecurityTest
     }
 
     /**
-     * program = DATA READ/WRITE
-     * orgUnit = Not Accessible
-     * status = ERROR
+     * program = DATA READ/WRITE orgUnit = Not Accessible status = ERROR
      */
     @Test( expected = IllegalQueryException.class )
     public void testGetEnrollmentUserWithDataReadWriteNoOrgUnit()
@@ -455,9 +492,7 @@ public class EnrollmentSecurityTest
     }
 
     /**
-     * program =
-     * orgUnit = Accessible
-     * status = ERROR
+     * program = orgUnit = Accessible status = ERROR
      */
     @Test( expected = IllegalQueryException.class )
     public void testGetEnrollmentUserWithNoDataReadWriteOrgUnit()

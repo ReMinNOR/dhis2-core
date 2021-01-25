@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.sms.hibernate;
 
 /*
@@ -28,6 +55,10 @@ package org.hisp.dhis.sms.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -41,15 +72,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
-
 @Repository( "org.hisp.dhis.sms.hibernate.IncomingSmsStore" )
 public class HibernateIncomingSmsStore extends HibernateIdentifiableObjectStore<IncomingSms>
     implements IncomingSmsStore
 {
     public HibernateIncomingSmsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, IncomingSms.class, currentUserService, aclService, true );
     }
@@ -64,7 +92,7 @@ public class HibernateIncomingSmsStore extends HibernateIdentifiableObjectStore<
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<IncomingSms> parameter = newJpaParameters()
-        .addOrder( root -> builder.desc( root.get( "sentDate" ) ) );
+            .addOrder( root -> builder.desc( root.get( "sentDate" ) ) );
 
         if ( status != null )
         {
@@ -73,7 +101,8 @@ public class HibernateIncomingSmsStore extends HibernateIdentifiableObjectStore<
 
         if ( originator != null && !originator.isEmpty() )
         {
-            parameter.addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), originator, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
+            parameter.addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ),
+                originator, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
         }
 
         return getList( builder, parameter );
@@ -113,12 +142,12 @@ public class HibernateIncomingSmsStore extends HibernateIdentifiableObjectStore<
     }
 
     @Override
-    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination )
+    public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max,
+        boolean hasPagination )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<IncomingSms> parameters = newJpaParameters();
-
 
         if ( status != null )
         {
@@ -127,7 +156,8 @@ public class HibernateIncomingSmsStore extends HibernateIdentifiableObjectStore<
 
         if ( keyword != null )
         {
-            parameters.addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ), keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
+            parameters.addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "originator" ),
+                keyword, JpaQueryUtils.StringSearchMode.ANYWHERE ) );
         }
 
         if ( hasPagination )

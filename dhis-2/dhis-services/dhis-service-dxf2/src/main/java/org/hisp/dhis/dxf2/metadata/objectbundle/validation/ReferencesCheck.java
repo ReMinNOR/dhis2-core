@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 /*
@@ -28,6 +55,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
@@ -47,10 +78,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Luciano Fiandesio
@@ -125,7 +152,8 @@ public class ReferencesCheck
 
                     if ( ref == null && refObject != null && !preheat.isDefault( refObject ) )
                     {
-                        // HACK this needs to be redone when the move to using uuid as user identifiers is ready
+                        // HACK this needs to be redone when the move to using
+                        // uuid as user identifiers is ready
                         boolean isUserReference = User.class.isAssignableFrom( p.getKlass() ) &&
                             ("user".equals( p.getName() ) || "lastUpdatedBy".equals( p.getName() ));
 
@@ -184,21 +212,27 @@ public class ReferencesCheck
                 if ( object.getSharing().hasUserGroupAccesses() )
                 {
                     object.getSharing().getUserGroups().values().stream()
-                        .filter( userGroupAccess -> preheat.get( PreheatIdentifier.UID, userGroupAccess.toDtoObject().getUserGroup() ) == null )
+                        .filter( userGroupAccess -> preheat.get( PreheatIdentifier.UID,
+                            userGroupAccess.toDtoObject().getUserGroup() ) == null )
                         .forEach(
-                            userGroupAccess -> preheatErrorReports.add( new PreheatErrorReport( PreheatIdentifier.UID, object.getClass(),
-                                ErrorCode.E5002, PreheatIdentifier.UID.getIdentifiersWithName( userGroupAccess.toDtoObject().getUserGroup() ),
-                                PreheatIdentifier.UID.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
+                            userGroupAccess -> preheatErrorReports
+                                .add( new PreheatErrorReport( PreheatIdentifier.UID, object.getClass(),
+                                    ErrorCode.E5002,
+                                    PreheatIdentifier.UID
+                                        .getIdentifiersWithName( userGroupAccess.toDtoObject().getUserGroup() ),
+                                    PreheatIdentifier.UID.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
                 }
 
                 if ( object.getSharing().hasUserAccesses() )
                 {
                     object.getSharing().getUsers().values().stream()
-                        .filter( userAccess -> preheat.get( PreheatIdentifier.UID, userAccess.toDtoObject().getUser() ) == null )
-                        .forEach( userAccesses -> preheatErrorReports.add( new PreheatErrorReport( PreheatIdentifier.UID,
-                            object.getClass(), ErrorCode.E5002,
-                            PreheatIdentifier.UID.getIdentifiersWithName( userAccesses.toDtoObject().getUser() ),
-                            PreheatIdentifier.UID.getIdentifiersWithName( object ), "userAccesses" ) ) );
+                        .filter( userAccess -> preheat.get( PreheatIdentifier.UID,
+                            userAccess.toDtoObject().getUser() ) == null )
+                        .forEach(
+                            userAccesses -> preheatErrorReports.add( new PreheatErrorReport( PreheatIdentifier.UID,
+                                object.getClass(), ErrorCode.E5002,
+                                PreheatIdentifier.UID.getIdentifiersWithName( userAccesses.toDtoObject().getUser() ),
+                                PreheatIdentifier.UID.getIdentifiersWithName( object ), "userAccesses" ) ) );
                 }
             }
         }
@@ -210,7 +244,7 @@ public class ReferencesCheck
     {
         return klass != null
             && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass )
-            || Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ));
+                || Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ));
     }
 
 }

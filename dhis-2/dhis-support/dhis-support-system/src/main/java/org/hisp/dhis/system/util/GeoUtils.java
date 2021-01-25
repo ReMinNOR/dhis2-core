@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.system.util;
 
 /*
@@ -39,7 +66,6 @@ import org.geotools.geojson.geom.GeometryJSON;
 import org.geotools.referencing.GeodeticCalculator;
 import org.hisp.dhis.common.coordinate.CoordinateUtils;
 import org.hisp.dhis.organisationunit.FeatureType;
-
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
@@ -57,11 +83,11 @@ public class GeoUtils
     public static final int SRID = 4326;
 
     /**
-     * Returns boundaries of a box shape which centre is the point defined by the
-     * given longitude and latitude. The distance between the center point and the
-     * edges of the box is defined in meters by the given distance. Based on standard
-     * EPSG:4326 long/lat projection. The result is an array of length 4 where
-     * the values at each index are:
+     * Returns boundaries of a box shape which centre is the point defined by
+     * the given longitude and latitude. The distance between the center point
+     * and the edges of the box is defined in meters by the given distance.
+     * Based on standard EPSG:4326 long/lat projection. The result is an array
+     * of length 4 where the values at each index are:
      *
      * <ul>
      * <li>Index 0: Maximum latitude (north edge of box shape).</li>
@@ -109,11 +135,11 @@ public class GeoUtils
      * @param to the end point.
      * @return the orthodromic distance between the given points.
      */
-    public static double getDistanceBetweenTwoPoints( Point2D from, Point2D to)
+    public static double getDistanceBetweenTwoPoints( Point2D from, Point2D to )
     {
         GeodeticCalculator calc = new GeodeticCalculator();
         calc.setStartingGeographicPoint( from );
-        calc.setDestinationGeographicPoint( to);
+        calc.setDestinationGeographicPoint( to );
 
         return calc.getOrthodromicDistance();
     }
@@ -128,8 +154,9 @@ public class GeoUtils
     public static Point getGeoJsonPoint( double longitude, double latitude )
         throws IOException
     {
-        Point point = new GeometryJSON().readPoint( new StringReader( "{\"type\":\"Point\", \"coordinates\":[" + longitude + ","
-            + latitude + "]}" ) );
+        Point point = new GeometryJSON()
+            .readPoint( new StringReader( "{\"type\":\"Point\", \"coordinates\":[" + longitude + ","
+                + latitude + "]}" ) );
 
         point.setSRID( SRID );
 
@@ -171,7 +198,7 @@ public class GeoUtils
 
             Point point = getGeoJsonPoint( longitude, latitude );
 
-            FeatureType featureType = FeatureType.getTypeFromName(geometry.getGeometryType());
+            FeatureType featureType = FeatureType.getTypeFromName( geometry.getGeometryType() );
 
             if ( point != null && point.isValid() )
             {
@@ -197,10 +224,11 @@ public class GeoUtils
 
     /**
      * Escapes the String encoded SVG.
+     *
      * @param svg the String encoded SVG.
      * @return the escaped representation.
      */
-    public static String replaceUnsafeSvgText(String svg )
+    public static String replaceUnsafeSvgText( String svg )
     {
         if ( svg == null )
         {

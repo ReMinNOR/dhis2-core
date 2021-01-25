@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.system.util;
 
 /*
@@ -36,11 +63,10 @@ import static org.junit.Assert.assertFalse;
 import java.io.IOException;
 
 import org.geotools.geojson.geom.GeometryJSON;
-import org.hisp.dhis.utils.TestResourceUtils;
 import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.utils.TestResourceUtils;
 import org.junit.Assert;
 import org.junit.Test;
-
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -75,14 +101,14 @@ public class GeoUtilsTest
     @Test
     public void testReplaceUnsafeSvgText()
     {
-        String text =
-            "<svg xmlns=\"http://www.w3.org/2000/svg\">" +
-            "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"Measles Coverage <1y\" font=\"bold 18px Arial,Sans-serif,Lucida Grande\" hidden=\"false\">" +
-            "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"BCG & DPT Coverage\" font=\"bold 18px Arial,Sans-serif,Lucida Grande\" hidden=\"false\">" +
+        String text = "<svg xmlns=\"http://www.w3.org/2000/svg\">" +
+            "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"Measles Coverage <1y\" font=\"bold 18px Arial,Sans-serif,Lucida Grande\" hidden=\"false\">"
+            +
+            "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"BCG & DPT Coverage\" font=\"bold 18px Arial,Sans-serif,Lucida Grande\" hidden=\"false\">"
+            +
             "</svg>";
 
-        String expected =
-            "<svg xmlns=\"http://www.w3.org/2000/svg\">" +
+        String expected = "<svg xmlns=\"http://www.w3.org/2000/svg\">" +
             "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"Measles Coverage 1y\" hidden=\"false\">" +
             "<text id=\"ext-sprite-1866\" zIndex=\"500\" text=\"BCG  DPT Coverage\" hidden=\"false\">" +
             "</svg>";
@@ -103,7 +129,7 @@ public class GeoUtilsTest
         {
             Geometry g = GeoUtils.getGeometryFromCoordinatesAndType( FeatureType.POINT, _point );
 
-            assertEquals("Point", g.getGeometryType());
+            assertEquals( "Point", g.getGeometryType() );
             assertTrue( g.isValid() );
         }
         catch ( IOException e )
@@ -115,7 +141,7 @@ public class GeoUtilsTest
         {
             Geometry g = GeoUtils.getGeometryFromCoordinatesAndType( FeatureType.POLYGON, _polygon );
 
-            assertEquals("Polygon", g.getGeometryType());
+            assertEquals( "Polygon", g.getGeometryType() );
             assertTrue( g.isValid() );
         }
         catch ( IOException e )
@@ -127,7 +153,7 @@ public class GeoUtilsTest
         {
             Geometry g = GeoUtils.getGeometryFromCoordinatesAndType( FeatureType.MULTI_POLYGON, _multipolygon );
 
-            assertEquals("MultiPolygon", g.getGeometryType());
+            assertEquals( "MultiPolygon", g.getGeometryType() );
             assertTrue( g.isValid() );
         }
         catch ( IOException e )
@@ -152,7 +178,7 @@ public class GeoUtilsTest
 
     @Test
     public void testVerifyPointIsWithinPolygon()
-            throws IOException
+        throws IOException
     {
         String downtownOslo = TestResourceUtils.getFileContent( "gis/downtownOslo.json" );
 
@@ -170,7 +196,7 @@ public class GeoUtilsTest
 
     @Test
     public void testVerifyPointIsWithinMultiPolygon()
-            throws IOException
+        throws IOException
     {
         String downtownOslo = TestResourceUtils.getFileContent( "gis/brasilMultiPolygon.json" );
 

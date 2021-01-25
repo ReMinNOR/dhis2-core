@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.tracker.preheat;
 
 /*
@@ -81,9 +108,9 @@ public class TrackerPreheat
     private User user;
 
     /**
-     * Internal map of all metadata objects mapped by class type => [id] The value
-     * of each id can be either the metadata object's uid, code, name or attribute
-     * value
+     * Internal map of all metadata objects mapped by class type => [id] The
+     * value of each id can be either the metadata object's uid, code, name or
+     * attribute value
      */
     @Getter
     private Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>> map = new HashMap<>();
@@ -91,8 +118,8 @@ public class TrackerPreheat
     /**
      * Internal tree of all payload references which are not present in the
      * database. This map is required to allow the validation stage to reference
-     * root objects (TEI, PS, PSI) which are present in the payload but not stored
-     * in the pre-heat object (since they do not exist in the db yet).
+     * root objects (TEI, PS, PSI) which are present in the payload but not
+     * stored in the pre-heat object (since they do not exist in the db yet).
      */
     private TreeNode<String> referenceTree = new ArrayMultiTreeNode<>( "ROOT" );
 
@@ -116,8 +143,8 @@ public class TrackerPreheat
     private Map<String, PeriodType> periodTypeMap = new HashMap<>();
 
     /**
-     * Internal map of all preheated tracked entities, mainly used for confirming
-     * existence for updates, and used for object merging.
+     * Internal map of all preheated tracked entities, mainly used for
+     * confirming existence for updates, and used for object merging.
      */
     @Getter
     @Setter
@@ -140,8 +167,8 @@ public class TrackerPreheat
     private Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollments = new HashMap<>();
 
     /**
-     * Internal map of all preheated events, mainly used for confirming existence
-     * for updates, and used for object merging.
+     * Internal map of all preheated events, mainly used for confirming
+     * existence for updates, and used for object merging.
      */
     @Getter
     @Setter
@@ -161,9 +188,9 @@ public class TrackerPreheat
     private Map<TrackerIdScheme, Map<String, TrackedEntityComment>> notes = new EnumMap<>( TrackerIdScheme.class );
 
     /**
-     * A Map of event uid and preheated {@see ProgramInstance}. The value is a List,
-     * because the system may return multiple ProgramInstance, which will be
-     * detected by validation
+     * A Map of event uid and preheated {@see ProgramInstance}. The value is a
+     * List, because the system may return multiple ProgramInstance, which will
+     * be detected by validation
      */
     @Getter
     @Setter
@@ -176,8 +203,8 @@ public class TrackerPreheat
 
     /**
      * A list of valid usernames that are present in the payload. A username not
-     * available in this cache means, payload's username is invalid. These users are
-     * primarily used to represent the ValueType.USERNAME of tracked entity
+     * available in this cache means, payload's username is invalid. These users
+     * are primarily used to represent the ValueType.USERNAME of tracked entity
      * attributes, used in validation and persisting TEIs.
      */
     @Getter
@@ -185,9 +212,9 @@ public class TrackerPreheat
     private List<String> usernames = Lists.newArrayList();
 
     /**
-     * A list of all unique attribute values that are both present in the payload
-     * and in the database. This is going to be used to validate the uniqueness of
-     * attribute values in the Validation phase.
+     * A list of all unique attribute values that are both present in the
+     * payload and in the database. This is going to be used to validate the
+     * uniqueness of attribute values in the Validation phase.
      */
     @Getter
     @Setter
@@ -216,9 +243,9 @@ public class TrackerPreheat
     private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
 
     /**
-     * Map of Program ID (primary key) and List of Org Unit ID associated to each
-     * program. Note that the List only contains the Org Unit ID of the Org Units
-     * that are specified in the import payload.
+     * Map of Program ID (primary key) and List of Org Unit ID associated to
+     * each program. Note that the List only contains the Org Unit ID of the Org
+     * Units that are specified in the import payload.
      */
     @Getter
     @Setter
@@ -246,8 +273,8 @@ public class TrackerPreheat
     }
 
     /**
-     * Fetch a metadata object from the pre-heat, based on the type of the object
-     * and the cached identifier.
+     * Fetch a metadata object from the pre-heat, based on the type of the
+     * object and the cached identifier.
      *
      * @param klass The metadata class to fetch
      * @param key The key used during the pre-heat creation

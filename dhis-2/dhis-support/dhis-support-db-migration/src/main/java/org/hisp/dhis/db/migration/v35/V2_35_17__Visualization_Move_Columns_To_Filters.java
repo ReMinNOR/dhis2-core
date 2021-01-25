@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.db.migration.v35;
 
 /*
@@ -42,7 +69,8 @@ public class V2_35_17__Visualization_Move_Columns_To_Filters extends BaseJavaMig
     public void migrate( final Context context )
         throws SQLException
     {
-        // Select all Visualizations that matches "type" equals 'YEAR_OVER_YEAR_COLUMN'
+        // Select all Visualizations that matches "type" equals
+        // 'YEAR_OVER_YEAR_COLUMN'
         // or 'YEAR_OVER_YEAR_LINE' and "dimension" equals 'dx'.
         final String sql = "SELECT visualizationid, dimension, sort_order "
             + "FROM visualization_columns WHERE visualizationid IN "
@@ -59,23 +87,28 @@ public class V2_35_17__Visualization_Move_Columns_To_Filters extends BaseJavaMig
                 final String dimension = rs.getString( "dimension" );
                 final int sortOrder = rs.getInt( "sort_order" );
 
-                // Get the greater sort_order, in filters table, for the current Visualization
+                // Get the greater sort_order, in filters table, for the current
+                // Visualization
                 // id.
                 int greatVisualizationSortOrder = greaterSortOrderInFiltersTableFor( context,
                     rs.getLong( "visualizationid" ) );
 
-                // Increment the sort order so it can be inserted in the correct position.
+                // Increment the sort order so it can be inserted in the correct
+                // position.
                 greatVisualizationSortOrder++;
 
-                // Before inserting the current column into filters table, check if this column
+                // Before inserting the current column into filters table, check
+                // if this column
                 // isn't already present in filters table.
                 if ( !filtersTableContains( context, visualizationId, dimension ) )
                 {
                     // Insert the current column into filters table.
                     insertIntoFilterTable( context, visualizationId, dimension, greatVisualizationSortOrder );
 
-                    // Once the columns is copied into filters, remove it from columns table. The
-                    // "moving" process is concluded for this visualization column.
+                    // Once the columns is copied into filters, remove it from
+                    // columns table. The
+                    // "moving" process is concluded for this visualization
+                    // column.
                     deleteFromColumnsTable( context, visualizationId, dimension, sortOrder );
                 }
             }

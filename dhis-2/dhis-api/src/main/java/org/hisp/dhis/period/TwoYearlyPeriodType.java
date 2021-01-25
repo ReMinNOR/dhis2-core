@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.period;
 
 /*
@@ -28,12 +55,12 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.calendar.DateTimeUnit;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import org.hisp.dhis.calendar.DateTimeUnit;
 
 /**
  * PeriodType for two-yearly Periods. A valid two-yearly Period has startDate
@@ -55,7 +82,7 @@ public class TwoYearlyPeriodType
      * The name of the TwoYearlyPeriodType, which is "TwoYearly".
      */
     public static final String NAME = "TwoYearly";
-    
+
     private static final String ISO8601_DURATION = "P2Y";
 
     public static final int FREQUENCY_ORDER = 730;
@@ -75,7 +102,7 @@ public class TwoYearlyPeriodType
     @Override
     public Period createPeriod( Calendar cal )
     {
-        //TODO: use local calendar instead of hard coded Gregorian
+        // TODO: use local calendar instead of hard coded Gregorian
         cal.set( Calendar.YEAR, cal.get( Calendar.YEAR ) - cal.get( Calendar.YEAR ) % 2 );
         cal.set( Calendar.DAY_OF_YEAR, 1 );
 
@@ -108,11 +135,12 @@ public class TwoYearlyPeriodType
     // -------------------------------------------------------------------------
     // CalendarPeriodType functionality
     // -------------------------------------------------------------------------
-    
+
     @Override
-    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, org.hisp.dhis.calendar.Calendar calendar )
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset,
+        org.hisp.dhis.calendar.Calendar calendar )
     {
-        dateTimeUnit.setYear( dateTimeUnit.getYear() - dateTimeUnit.getYear() % 2 + ( 2 * offset ) );
+        dateTimeUnit.setYear( dateTimeUnit.getYear() - dateTimeUnit.getYear() % 2 + (2 * offset) );
 
         return dateTimeUnit;
     }
@@ -123,7 +151,7 @@ public class TwoYearlyPeriodType
     @Override
     public List<Period> generatePeriods( Date date )
     {
-        //TODO: use local calendar instead of hard coded Gregorian
+        // TODO: use local calendar instead of hard coded Gregorian
         Calendar cal = createCalendarInstance( date );
         cal.add( Calendar.YEAR, cal.get( Calendar.YEAR ) % 2 == 0 ? -10 : -9 );
         cal.set( Calendar.DAY_OF_YEAR, 1 );
@@ -163,7 +191,7 @@ public class TwoYearlyPeriodType
     @Override
     public List<Period> generateLast5Years( Date date )
     {
-        //TODO: use local calendar instead of hard coded Gregorian
+        // TODO: use local calendar instead of hard coded Gregorian
         Calendar cal = createCalendarInstance( date );
         cal.add( Calendar.YEAR, cal.get( Calendar.YEAR ) % 2 == 0 ? -10 : -9 );
         cal.set( Calendar.DAY_OF_YEAR, 1 );
@@ -205,13 +233,12 @@ public class TwoYearlyPeriodType
     {
         return null; // TODO
     }
-    
-    @Override
-    public String getIso8601Duration() 
-    {
-        return ISO8601_DURATION; 
-    }
 
+    @Override
+    public String getIso8601Duration()
+    {
+        return ISO8601_DURATION;
+    }
 
     @Override
     public Date getRewindedDate( Date date, Integer rewindedPeriods )
@@ -219,7 +246,7 @@ public class TwoYearlyPeriodType
         date = date != null ? date : new Date();
         rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
 
-        //TODO: use local calendar instead of hard coded Gregorian
+        // TODO: use local calendar instead of hard coded Gregorian
         Calendar cal = createCalendarInstance( date );
         cal.add( Calendar.YEAR, (rewindedPeriods * -2) );
 

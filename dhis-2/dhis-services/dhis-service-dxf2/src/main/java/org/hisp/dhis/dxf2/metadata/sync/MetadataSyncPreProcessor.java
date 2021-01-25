@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.metadata.sync;
 
 /*
@@ -35,6 +62,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
@@ -50,8 +79,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Performs the tasks before metadata sync happens
  *
@@ -60,15 +87,21 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component( "metadataSyncPreProcessor" )
-@Scope("prototype")
+@Scope( "prototype" )
 public class MetadataSyncPreProcessor
 {
     private final SystemSettingManager systemSettingManager;
+
     private final MetadataVersionService metadataVersionService;
+
     private final MetadataVersionDelegate metadataVersionDelegate;
+
     private final DataSynchronizationWithPaging trackerSync;
+
     private final DataSynchronizationWithPaging eventSync;
+
     private final DataSynchronizationWithPaging dataValueSync;
+
     private final DataSynchronizationWithoutPaging completeDataSetRegistrationSync;
 
     public MetadataSyncPreProcessor(
@@ -104,41 +137,45 @@ public class MetadataSyncPreProcessor
 
     public void handleDataValuePush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
-        SynchronizationResult dataValuesSynchronizationResult =
-            dataValueSync.synchronizeData( jobParameters.getDataValuesPageSize() );
+        SynchronizationResult dataValuesSynchronizationResult = dataValueSync
+            .synchronizeData( jobParameters.getDataValuesPageSize() );
 
         if ( dataValuesSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
-            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, dataValuesSynchronizationResult.message, null, null );
+            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, dataValuesSynchronizationResult.message,
+                null, null );
             throw new MetadataSyncServiceException( dataValuesSynchronizationResult.message );
         }
     }
 
     public void handleTrackerProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
-        SynchronizationResult trackerSynchronizationResult =
-            trackerSync.synchronizeData( jobParameters.getTrackerProgramPageSize() );
+        SynchronizationResult trackerSynchronizationResult = trackerSync
+            .synchronizeData( jobParameters.getTrackerProgramPageSize() );
 
         if ( trackerSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
-            context.updateRetryContext( MetadataSyncJob.TRACKER_PUSH_SUMMARY, trackerSynchronizationResult.message, null, null );
+            context.updateRetryContext( MetadataSyncJob.TRACKER_PUSH_SUMMARY, trackerSynchronizationResult.message,
+                null, null );
             throw new MetadataSyncServiceException( trackerSynchronizationResult.message );
         }
     }
 
     public void handleEventProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
-        SynchronizationResult eventsSynchronizationResult =
-            eventSync.synchronizeData( jobParameters.getEventProgramPageSize() );
+        SynchronizationResult eventsSynchronizationResult = eventSync
+            .synchronizeData( jobParameters.getEventProgramPageSize() );
 
         if ( eventsSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
-            context.updateRetryContext( MetadataSyncJob.EVENT_PUSH_SUMMARY, eventsSynchronizationResult.message, null, null );
+            context.updateRetryContext( MetadataSyncJob.EVENT_PUSH_SUMMARY, eventsSynchronizationResult.message, null,
+                null );
             throw new MetadataSyncServiceException( eventsSynchronizationResult.message );
         }
     }
 
-    public List<MetadataVersion> handleMetadataVersionsList( MetadataRetryContext context, MetadataVersion metadataVersion )
+    public List<MetadataVersion> handleMetadataVersionsList( MetadataRetryContext context,
+        MetadataVersion metadataVersion )
     {
         log.debug( "Fetching the list of remote versions" );
 
@@ -193,7 +230,8 @@ public class MetadataSyncPreProcessor
         return metadataVersionList;
     }
 
-    private String setVersionListErrorInfoInContext( MetadataRetryContext context, MetadataVersion metadataVersion, Exception e )
+    private String setVersionListErrorInfoInContext( MetadataRetryContext context, MetadataVersion metadataVersion,
+        Exception e )
     {
         String message = "Exception happened while trying to get remote metadata versions difference " + e.getMessage();
         context.updateRetryContext( MetadataSyncJob.GET_METADATAVERSIONSLIST, e.getMessage(), metadataVersion, null );
@@ -229,9 +267,9 @@ public class MetadataSyncPreProcessor
         return metadataVersion;
     }
 
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
     // Private Methods
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
 
     private MetadataVersion getLatestVersion( List<MetadataVersion> metadataVersionList )
     {
@@ -255,13 +293,14 @@ public class MetadataSyncPreProcessor
         return null;
     }
 
-    public void handleCompleteDataSetRegistrationDataPush( MetadataRetryContext context ) {
-        SynchronizationResult completenessSynchronizationResult =
-            completeDataSetRegistrationSync.synchronizeData();
+    public void handleCompleteDataSetRegistrationDataPush( MetadataRetryContext context )
+    {
+        SynchronizationResult completenessSynchronizationResult = completeDataSetRegistrationSync.synchronizeData();
 
         if ( completenessSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
-            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, completenessSynchronizationResult.message, null, null );
+            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, completenessSynchronizationResult.message,
+                null, null );
             throw new MetadataSyncServiceException( completenessSynchronizationResult.message );
         }
     }

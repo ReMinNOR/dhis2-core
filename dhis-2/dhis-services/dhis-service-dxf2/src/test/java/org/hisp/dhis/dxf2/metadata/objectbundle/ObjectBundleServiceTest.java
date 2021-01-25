@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
@@ -28,7 +55,18 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.dxf2.metadata.AtomicMode.NONE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -45,7 +83,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -72,17 +109,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.hisp.dhis.dxf2.metadata.AtomicMode.NONE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -105,7 +132,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     private UserService _userService;
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
         renderService = _renderService;
         userService = _userService;
@@ -155,11 +183,13 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         bundle.getPreheat().put( bundle.getPreheatIdentifier(), dataElementGroup );
 
         assertTrue( bundle.getObjectMap().get( DataElementGroup.class ).contains( dataElementGroup ) );
-        assertTrue( bundle.getPreheat().containsKey( PreheatIdentifier.UID, DataElementGroup.class, dataElementGroup.getUid() ) );
+        assertTrue( bundle.getPreheat().containsKey( PreheatIdentifier.UID, DataElementGroup.class,
+            dataElementGroup.getUid() ) );
     }
 
     @Test
-    public void testPreheatValidations() throws IOException
+    public void testPreheatValidations()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_validate1.json" ).getInputStream(), RenderFormat.JSON );
@@ -208,7 +238,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testPreheatValidationsWithCatCombo() throws IOException
+    public void testPreheatValidationsWithCatCombo()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_validate1.json" ).getInputStream(), RenderFormat.JSON );
@@ -266,7 +297,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreatePreheatValidationsInvalidObjects() throws IOException
+    public void testCreatePreheatValidationsInvalidObjects()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_validate2.json" ).getInputStream(), RenderFormat.JSON );
@@ -286,7 +318,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testUpdatePreheatValidationsInvalidObjects() throws IOException
+    public void testUpdatePreheatValidationsInvalidObjects()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_validate2.json" ).getInputStream(), RenderFormat.JSON );
@@ -304,7 +337,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testUpdateRequiresValidReferencesUID() throws IOException
+    public void testUpdateRequiresValidReferencesUID()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_validate4.json" ).getInputStream(), RenderFormat.JSON );
@@ -322,7 +356,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testUpdateWithPersistedObjectsRequiresValidReferencesUID() throws IOException
+    public void testUpdateWithPersistedObjectsRequiresValidReferencesUID()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_validate7.json" ).getInputStream(), RenderFormat.JSON );
@@ -344,7 +379,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testUpdateRequiresValidReferencesCODE() throws IOException
+    public void testUpdateRequiresValidReferencesCODE()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_validate5.json" ).getInputStream(), RenderFormat.JSON );
@@ -363,7 +399,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testUpdateRequiresValidReferencesAUTO() throws IOException
+    public void testUpdateRequiresValidReferencesAUTO()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_validate6.json" ).getInputStream(), RenderFormat.JSON );
@@ -382,7 +419,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testDeleteRequiresValidReferencesUID() throws IOException
+    public void testDeleteRequiresValidReferencesUID()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_validate4.json" ).getInputStream(), RenderFormat.JSON );
@@ -401,7 +439,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testDeleteRequiresValidReferencesCODE() throws IOException
+    public void testDeleteRequiresValidReferencesCODE()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_validate5.json" ).getInputStream(), RenderFormat.JSON );
@@ -420,7 +459,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testDeleteRequiresValidReferencesAUTO() throws IOException
+    public void testDeleteRequiresValidReferencesAUTO()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_validate6.json" ).getInputStream(), RenderFormat.JSON );
@@ -439,7 +479,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testPreheatValidationsIncludingMerge() throws IOException
+    public void testPreheatValidationsIncludingMerge()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_validate3.json" ).getInputStream(), RenderFormat.JSON );
@@ -457,7 +498,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testSimpleDataElementDeleteUID() throws IOException
+    public void testSimpleDataElementDeleteUID()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_simple_delete_uid.json" ).getInputStream(), RenderFormat.JSON );
@@ -478,7 +520,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testSimpleDataElementDeleteCODE() throws IOException
+    public void testSimpleDataElementDeleteCODE()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_simple_delete_code.json" ).getInputStream(), RenderFormat.JSON );
@@ -500,7 +543,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateSimpleMetadataUID() throws IOException
+    public void testCreateSimpleMetadataUID()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/simple_metadata.json" ).getInputStream(), RenderFormat.JSON );
@@ -551,7 +595,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateDataSetsWithUgaUID() throws IOException
+    public void testCreateDataSetsWithUgaUID()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/simple_metadata_uga.json" ).getInputStream(), RenderFormat.JSON );
@@ -582,7 +627,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateAndUpdateDataSetsWithUgaUID() throws IOException
+    public void testCreateAndUpdateDataSetsWithUgaUID()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/simple_metadata_uga.json" ).getInputStream(), RenderFormat.JSON );
@@ -597,7 +643,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         assertTrue( validate.getErrorReports().isEmpty() );
         objectBundleService.commit( bundle );
 
-        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/simple_metadata_uga.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/simple_metadata_uga.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -626,7 +673,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testUpdateDataElementsUID() throws IOException
+    public void testUpdateDataElementsUID()
+        throws IOException
     {
         defaultSetup();
 
@@ -685,7 +733,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testUpdateDataElementsCODE() throws IOException
+    public void testUpdateDataElementsCODE()
+        throws IOException
     {
         defaultSetup();
 
@@ -744,7 +793,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateDataSetWithSections() throws IOException
+    public void testCreateDataSetWithSections()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_sections.json" ).getInputStream(), RenderFormat.JSON );
@@ -790,7 +840,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateDataSetWithSectionsAndGreyedFields() throws IOException
+    public void testCreateDataSetWithSectionsAndGreyedFields()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_sections_gf.json" ).getInputStream(), RenderFormat.JSON );
@@ -859,7 +910,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testUpdateDataSetWithSectionsAndGreyedFields() throws IOException
+    public void testUpdateDataSetWithSectionsAndGreyedFields()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_sections_gf.json" ).getInputStream(), RenderFormat.JSON );
@@ -891,7 +943,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         assertEquals( 1, section2.getDataElements().size() );
         assertNotNull( section2.getDataSet() );
 
-        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/dataset_with_sections_gf_update.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_sections_gf_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -945,7 +998,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateDataSetWithCompulsoryDataElements() throws IOException
+    public void testCreateDataSetWithCompulsoryDataElements()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_compulsory.json" ).getInputStream(), RenderFormat.JSON );
@@ -958,37 +1012,38 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
         objectBundleService.create( params );
 
         /*
-        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.getErrorReports().isEmpty() );
-
-        objectBundleService.commit( bundle );
-
-        List<DataSet> dataSets = manager.getAll( DataSet.class );
-        List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
-        List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
-        List<User> users = manager.getAll( User.class );
-        List<DataElementOperand> dataElementOperands = manager.getAll( DataElementOperand.class );
-
-        assertFalse( organisationUnits.isEmpty() );
-        assertFalse( dataElements.isEmpty() );
-        assertFalse( users.isEmpty() );
-        assertFalse( userRoles.isEmpty() );
-
-        assertEquals( 1, dataSets.size() );
-        assertEquals( 1, dataElementOperands.size() );
-
-        DataSet dataSet = dataSets.get( 0 );
-        assertEquals( "DataSetA", dataSet.getName() );
-        assertTrue( dataSet.getSections().isEmpty() );
-        assertNotNull( dataSet.getUser() );
-        assertEquals( 1, dataSet.getCompulsoryDataElementOperands().size() );
-        */
+         * ObjectBundleValidationReport validate =
+         * objectBundleValidationService.validate( bundle ); assertTrue(
+         * validate.getErrorReports().isEmpty() );
+         *
+         * objectBundleService.commit( bundle );
+         *
+         * List<DataSet> dataSets = manager.getAll( DataSet.class );
+         * List<OrganisationUnit> organisationUnits = manager.getAll(
+         * OrganisationUnit.class ); List<DataElement> dataElements =
+         * manager.getAll( DataElement.class ); List<UserAuthorityGroup>
+         * userRoles = manager.getAll( UserAuthorityGroup.class ); List<User>
+         * users = manager.getAll( User.class ); List<DataElementOperand>
+         * dataElementOperands = manager.getAll( DataElementOperand.class );
+         *
+         * assertFalse( organisationUnits.isEmpty() ); assertFalse(
+         * dataElements.isEmpty() ); assertFalse( users.isEmpty() );
+         * assertFalse( userRoles.isEmpty() );
+         *
+         * assertEquals( 1, dataSets.size() ); assertEquals( 1,
+         * dataElementOperands.size() );
+         *
+         * DataSet dataSet = dataSets.get( 0 ); assertEquals( "DataSetA",
+         * dataSet.getName() ); assertTrue( dataSet.getSections().isEmpty() );
+         * assertNotNull( dataSet.getUser() ); assertEquals( 1,
+         * dataSet.getCompulsoryDataElementOperands().size() );
+         */
     }
 
     @Test
     @Ignore
-    public void testCreateDataSetNoDSEDefaults() throws IOException
+    public void testCreateDataSetNoDSEDefaults()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_compulsory.json" ).getInputStream(), RenderFormat.JSON );
@@ -1016,7 +1071,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateMetadataWithIndicator() throws IOException
+    public void testCreateMetadataWithIndicator()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/metadata_with_indicators.json" ).getInputStream(), RenderFormat.JSON );
@@ -1042,7 +1098,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateMetadataWithValidationRules() throws IOException
+    public void testCreateMetadataWithValidationRules()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/metadata_with_vr.json" ).getInputStream(), RenderFormat.JSON );
@@ -1082,7 +1139,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testUpdateMetadataWithValidationRules() throws IOException
+    public void testUpdateMetadataWithValidationRules()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/metadata_with_vr.json" ).getInputStream(), RenderFormat.JSON );
@@ -1098,7 +1156,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         objectBundleService.commit( bundle );
 
-        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/metadata_with_vr_update.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_with_vr_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -1175,7 +1234,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateAndUpdateMetadata1() throws IOException
+    public void testCreateAndUpdateMetadata1()
+        throws IOException
     {
         defaultSetup();
 
@@ -1234,7 +1294,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateAndUpdateMetadata2() throws IOException
+    public void testCreateAndUpdateMetadata2()
+        throws IOException
     {
         defaultSetup();
 
@@ -1298,8 +1359,9 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Ignore //TODO fix
-    public void testCreateAndUpdateMetadata3() throws IOException
+    @Ignore // TODO fix
+    public void testCreateAndUpdateMetadata3()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_create_and_update3.json" ).getInputStream(), RenderFormat.JSON );
@@ -1323,7 +1385,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateMetadataWithSuperuserRoleInjected() throws IOException
+    public void testCreateMetadataWithSuperuserRoleInjected()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -1343,7 +1406,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateMetadataWithDuplicateDataElementCode() throws IOException
+    public void testCreateMetadataWithDuplicateDataElementCode()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -1368,7 +1432,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateMetadataWithDuplicateDataElementUid() throws IOException
+    public void testCreateMetadataWithDuplicateDataElementUid()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -1394,7 +1459,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateMetadataWithDuplicateDataElementUidALL() throws IOException
+    public void testCreateMetadataWithDuplicateDataElementUidALL()
+        throws IOException
     {
         createUserAndInjectSecurityContext( true );
 
@@ -1415,7 +1481,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateOrgUnitWithLevels() throws IOException
+    public void testCreateOrgUnitWithLevels()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/ou_with_levels.json" ).getInputStream(), RenderFormat.JSON );
@@ -1437,7 +1504,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateAndUpdateDataSetWithSections() throws IOException
+    public void testCreateAndUpdateDataSetWithSections()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_sections.json" ).getInputStream(), RenderFormat.JSON );
@@ -1453,7 +1521,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         objectBundleService.commit( bundle );
 
-        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/dataset_with_sections.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_sections.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -1498,14 +1567,16 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateOrgUnitWithPersistedParent() throws IOException
+    public void testCreateOrgUnitWithPersistedParent()
+        throws IOException
     {
         OrganisationUnit parentOu = createOrganisationUnit( 'A' );
         parentOu.setUid( "ImspTQPwCqd" );
         manager.save( parentOu );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/orgunit_create_with_persisted_parent.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/orgunit_create_with_persisted_parent.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -1528,7 +1599,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateOrgUnitWithTranslations() throws IOException
+    public void testCreateOrgUnitWithTranslations()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/ou_with_translation.json" ).getInputStream(), RenderFormat.JSON );
@@ -1551,7 +1623,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testSetDefaultCategoryCombo() throws IOException
+    public void testSetDefaultCategoryCombo()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/de_no_cc.json" ).getInputStream(), RenderFormat.JSON );
@@ -1578,7 +1651,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testMetadataWithoutDefaults() throws IOException
+    public void testMetadataWithoutDefaults()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/metadata_no_defaults.json" ).getInputStream(), RenderFormat.JSON );
@@ -1594,7 +1668,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testInvalidDefaults() throws IOException
+    public void testInvalidDefaults()
+        throws IOException
     {
         defaultSetup();
 
@@ -1612,7 +1687,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateUpdateOrgUnitUsingCODE() throws IOException
+    public void testCreateUpdateOrgUnitUsingCODE()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/org_unit_code_id.json" ).getInputStream(), RenderFormat.JSON );
@@ -1635,7 +1711,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         String objectUid = organisationUnits.get( 0 ).getUid();
 
-        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/org_unit_code_id_update.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/org_unit_code_id_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -1655,7 +1732,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testCreateOrUpdateOrgUnitUsingCODE() throws IOException
+    public void testCreateOrUpdateOrgUnitUsingCODE()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/org_unit_code_id.json" ).getInputStream(), RenderFormat.JSON );
@@ -1678,7 +1756,8 @@ public class ObjectBundleServiceTest extends TransactionalIntegrationTest
 
         String objectUid = organisationUnits.get( 0 ).getUid();
 
-        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/org_unit_code_id_update.json" ).getInputStream(), RenderFormat.JSON );
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/org_unit_code_id_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );

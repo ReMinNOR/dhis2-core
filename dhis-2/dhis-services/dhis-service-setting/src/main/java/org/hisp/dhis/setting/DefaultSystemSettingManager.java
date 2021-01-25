@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.setting;
 
 /*
@@ -37,6 +64,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -51,12 +80,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Declare transactions on individual methods. The get-methods do not have
  * transactions declared, instead a programmatic transaction is initiated on
- * cache miss in order to reduce the number of transactions to improve performance.
+ * cache miss in order to reduce the number of transactions to improve
+ * performance.
  *
  * @author Stian Strandli
  * @author Lars Helge Overland
@@ -69,7 +97,8 @@ public class DefaultSystemSettingManager
         SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
 
     /**
-     * Cache for system settings. Does not accept nulls. Disabled during test phase.
+     * Cache for system settings. Does not accept nulls. Disabled during test
+     * phase.
      */
     private Cache<SerializableOptional> settingCache;
 
@@ -192,8 +221,9 @@ public class DefaultSystemSettingManager
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the
-     * store level behind the cache to avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at
+     * the store level behind the cache to avoid the transaction overhead for
+     * cache hits.
      */
     @Override
     public Serializable getSystemSetting( SettingKey key )
@@ -205,8 +235,9 @@ public class DefaultSystemSettingManager
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the
-     * store level behind the cache to avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at
+     * the store level behind the cache to avoid the transaction overhead for
+     * cache hits.
      */
     @Override
     public Serializable getSystemSetting( SettingKey key, Serializable defaultValue )
@@ -218,8 +249,9 @@ public class DefaultSystemSettingManager
     }
 
     /**
-     * Get system setting {@link SerializableOptional}. The return object is never
-     * null in order to cache requests for system settings which have no value or default value.
+     * Get system setting {@link SerializableOptional}. The return object is
+     * never null in order to cache requests for system settings which have no
+     * value or default value.
      *
      * @param name the system setting name.
      * @param defaultValue the default value for the system setting.
@@ -237,7 +269,15 @@ public class DefaultSystemSettingManager
                 {
                     return SerializableOptional.of( pbeStringEncryptor.decrypt( (String) setting.getDisplayValue() ) );
                 }
-                catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted or not existing
+                catch ( EncryptionOperationNotPossibleException e ) // Most
+                                                                    // likely
+                                                                    // this
+                                                                    // means the
+                                                                    // value is
+                                                                    // not
+                                                                    // encrypted
+                                                                    // or not
+                                                                    // existing
                 {
                     log.warn( "Could not decrypt system setting '" + name + "'" );
                     return SerializableOptional.empty();
@@ -255,7 +295,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Optional<String> getSystemSettingTranslation( SettingKey key, String locale )
     {
         SystemSetting setting = systemSettingStore.getByName( key.getName() );
@@ -269,12 +309,11 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<SystemSetting> getAllSystemSettings()
     {
-        return systemSettingStore.getAll().stream().
-            filter( systemSetting -> !isConfidential( systemSetting.getName() ) ).
-            collect( Collectors.toList() );
+        return systemSettingStore.getAll().stream()
+            .filter( systemSetting -> !isConfidential( systemSetting.getName() ) ).collect( Collectors.toList() );
     }
 
     @Override

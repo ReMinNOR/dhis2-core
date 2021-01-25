@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.tracker.validation.hooks;
 
 /*
@@ -130,7 +157,8 @@ public class EnrollmentInExistingValidationHook
 
             if ( !activeOnly.isEmpty() && !activeOnly.contains( enrollment ) )
             {
-                // TODO: How do we do this check on an import set, this only checks when the DB already contains it
+                // TODO: How do we do this check on an import set, this only
+                // checks when the DB already contains it
                 addError( reporter, E1015, tei, program );
             }
         }
@@ -148,7 +176,8 @@ public class EnrollmentInExistingValidationHook
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
-        //checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        // checkNotNull( trackedEntityInstance,
+        // TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -166,7 +195,8 @@ public class EnrollmentInExistingValidationHook
             {
 
                 ValidationErrorReporter localReporter = new ValidationErrorReporter( reporter.getValidationContext() );
-                trackerImportAccessManager.checkReadEnrollmentAccess( localReporter, programInstance.getProgram(), programInstance.getOrganisationUnit(), programInstance.getEntityInstance().getUid());
+                trackerImportAccessManager.checkReadEnrollmentAccess( localReporter, programInstance.getProgram(),
+                    programInstance.getOrganisationUnit(), programInstance.getEntityInstance().getUid() );
 
                 if ( localReporter.hasErrors() )
                 {
@@ -194,8 +224,8 @@ public class EnrollmentInExistingValidationHook
     }
 
     /**
-     * Get a {@link TrackedEntityInstance} from the pre-heat or from the reference
-     * tree.
+     * Get a {@link TrackedEntityInstance} from the pre-heat or from the
+     * reference tree.
      *
      * @param reporter the {@link ValidationErrorReporter} object
      * @param uid the UID of a {@link TrackedEntityInstance} object

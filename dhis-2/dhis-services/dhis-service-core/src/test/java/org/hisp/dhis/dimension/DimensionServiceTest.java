@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dimension;
 
 /*
@@ -99,7 +126,9 @@ public class DimensionServiceTest
     extends DhisSpringTest
 {
     private DataElement deA;
+
     private DataElement deB;
+
     private DataElement deC;
 
     private CategoryOptionCombo cocA;
@@ -107,6 +136,7 @@ public class DimensionServiceTest
     private DataSet dsA;
 
     private Program prA;
+
     private ProgramStage psA;
 
     private TrackedEntityAttribute atA;
@@ -114,47 +144,71 @@ public class DimensionServiceTest
     private ProgramIndicator piA;
 
     private Period peA;
+
     private Period peB;
 
     private DimensionalItemObject peLast12Months;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private OrganisationUnit ouC;
+
     private OrganisationUnit ouD;
+
     private OrganisationUnit ouE;
 
     private DimensionalItemObject ouUser;
+
     private DimensionalItemObject ouLevel2;
 
     private DataElementGroupSet deGroupSetA;
 
     private DataElementGroup deGroupA;
+
     private DataElementGroup deGroupB;
+
     private DataElementGroup deGroupC;
 
     private OrganisationUnitGroupSet ouGroupSetA;
 
     private OrganisationUnitGroup ouGroupA;
+
     private OrganisationUnitGroup ouGroupB;
+
     private OrganisationUnitGroup ouGroupC;
 
     private DimensionalItemObject itemObjectA;
+
     private DimensionalItemObject itemObjectB;
+
     private DimensionalItemObject itemObjectC;
+
     private DimensionalItemObject itemObjectD;
+
     private DimensionalItemObject itemObjectE;
+
     private DimensionalItemObject itemObjectF;
+
     private DimensionalItemObject itemObjectG;
+
     private DimensionalItemObject itemObjectH;
 
     private DimensionalItemId itemIdA;
+
     private DimensionalItemId itemIdB;
+
     private DimensionalItemId itemIdC;
+
     private DimensionalItemId itemIdD;
+
     private DimensionalItemId itemIdE;
+
     private DimensionalItemId itemIdF;
+
     private DimensionalItemId itemIdG;
+
     private DimensionalItemId itemIdH;
 
     private Set<DimensionalItemId> itemIds;
@@ -321,9 +375,12 @@ public class DimensionServiceTest
     {
         ReportTable reportTable = new ReportTable();
 
-        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, deB ) ) );
-        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB, ouC, ouD, ouE ) ) );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB ) ) );
+        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+            Lists.newArrayList( deA, deB ) ) );
+        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB, ouC, ouD, ouE ) ) );
+        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+            Lists.newArrayList( peA, peB ) ) );
 
         dimensionService.mergeAnalyticalObject( reportTable );
 
@@ -336,11 +393,14 @@ public class DimensionServiceTest
     public void testMergeAnalyticalObjectB()
     {
         ReportTable reportTable = new ReportTable();
-        BaseDimensionalObject deCDim = new BaseDimensionalObject( deC.getUid(), DimensionType.PROGRAM_DATA_ELEMENT, null, null, null, psA, "EQ:uidA" );
+        BaseDimensionalObject deCDim = new BaseDimensionalObject( deC.getUid(), DimensionType.PROGRAM_DATA_ELEMENT,
+            null, null, null, psA, "EQ:uidA" );
 
         reportTable.getColumns().add( deCDim );
-        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB, ouC ) ) );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB ) ) );
+        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB, ouC ) ) );
+        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+            Lists.newArrayList( peA, peB ) ) );
 
         dimensionService.mergeAnalyticalObject( reportTable );
 
@@ -359,9 +419,12 @@ public class DimensionServiceTest
     {
         ReportTable reportTable = new ReportTable();
 
-        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, deB ) ) );
-        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouUser ) ) );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA ) ) );
+        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+            Lists.newArrayList( deA, deB ) ) );
+        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouUser ) ) );
+        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+            Lists.newArrayList( peA ) ) );
 
         dimensionService.mergeAnalyticalObject( reportTable );
 
@@ -376,9 +439,12 @@ public class DimensionServiceTest
     {
         ReportTable reportTable = new ReportTable();
 
-        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, deB ) ) );
-        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouLevel2, ouA ) ) );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA ) ) );
+        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+            Lists.newArrayList( deA, deB ) ) );
+        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouLevel2, ouA ) ) );
+        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+            Lists.newArrayList( peA ) ) );
 
         dimensionService.mergeAnalyticalObject( reportTable );
 
@@ -393,9 +459,12 @@ public class DimensionServiceTest
     {
         ReportTable reportTable = new ReportTable();
 
-        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, deB ) ) );
-        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB, ouC, ouD, ouE ) ) );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peLast12Months ) ) );
+        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+            Lists.newArrayList( deA, deB ) ) );
+        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB, ouC, ouD, ouE ) ) );
+        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+            Lists.newArrayList( peLast12Months ) ) );
 
         dimensionService.mergeAnalyticalObject( reportTable );
 
@@ -410,9 +479,11 @@ public class DimensionServiceTest
     {
         ReportTable reportTable = new ReportTable();
 
-        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, deB ) ) );
+        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+            Lists.newArrayList( deA, deB ) ) );
         reportTable.getRows().add( ouGroupSetA );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB ) ) );
+        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+            Lists.newArrayList( peA, peB ) ) );
 
         dimensionService.mergeAnalyticalObject( reportTable );
 
@@ -427,9 +498,11 @@ public class DimensionServiceTest
     {
         ReportTable reportTable = new ReportTable();
 
-        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, deB ) ) );
+        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+            Lists.newArrayList( deA, deB ) ) );
         reportTable.getRows().add( deGroupSetA );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB ) ) );
+        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+            Lists.newArrayList( peA, peB ) ) );
 
         dimensionService.mergeAnalyticalObject( reportTable );
 
@@ -450,9 +523,12 @@ public class DimensionServiceTest
         String idF = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid();
         String idG = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + SYMBOL_WILDCARD;
         String idH = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + "UNKNOWN_SYMBOL";
-        String idI = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid();
-        String idJ = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + SYMBOL_WILDCARD;
-        String idK = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + SYMBOL_WILDCARD + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid();
+        String idI = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP
+            + cocA.getUid();
+        String idJ = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + cocA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP
+            + SYMBOL_WILDCARD;
+        String idK = deA.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + SYMBOL_WILDCARD + COMPOSITE_DIM_OBJECT_PLAIN_SEP
+            + cocA.getUid();
 
         ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prA, deA );
         ProgramTrackedEntityAttributeDimensionItem ptaA = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );

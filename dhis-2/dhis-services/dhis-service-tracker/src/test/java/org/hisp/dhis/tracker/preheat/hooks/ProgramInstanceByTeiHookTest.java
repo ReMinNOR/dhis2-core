@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.tracker.preheat.hooks;
 
 /*
@@ -127,15 +154,15 @@ public class ProgramInstanceByTeiHookTest
         p4.setProgram( program1 );
         p4.setEntityInstance( t4 );
 
-        when( programInstanceStore.getByProgramAndTrackedEntityInstance( anyList(), eq(ProgramStatus.ACTIVE) ) )
-                .thenReturn( Collections.singletonList( p4 ) );
+        when( programInstanceStore.getByProgramAndTrackedEntityInstance( anyList(), eq( ProgramStatus.ACTIVE ) ) )
+            .thenReturn( Collections.singletonList( p4 ) );
 
         // When
         this.hook.preheatAdd( params, trackerPreheat );
 
         // Then
         final Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = trackerPreheat
-                .getProgramInstances();
+            .getProgramInstances();
         assertThat( programInstancesByProgramAndTei, is( notNullValue() ) );
         assertThat( programInstancesByProgramAndTei.get( e4.getUid() ), hasSize( 1 ) );
         assertThat( programInstancesByProgramAndTei.get( e4.getUid() ).get( 0 ).getUid(), is( p4.getUid() ) );
@@ -167,7 +194,7 @@ public class ProgramInstanceByTeiHookTest
         Event e4 = createEvent( null, null, t4 );
         Event e5 = createEvent( p3, null, null );
 
-        params.setEvents( Lists.newArrayList( e1, e2, e3, e4, e5) );
+        params.setEvents( Lists.newArrayList( e1, e2, e3, e4, e5 ) );
 
         TrackerPreheat trackerPreheat = new TrackerPreheat();
 
@@ -187,20 +214,20 @@ public class ProgramInstanceByTeiHookTest
         p4.setEntityInstance( t4 );
 
         when( programInstanceStore.getByProgramAndTrackedEntityInstance( anyList(), eq( ProgramStatus.ACTIVE ) ) )
-                .thenReturn( Collections.singletonList( p4 ) );
+            .thenReturn( Collections.singletonList( p4 ) );
 
         // When
         this.hook.preheatAdd( params, trackerPreheat );
 
         // Then
         final Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = trackerPreheat
-                .getProgramInstances();
+            .getProgramInstances();
         assertThat( programInstancesByProgramAndTei, is( notNullValue() ) );
         assertThat( programInstancesByProgramAndTei.keySet(), hasSize( 0 ) );
     }
 
     private Event createEvent( ProgramInstance programInstance, Program program,
-                               TrackedEntityInstance trackedEntityInstance )
+        TrackedEntityInstance trackedEntityInstance )
     {
         Event event = new Event();
         event.setUid( CodeGenerator.generateUid() );

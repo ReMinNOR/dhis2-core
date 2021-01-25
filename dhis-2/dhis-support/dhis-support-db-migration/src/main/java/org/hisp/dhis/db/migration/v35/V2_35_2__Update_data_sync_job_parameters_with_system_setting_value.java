@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.db.migration.v35;
 
 /*
@@ -59,16 +86,20 @@ import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
  */
 public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value extends BaseJavaMigration
 {
-    private static final Logger log = LoggerFactory.getLogger( V2_35_2__Update_data_sync_job_parameters_with_system_setting_value.class );
+    private static final Logger log = LoggerFactory
+        .getLogger( V2_35_2__Update_data_sync_job_parameters_with_system_setting_value.class );
+
     private static final String DATA_VALUES_SYNC_PAGE_SIZE_KEY = "syncDataValuesPageSize";
 
     private final ObjectReader reader;
+
     private final ObjectWriter writer;
 
     public V2_35_2__Update_data_sync_job_parameters_with_system_setting_value()
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.activateDefaultTyping( BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
+        mapper.activateDefaultTyping(
+            BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
         mapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
 
         JavaType resultingJavaType = mapper.getTypeFactory().constructType( JobParameters.class );
@@ -77,14 +108,17 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
     }
 
     @Override
-    public void migrate( final Context context ) throws Exception
+    public void migrate( final Context context )
+        throws Exception
     {
         int dataValuesPageSize = fetchDataValuesPageSizeData( context );
         updateJobParamaters( context, dataValuesPageSize );
         removeEntryFromSystemSettingTable( context );
     }
 
-    private int fetchDataValuesPageSizeData( final Context context ) throws SQLException, JsonProcessingException
+    private int fetchDataValuesPageSizeData( final Context context )
+        throws SQLException,
+        JsonProcessingException
     {
         int dataValuesPageSize = fetchDataValuesPageSizeFromSystemSettings( context );
 
@@ -96,13 +130,14 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
         return dataValuesPageSize;
     }
 
-    private int fetchDataValuesPageSizeFromSystemSettings( final Context context ) throws SQLException
+    private int fetchDataValuesPageSizeFromSystemSettings( final Context context )
+        throws SQLException
     {
         int dataValuesPageSize = 0;
 
-        String sql = "SELECT value FROM systemsetting WHERE name = '" + DATA_VALUES_SYNC_PAGE_SIZE_KEY +"';";
-        try ( Statement stmt = context.getConnection().createStatement();
-              ResultSet rs = stmt.executeQuery( sql ); )
+        String sql = "SELECT value FROM systemsetting WHERE name = '" + DATA_VALUES_SYNC_PAGE_SIZE_KEY + "';";
+        try (Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( sql );)
         {
             if ( rs.next() )
             {
@@ -116,16 +151,17 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
     }
 
     private int fetchDatavaluesPageSizeFromMetadataSyncJobConfiguration( final Context context )
-        throws SQLException, JsonProcessingException
+        throws SQLException,
+        JsonProcessingException
     {
         int dataValuesPageSize = 0;
 
         String sql = "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration " +
             "WHERE jobtype = '" + JobType.META_DATA_SYNC.name() + "';";
-        try ( Statement stmt = context.getConnection().createStatement();
-              ResultSet rs = stmt.executeQuery( sql ); )
+        try (Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( sql );)
         {
-            if ( rs.next())
+            if ( rs.next() )
             {
                 MetadataSyncJobParameters jobparams = reader
                     .readValue( rs.getString( "jsonbjobparameters" ) );
@@ -138,7 +174,8 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
     }
 
     private void updateJobParamaters( final Context context, int dataValuesPageSize )
-        throws JsonProcessingException, SQLException
+        throws JsonProcessingException,
+        SQLException
     {
         if ( dataValuesPageSize > 0 )
         {
@@ -146,10 +183,10 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
 
             String sql = "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration " +
                 "WHERE jobtype = '" + JobType.DATA_SYNC.name() + "';";
-            try ( Statement stmt = context.getConnection().createStatement();
-                  ResultSet rs = stmt.executeQuery( sql ); )
+            try (Statement stmt = context.getConnection().createStatement();
+                ResultSet rs = stmt.executeQuery( sql );)
             {
-                while ( rs.next())
+                while ( rs.next() )
                 {
                     DataSynchronizationJobParameters jobparams = reader
                         .readValue( rs.getString( "jsonbjobparameters" ) );
@@ -161,8 +198,9 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
 
             for ( Map.Entry<Integer, JobParameters> jobParams : updatedJobParameters.entrySet() )
             {
-                try ( PreparedStatement ps = context.getConnection()
-                    .prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobconfigurationid = ?;" ) )
+                try (PreparedStatement ps = context.getConnection()
+                    .prepareStatement(
+                        "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobconfigurationid = ?;" ))
                 {
                     PGobject pg = new PGobject();
                     pg.setType( "jsonb" );
@@ -177,9 +215,10 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
         }
     }
 
-    private void removeEntryFromSystemSettingTable( final Context context ) throws SQLException
+    private void removeEntryFromSystemSettingTable( final Context context )
+        throws SQLException
     {
-        try ( Statement stmt = context.getConnection().createStatement() )
+        try (Statement stmt = context.getConnection().createStatement())
         {
             stmt.executeUpdate( "DELETE FROM systemsetting WHERE name = '" + DATA_VALUES_SYNC_PAGE_SIZE_KEY + "';" );
         }

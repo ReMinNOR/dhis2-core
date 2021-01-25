@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.tracker.validation;
 
 /*
@@ -28,7 +55,6 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.SneakyThrows;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -37,7 +63,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Every.everyItem;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1029;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -48,7 +76,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1029;
+import lombok.SneakyThrows;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -79,7 +108,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -133,7 +161,7 @@ public class EventImportValidationTest
             "tracker/validations/enrollments_te_te-data.json" );
 
         User user = userService.getUser( ADMIN_USER_UID );
-        trackerImportParams.setUser( user  );
+        trackerImportParams.setUser( user );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
         assertEquals( 5, trackerBundle.getTrackedEntities().size() );
@@ -149,7 +177,7 @@ public class EventImportValidationTest
                 new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
                 TrackerImportParams.class );
 
-        trackerImportParams.setUser( user  );
+        trackerImportParams.setUser( user );
 
         trackerBundle = trackerBundleService.create( trackerImportParams );
         assertEquals( 4, trackerBundle.getEnrollments().size() );
@@ -465,7 +493,8 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1039 ) ) ) );
     }
 
-    // TODO: Need help setting up this test. Need a user with all access, but lacking the F_EDIT_EXPIRED auth.
+    // TODO: Need help setting up this test. Need a user with all access, but
+    // lacking the F_EDIT_EXPIRED auth.
     @Test
     @Ignore( "Need to setup metadata with user without F_EDIT_EXPIRED" )
     public void testMissingCompletedDate()
@@ -681,7 +710,7 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1038 ) ) ) );
     }
 
-    //TODO: Can't get this to work, the preheater? inserts a program instance.
+    // TODO: Can't get this to work, the preheater? inserts a program instance.
     @Test
     @Ignore( "Can't get this to work, the preheater? inserts a program instance." )
     public void testTeiMultipleActiveEnrollmentsInNonRegProgram()
@@ -705,7 +734,7 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1040 ) ) ) );
     }
 
-    //TODO: Delete not working yet
+    // TODO: Delete not working yet
     @Test
     @Ignore( "Delete not yet working" )
     public void testEventAlreadyDeleted()
@@ -759,8 +788,9 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1042 ) ) ) );
     }
 
-    //TODO: Needs clarification, can't test this error: E1082.
-    // See comments in: org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:165
+    // TODO: Needs clarification, can't test this error: E1082.
+    // See comments in:
+    // org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:165
     @Test
     @Ignore( "Needs clarification, can't test this error: E1082. Maybe because delete not yet working" )
     public void testProgramStageDeleted()
@@ -802,8 +832,9 @@ public class EventImportValidationTest
         assertEquals( 0, trackerBundle.getEnrollments().size() );
     }
 
-    //TODO: Can't provoke this state
-    // see comments in: org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:212
+    // TODO: Can't provoke this state
+    // see comments in:
+    // org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:212
     @Test
     @Ignore( "Can't provoke this state" )
     public void testIsRegButNoTei()
@@ -839,7 +870,7 @@ public class EventImportValidationTest
 
         // When
 
-        ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-data.json");
+        ValidateAndCommitTestUnit createAndUpdate = createEvent( "tracker/validations/events-with-notes-data.json" );
 
         // Then
 

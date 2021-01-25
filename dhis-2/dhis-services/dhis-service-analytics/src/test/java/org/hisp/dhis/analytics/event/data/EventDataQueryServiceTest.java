@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.event.data;
 
 /*
@@ -28,7 +55,13 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -66,12 +99,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -80,24 +108,31 @@ public class EventDataQueryServiceTest
     extends DhisSpringTest
 {
     private Program prA;
+
     private ProgramStage psA;
 
     private Period peA;
+
     private Period peB;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
 
     private DataElement deA;
+
     private DataElement deB;
+
     private DataElement deC;
 
     private TrackedEntityAttribute atA;
+
     private TrackedEntityAttribute atB;
 
     private LegendSet legendSetA;
 
     private Legend legendA;
+
     private Legend legendB;
 
     @Autowired
@@ -201,7 +236,8 @@ public class EventDataQueryServiceTest
         filterParams.add( "pe:201401" );
 
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).build();
+            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
+            .aggregationType( AggregationType.AVERAGE ).build();
 
         EventQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -227,7 +263,8 @@ public class EventDataQueryServiceTest
         desc.add( "eventdate" );
 
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
+            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
+            .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
 
         EventQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -237,7 +274,7 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( 1, params.getDesc().size() );
-        assertEquals("executiondate", params.getDesc().get(0).getName());
+        assertEquals( "executiondate", params.getDesc().get( 0 ).getName() );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
@@ -255,7 +292,8 @@ public class EventDataQueryServiceTest
         desc.add( "ouname" );
 
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
+            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
+            .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
 
         EventQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -265,7 +303,7 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( 1, params.getDesc().size() );
-        assertEquals("ouname", params.getDesc().get(0).getName());
+        assertEquals( "ouname", params.getDesc().get( 0 ).getName() );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
@@ -283,7 +321,8 @@ public class EventDataQueryServiceTest
         desc.add( deA.getUid() );
 
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
+            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
+            .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
 
         EventQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -293,7 +332,7 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( 1, params.getDesc().size() );
-        assertEquals(deA.getUid(), params.getDesc().get(0).getUid());
+        assertEquals( deA.getUid(), params.getDesc().get( 0 ).getUid() );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
@@ -311,7 +350,8 @@ public class EventDataQueryServiceTest
         desc.add( atA.getUid() );
 
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
+            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
+            .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
 
         EventQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -321,7 +361,7 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( 1, params.getDesc().size() );
-        assertEquals(atA.getUid(), params.getDesc().get(0).getUid());
+        assertEquals( atA.getUid(), params.getDesc().get( 0 ).getUid() );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
@@ -389,7 +429,8 @@ public class EventDataQueryServiceTest
         eventChart.getRowDimensions().add( DimensionalObject.ORGUNIT_DIM_ID );
         eventChart.getFilterDimensions().add( DimensionalObject.PERIOD_DIM_ID );
 
-        eventChart.getDataElementDimensions().add( new TrackedEntityDataElementDimension( deA, null, null, "GT:2000" ) );
+        eventChart.getDataElementDimensions()
+            .add( new TrackedEntityDataElementDimension( deA, null, null, "GT:2000" ) );
         eventChart.getAttributeDimensions().add( new TrackedEntityAttributeDimension( atA, null, "LE:5" ) );
         eventChart.getPeriods().add( peA );
         eventChart.getPeriods().add( peB );
@@ -446,7 +487,8 @@ public class EventDataQueryServiceTest
     public void testGetFromUrlLegendSet()
     {
         Set<String> dimensionParams = new HashSet<>();
-        dimensionParams.add( deA.getUid() + "-" + legendSetA.getUid() + ":IN:" + legendA.getUid() + ";" + legendB.getUid() );
+        dimensionParams
+            .add( deA.getUid() + "-" + legendSetA.getUid() + ":IN:" + legendA.getUid() + ";" + legendB.getUid() );
 
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401;201402" );
@@ -468,7 +510,8 @@ public class EventDataQueryServiceTest
     public void testGetCoordinateField()
     {
         assertEquals( "psigeometry", dataQueryService.getCoordinateField( EventQueryParams.EVENT_COORDINATE_FIELD ) );
-        assertEquals( "pigeometry", dataQueryService.getCoordinateField( EventQueryParams.ENROLLMENT_COORDINATE_FIELD ) );
+        assertEquals( "pigeometry",
+            dataQueryService.getCoordinateField( EventQueryParams.ENROLLMENT_COORDINATE_FIELD ) );
         assertEquals( "psigeometry", dataQueryService.getCoordinateField( null ) );
         assertEquals( deC.getUid(), dataQueryService.getCoordinateField( deC.getUid() ) );
     }

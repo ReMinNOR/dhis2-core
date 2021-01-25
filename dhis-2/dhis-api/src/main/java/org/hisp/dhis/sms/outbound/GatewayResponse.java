@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.sms.outbound;
 
 /*
@@ -41,7 +68,7 @@ public enum GatewayResponse
     SERVICE_NOT_AVAILABLE( "service not available", "" ),
     ENCODING_FAILURE( "encoding failed", "" ),
     PROCESSING( "processing", "" ),
-    QUEUED( "queued" ,"" ),
+    QUEUED( "queued", "" ),
     NO_GATEWAY_CONFIGURATION( "no gateway configuration found", "" ),
     NO_DEFAULT_GATEWAY( "no gateway is set to default", "" ),
     AUTHENTICATION_FAILED( "authentication failed", "" ),
@@ -72,7 +99,8 @@ public enum GatewayResponse
 
     RESULT_CODE_200( "success", "The request was successfully completed" ),
     RESULT_CODE_202( "accepted", "The message(s) will be processed" ),
-    RESULT_CODE_207( "multi-status", "More than  one message was submitted to the API; however, not all messages have the same status" ),
+    RESULT_CODE_207( "multi-status",
+        "More than  one message was submitted to the API; however, not all messages have the same status" ),
     RESULT_CODE_400( "bad request", "Validation failure (such as missing/invalid parameters or headers)" ),
     RESULT_CODE_401( "unauthorized", "Authentication failure. This can also be caused by IP lockdown settings" ),
     RESULT_CODE_402( "payment required", "Not enough credit to send message" ),
@@ -103,4 +131,3 @@ public enum GatewayResponse
         return responseMessageDetail;
     }
 }
-

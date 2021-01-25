@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.programrule.engine;
 
 /*
@@ -41,7 +68,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.api.client.util.Lists;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -84,6 +110,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import com.google.api.client.util.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -259,7 +286,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
         assertThrows( "Required DataElement(" + dataElement.getUid() + ") was not found.", RuntimeException.class,
             () -> subject.toMappedRuleEvent( programStageInstanceA ) );
-        
+
     }
 
     @Test
@@ -352,7 +379,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
         when( constantService.getAllConstants() ).thenReturn( constants );
         when( i18nManager.getI18n() ).thenReturn( i18n );
-        when ( i18n.getString( anyString() ) ).thenReturn( env_variable );
+        when( i18n.getString( anyString() ) ).thenReturn( env_variable );
 
         Map<String, DataItem> itemStore = subject.getItemStore( ListUtils.newList( programRuleVariableA,
             programRuleVariableB, programRuleVariableC ) );
@@ -360,17 +387,19 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         assertNotNull( itemStore );
         assertTrue( itemStore.containsKey( programRuleVariableA.getName() ) );
         assertEquals( itemStore.get( programRuleVariableA.getName() ).getDisplayName(),
-                ObjectUtils.firstNonNull( programRuleVariableA.getDisplayName(), programRuleVariableA.getName() ) );
+            ObjectUtils.firstNonNull( programRuleVariableA.getDisplayName(), programRuleVariableA.getName() ) );
 
         assertTrue( itemStore.containsKey( programRuleVariableB.getName() ) );
         assertEquals( itemStore.get( programRuleVariableB.getName() ).getDisplayName(),
-              ObjectUtils.firstNonNull( programRuleVariableB.getAttribute().getDisplayName(), programRuleVariableB.getAttribute().getDisplayFormName(),
-              programRuleVariableB.getAttribute().getName() ) );
+            ObjectUtils.firstNonNull( programRuleVariableB.getAttribute().getDisplayName(),
+                programRuleVariableB.getAttribute().getDisplayFormName(),
+                programRuleVariableB.getAttribute().getName() ) );
 
         assertTrue( itemStore.containsKey( programRuleVariableC.getName() ) );
         assertEquals( itemStore.get( programRuleVariableC.getName() ).getDisplayName(),
-             ObjectUtils.firstNonNull( programRuleVariableC.getDataElement().getDisplayFormName(),
-             programRuleVariableC.getDataElement().getFormName(), programRuleVariableC.getDataElement().getName() ) );
+            ObjectUtils.firstNonNull( programRuleVariableC.getDataElement().getDisplayFormName(),
+                programRuleVariableC.getDataElement().getFormName(),
+                programRuleVariableC.getDataElement().getName() ) );
 
         assertTrue( itemStore.containsKey( constant.getUid() ) );
         assertEquals( itemStore.get( constant.getUid() ).getDisplayName(), "Gravity" );

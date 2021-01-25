@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.external.conf;
 
 /*
@@ -28,24 +55,8 @@ package org.hisp.dhis.external.conf;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringSubstitutor;
-import org.hisp.dhis.encryption.EncryptionStatus;
-import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.external.location.LocationManagerException;
-import org.hisp.dhis.external.util.LogOnceLogger;
-import org.slf4j.event.Level;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.stereotype.Component;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.annotation.PostConstruct;
-import javax.crypto.Cipher;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -59,21 +70,44 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.annotation.PostConstruct;
+import javax.crypto.Cipher;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
+import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.external.util.LogOnceLogger;
+import org.slf4j.event.Level;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
 /**
  * @author Lars Helge Overland
  */
-@Profile("!test-h2")
+@Profile( "!test-h2" )
 @Component( "dhisConfigurationProvider" )
 @Slf4j
 public class DefaultDhisConfigurationProvider extends LogOnceLogger
     implements DhisConfigurationProvider
 {
     private static final String CONF_FILENAME = "dhis.conf";
+
     private static final String GOOGLE_AUTH_FILENAME = "dhis-google-auth.json";
+
     private static final String GOOGLE_EE_SCOPE = "https://www.googleapis.com/auth/earthengine";
+
     private static final String ENABLED_VALUE = "on";
+
     private static final String DISABLED_VALUE = "off";
 
     // -------------------------------------------------------------------------
@@ -113,9 +147,12 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
         // Load Google JSON authentication file into properties bundle
         // ---------------------------------------------------------------------
 
-        try ( InputStream jsonIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
+        try (InputStream jsonIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ))
         {
-            HashMap<String, Object> json = new ObjectMapper().readValue( jsonIn, new TypeReference<HashMap<String,Object>>() {} );
+            HashMap<String, Object> json = new ObjectMapper().readValue( jsonIn,
+                new TypeReference<HashMap<String, Object>>()
+                {
+                } );
 
             this.properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID.getKey(), json.get( "client_id" ) );
         }
@@ -132,7 +169,7 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
         // Load Google JSON authentication file into GoogleCredential
         // ---------------------------------------------------------------------
 
-        try ( InputStream credentialIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
+        try (InputStream credentialIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ))
         {
             GoogleCredential credential = GoogleCredential
                 .fromStream( credentialIn )
@@ -247,7 +284,8 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
     @Override
     public boolean isClusterEnabled()
     {
-        return StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_MEMBERS ) ) && StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_HOSTNAME) );
+        return StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_MEMBERS ) )
+            && StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_HOSTNAME ) );
     }
 
     @Override
@@ -262,8 +300,8 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
         String ldapUrl = getProperty( ConfigurationKey.LDAP_URL );
         String managerDn = getProperty( ConfigurationKey.LDAP_MANAGER_DN );
 
-        return !( ConfigurationKey.LDAP_URL.getDefaultValue().equals( ldapUrl ) ||
-            ldapUrl == null || managerDn == null );
+        return !(ConfigurationKey.LDAP_URL.getDefaultValue().equals( ldapUrl ) ||
+            ldapUrl == null || managerDn == null);
     }
 
     @Override
@@ -273,7 +311,8 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
 
         int maxKeyLength;
 
-        // Check for JCE files is present (key length > 128) and AES is available
+        // Check for JCE files is present (key length > 128) and AES is
+        // available
 
         try
         {
@@ -308,8 +347,8 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
     public Map<String, Serializable> getConfigurationsAsMap()
     {
         return Stream.of( ConfigurationKey.values() )
-            .collect( Collectors.toMap( ConfigurationKey::getKey, v -> v.isConfidential() ? "" :
-            getPropertyOrDefault( v, v.getDefaultValue() != null ? v.getDefaultValue() : "" ) ) );
+            .collect( Collectors.toMap( ConfigurationKey::getKey, v -> v.isConfidential() ? ""
+                : getPropertyOrDefault( v, v.getDefaultValue() != null ? v.getDefaultValue() : "" ) ) );
     }
 
     // -------------------------------------------------------------------------
@@ -319,7 +358,7 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
     private Properties loadDhisConf()
         throws IllegalStateException
     {
-        try ( InputStream in = locationManager.getInputStream( CONF_FILENAME ) )
+        try (InputStream in = locationManager.getInputStream( CONF_FILENAME ))
         {
             Properties conf = PropertiesLoaderUtils.loadProperties( new InputStreamResource( in ) );
             substituteEnvironmentVariables( conf );
@@ -336,7 +375,9 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
 
     private void substituteEnvironmentVariables( Properties properties )
     {
-        final StringSubstitutor substitutor = new StringSubstitutor( System.getenv() ); // Matches on ${...}
+        final StringSubstitutor substitutor = new StringSubstitutor( System.getenv() ); // Matches
+                                                                                        // on
+                                                                                        // ${...}
 
         properties.entrySet().forEach( entry -> entry.setValue( substitutor.replace( entry.getValue() ).trim() ) );
     }

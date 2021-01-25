@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.analytics.table;
 
 /*
@@ -97,8 +124,7 @@ public class JdbcValidationResultTableManager
         new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "vr.uid" ),
         new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ),
         new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ),
-        new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" )
-    );
+        new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ) );
 
     @Override
     public AnalyticsTableType getAnalyticsTableType()
@@ -109,9 +135,8 @@ public class JdbcValidationResultTableManager
     @Override
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        AnalyticsTable table = params.isLatestUpdate() ?
-            new AnalyticsTable() :
-            getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
+        AnalyticsTable table = params.isLatestUpdate() ? new AnalyticsTable()
+            : getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
         return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
@@ -125,7 +150,8 @@ public class JdbcValidationResultTableManager
     @Override
     public String validState()
     {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select validationresultid from validationresult limit 1" ).next();
+        boolean hasData = jdbcTemplate.queryForRowSet( "select validationresultid from validationresult limit 1" )
+            .next();
 
         if ( !hasData )
         {
@@ -174,16 +200,16 @@ public class JdbcValidationResultTableManager
             select += col.getAlias() + ",";
         }
 
-        select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
+        select = select.replace( "organisationunitid", "sourceid" ); // Legacy
+                                                                     // fix
 
-        select +=
-            "vrs.created as value " +
+        select += "vrs.created as value " +
             "from validationresult vrs " +
             "inner join period pe on vrs.periodid=pe.periodid " +
             "inner join _periodstructure ps on vrs.periodid=ps.periodid " +
             "inner join validationrule vr on vr.validationruleid=vrs.validationruleid " +
             "inner join _organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid " +
-                "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
+            "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
             "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid " +
             "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "where ps.year = " + partition.getYear() + " " +
@@ -197,8 +223,7 @@ public class JdbcValidationResultTableManager
 
     private List<Integer> getDataYears( AnalyticsTableUpdateParams params )
     {
-        String sql =
-            "select distinct(extract(year from pe.startdate)) " +
+        String sql = "select distinct(extract(year from pe.startdate)) " +
             "from validationresult vrs " +
             "inner join period pe on vrs.periodid=pe.periodid " +
             "where pe.startdate is not null " +
@@ -216,14 +241,12 @@ public class JdbcValidationResultTableManager
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        List<OrganisationUnitGroupSet> orgUnitGroupSets =
-            idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
+        List<OrganisationUnitGroupSet> orgUnitGroupSets = idObjectManager
+            .getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
 
-        List<OrganisationUnitLevel> levels =
-                organisationUnitService.getFilledOrganisationUnitLevels();
+        List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
 
-        List<Category> attributeCategories =
-            categoryService.getAttributeDataDimensionCategoriesNoAcl();
+        List<Category> attributeCategories = categoryService.getAttributeDataDimensionCategoriesNoAcl();
 
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
@@ -234,7 +257,8 @@ public class JdbcValidationResultTableManager
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
+            columns.add(
+                new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
         }
 
         for ( Category category : attributeCategories )
@@ -259,7 +283,8 @@ public class JdbcValidationResultTableManager
     }
 
     @Override
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )
+    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
+        Collection<String> dataElements, int aggregationLevel )
     {
         return ConcurrentUtils.getImmediateFuture();
     }

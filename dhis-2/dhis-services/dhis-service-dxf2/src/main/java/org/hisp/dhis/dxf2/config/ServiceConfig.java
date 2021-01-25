@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.config;
 
 /*
@@ -54,7 +81,9 @@ import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramInstanceRepea
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
+import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStoredByPreProcessor;
+import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboDateCheck;
@@ -64,9 +93,7 @@ import org.hisp.dhis.dxf2.events.importer.shared.validation.EventGeometryCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramInstanceCheck;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.EventUpdateAuditPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramStageInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.UserInfoUpdatePreProcessor;
@@ -253,7 +280,7 @@ public class ServiceConfig
             ProgramStagePreProcessor.class,
             EventGeometryPreProcessor.class,
             FilteringOutUndeclaredDataElementsProcessor.class,
-            UserInfoInsertPreProcessor.class) );
+            UserInfoInsertPreProcessor.class ) );
     }
 
     @Bean
@@ -274,7 +301,7 @@ public class ServiceConfig
             EventStoredByPreProcessor.class,
             ProgramStageInstanceUpdatePreProcessor.class,
             ProgramInstanceGeometryPreProcessor.class,
-            UserInfoUpdatePreProcessor.class) );
+            UserInfoUpdatePreProcessor.class ) );
     }
 
     @Bean
@@ -291,10 +318,10 @@ public class ServiceConfig
     {
         return ImmutableMap.of( DELETE, newArrayList(
         /*
-         * Intentionally left empty since we don't have pre-delete processors at the
-         * moment, so at the moment this is a placeholder where to add pre-delete
-         * processors when we will need it (if ever). Remove this comment if you add a
-         * pre-delete processor.
+         * Intentionally left empty since we don't have pre-delete processors at
+         * the moment, so at the moment this is a placeholder where to add
+         * pre-delete processors when we will need it (if ever). Remove this
+         * comment if you add a pre-delete processor.
          */
         ) );
     }

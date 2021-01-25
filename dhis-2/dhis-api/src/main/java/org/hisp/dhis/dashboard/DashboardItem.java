@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dashboard;
 
 /*
@@ -238,8 +265,7 @@ public class DashboardItem
     {
         InterpretableObject object = getEmbeddedItem();
 
-        return object != null ? object.getInterpretations().
-            stream().mapToInt( Interpretation::getLikes ).sum() : 0;
+        return object != null ? object.getInterpretations().stream().mapToInt( Interpretation::getLikes ).sum() : 0;
     }
 
     /**
@@ -275,7 +301,7 @@ public class DashboardItem
         count += map != null ? 1 : 0;
         count += reportTable != null ? 1 : 0;
         count += eventReport != null ? 1 : 0;
-        count += text != null ? 1: 0;
+        count += text != null ? 1 : 0;
         count += users.size();
         count += reports.size();
         count += resources.size();
@@ -351,7 +377,7 @@ public class DashboardItem
     public void setChart( Chart chart )
     {
         this.chart = chart;
-        this.visualization = convertToVisualization ( chart );
+        this.visualization = convertToVisualization( chart );
     }
 
     @JsonProperty
@@ -365,7 +391,7 @@ public class DashboardItem
     public void setReportTable( ReportTable reportTable )
     {
         this.reportTable = reportTable;
-        this.visualization = convertToVisualization ( reportTable );
+        this.visualization = convertToVisualization( reportTable );
     }
 
     @JsonProperty
@@ -548,7 +574,8 @@ public class DashboardItem
     }
 
     /******************************
-     * Deprecated methods required to keep ReportTable and Chart backward compatible
+     * Deprecated methods required to keep ReportTable and Chart backward
+     * compatible
      ******************************/
 
     private Visualization convertToVisualization( final Chart chart )

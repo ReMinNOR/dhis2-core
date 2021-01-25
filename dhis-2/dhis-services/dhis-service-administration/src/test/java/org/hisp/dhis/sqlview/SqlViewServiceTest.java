@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.sqlview;
 
 /*
@@ -78,7 +105,7 @@ public class SqlViewServiceTest
         + "FROM dataelement AS de, datavalue AS dv, period AS p " + "WHERE de.dataelementid=dv.dataelementid "
         + "AND dv.periodid=p.periodid LIMIT 10";
 
-    private String sqlE = "WITH foo as (SELECT * FROM organisationunit) SELECT * FROM foo LIMIT 2; " ;
+    private String sqlE = "WITH foo as (SELECT * FROM organisationunit) SELECT * FROM foo LIMIT 2; ";
 
     // -------------------------------------------------------------------------
     // Supportive methods
@@ -193,7 +220,7 @@ public class SqlViewServiceTest
     public void testValidateIllegalKeywordsCTE()
     {
         SqlView sqlView = getSqlView( "WITH foo as (delete FROM dataelement returning *) SELECT * FROM foo;" );
-        
+
         assertIllegalQueryEx(
             assertThrows( IllegalQueryException.class, () -> sqlViewService.validateSqlView( sqlView, null, null ) ),
             ErrorCode.E4311 );
@@ -370,7 +397,8 @@ public class SqlViewServiceTest
         Map<String, String> variables = new HashMap<>();
         variables.put( "ten", "10" );
 
-        SqlView sqlView = new SqlView( "Name", "select '${_current_username}', ${_current_user_id}, ${ten}", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name", "select '${_current_username}', ${_current_user_id}, ${ten}",
+            SqlViewType.QUERY );
 
         Grid grid = sqlViewService.getSqlViewGrid( sqlView, null, variables, null, null );
 
@@ -379,7 +407,7 @@ public class SqlViewServiceTest
             "[Mary, 47, 10]\n" +
             "]" );
     }
-    
+
     private SqlView getSqlView( String sqlViewString )
     {
         return new SqlView( "Name", sqlViewString, SqlViewType.QUERY );

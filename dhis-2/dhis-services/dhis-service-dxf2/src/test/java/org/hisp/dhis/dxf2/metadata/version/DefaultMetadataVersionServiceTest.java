@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.metadata.version;
 
 /*
@@ -28,8 +55,16 @@ package org.hisp.dhis.dxf2.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang.time.DateUtils;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
+import java.security.NoSuchAlgorithmException;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -45,15 +80,6 @@ import org.junit.Test;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author sultanm
@@ -77,6 +103,7 @@ public class DefaultMetadataVersionServiceTest
     public MockitoRule rule = MockitoJUnit.rule();
 
     private MetadataVersion versionA;
+
     private MetadataVersion versionB;
 
     public static boolean compareVersionsUtil( MetadataVersion v1, MetadataVersion v2 )
@@ -90,7 +117,8 @@ public class DefaultMetadataVersionServiceTest
             return false;
         }
 
-        return (v1.getCreated() == v2.getCreated()) && (v1.getName().equals( v2.getName() )) && (v1.getType() == v2.getType());
+        return (v1.getCreated() == v2.getCreated()) && (v1.getName().equals( v2.getName() ))
+            && (v1.getType() == v2.getType());
     }
 
     // -------------------------------------------------------------------------
@@ -205,23 +233,24 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldSaveVersionAndSnapShot() throws NoSuchAlgorithmException
+    public void testShouldSaveVersionAndSnapShot()
+        throws NoSuchAlgorithmException
     {
         versionService.addVersion( versionA );
         versionService.saveVersion( VersionType.ATOMIC );
 
-        //testing if correct version is saved in metadataVersion table
+        // testing if correct version is saved in metadataVersion table
         assertEquals( "Version_2", versionService.getCurrentVersion().getName() );
         assertEquals( VersionType.ATOMIC, versionService.getCurrentVersion().getType() );
 
-        //testing if correct version name is saved in system setting
+        // testing if correct version name is saved in system setting
         assertEquals( "Version_2", metadataSystemSettingService.getSystemMetadataVersion() );
 
-        //testing hash code for the given metadata string
+        // testing hash code for the given metadata string
         MetadataVersion metadataVersionSnap = versionService.getVersionByName( "Version_2" );
         assertEquals( metadataVersionSnap.getHashCode(), versionService.getCurrentVersion().getHashCode() );
 
-        //testing if correct version is saved in keyjsonvalue table
+        // testing if correct version is saved in keyjsonvalue table
         List<String> versions = null;
         versions = metaDataKeyJsonService.getAllVersions();
 
@@ -234,7 +263,7 @@ public class DefaultMetadataVersionServiceTest
 
         versionService.saveVersion( VersionType.BEST_EFFORT );
         KeyJsonValue expectedJson = metaDataKeyJsonService.getMetaDataVersion( "Version_3" );
-        List<String> allVersions = metaDataKeyJsonService.getAllVersions( );
+        List<String> allVersions = metaDataKeyJsonService.getAllVersions();
 
         assertEquals( 2, allVersions.size() );
         assertEquals( "Version_3", allVersions.get( 1 ) );
@@ -261,7 +290,8 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldGiveValidVersionDataIfExists() throws Exception
+    public void testShouldGiveValidVersionDataIfExists()
+        throws Exception
     {
         versionService.createMetadataVersionInDataStore( "myVersion", "myJson" );
 
@@ -269,7 +299,8 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldReturnNullWhenAVersionDoesNotExist() throws Exception
+    public void testShouldReturnNullWhenAVersionDoesNotExist()
+        throws Exception
     {
         assertEquals( null, versionService.getVersionData( "myNonExistingVersion" ) );
     }
@@ -302,9 +333,9 @@ public class DefaultMetadataVersionServiceTest
         versionService.isMetadataPassingIntegrity( null, null );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private void sleepFor( int time )
     {

@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
@@ -28,7 +55,15 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -53,13 +88,6 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -203,11 +231,12 @@ public class DefaultObjectBundleService implements ObjectBundleService
         return commitReport;
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
-    private TypeReport handleCreates( Session session, Class<? extends IdentifiableObject> klass, List<IdentifiableObject> objects, ObjectBundle bundle )
+    private TypeReport handleCreates( Session session, Class<? extends IdentifiableObject> klass,
+        List<IdentifiableObject> objects, ObjectBundle bundle )
     {
         TypeReport typeReport = new TypeReport( klass );
 
@@ -216,7 +245,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
             return typeReport;
         }
 
-        String message = "(" + bundle.getUsername() + ") Creating " + objects.size() + " object(s) of type " + objects.get( 0 ).getClass().getSimpleName();
+        String message = "(" + bundle.getUsername() + ") Creating " + objects.size() + " object(s) of type "
+            + objects.get( 0 ).getClass().getSimpleName();
 
         log.info( message );
 
@@ -225,7 +255,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             notifier.notify( bundle.getJobId(), message );
         }
 
-        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.preCreate( object, bundle )) );
+        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.preCreate( object, bundle ) ) );
 
         session.flush();
 
@@ -266,12 +296,13 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         session.flush();
 
-        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.postCreate( object, bundle )) );
+        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.postCreate( object, bundle ) ) );
 
         return typeReport;
     }
 
-    private TypeReport handleUpdates( Session session, Class<? extends IdentifiableObject> klass, List<IdentifiableObject> objects, ObjectBundle bundle )
+    private TypeReport handleUpdates( Session session, Class<? extends IdentifiableObject> klass,
+        List<IdentifiableObject> objects, ObjectBundle bundle )
     {
         TypeReport typeReport = new TypeReport( klass );
 
@@ -280,7 +311,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
             return typeReport;
         }
 
-        String message = "(" + bundle.getUsername() + ") Updating " + objects.size() + " object(s) of type " + objects.get( 0 ).getClass().getSimpleName();
+        String message = "(" + bundle.getUsername() + ") Updating " + objects.size() + " object(s) of type "
+            + objects.get( 0 ).getClass().getSimpleName();
 
         log.info( message );
 
@@ -289,8 +321,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             notifier.notify( bundle.getJobId(), message );
         }
 
-        objects.forEach( object ->
-        {
+        objects.forEach( object -> {
             IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
             objectBundleHooks.forEach( hook -> hook.preUpdate( object, persistedObject, bundle ) );
         } );
@@ -317,7 +348,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             {
                 ((BaseIdentifiableObject) persistedObject).setUser( bundle.getOverrideUser() );
 
-                if (object instanceof User)
+                if ( object instanceof User )
                 {
                     ((User) object).getUserCredentials().setUser( bundle.getOverrideUser() );
                 }
@@ -342,8 +373,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         session.flush();
 
-        objects.forEach( object ->
-        {
+        objects.forEach( object -> {
             IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
             objectBundleHooks.forEach( hook -> hook.postUpdate( persistedObject, bundle ) );
         } );
@@ -351,7 +381,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
         return typeReport;
     }
 
-    private TypeReport handleDeletes( Session session, Class<? extends IdentifiableObject> klass, List<IdentifiableObject> objects, ObjectBundle bundle )
+    private TypeReport handleDeletes( Session session, Class<? extends IdentifiableObject> klass,
+        List<IdentifiableObject> objects, ObjectBundle bundle )
     {
         TypeReport typeReport = new TypeReport( klass );
 
@@ -360,7 +391,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
             return typeReport;
         }
 
-        String message = "(" + bundle.getUsername() + ") Deleting " + objects.size() + " object(s) of type " + objects.get( 0 ).getClass().getSimpleName();
+        String message = "(" + bundle.getUsername() + ") Deleting " + objects.size() + " object(s) of type "
+            + objects.get( 0 ).getClass().getSimpleName();
 
         log.info( message );
 
@@ -369,7 +401,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
             notifier.notify( bundle.getJobId(), message );
         }
 
-        List<IdentifiableObject> persistedObjects = bundle.getPreheat().getAll( bundle.getPreheatIdentifier(), objects );
+        List<IdentifiableObject> persistedObjects = bundle.getPreheat().getAll( bundle.getPreheatIdentifier(),
+            objects );
 
         for ( IdentifiableObject object : persistedObjects )
         {
@@ -403,8 +436,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
     {
         List<Class<? extends IdentifiableObject>> klasses = new ArrayList<>();
 
-        schemaService.getMetadataSchemas().forEach( schema ->
-        {
+        schemaService.getMetadataSchemas().forEach( schema -> {
             Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) schema.getKlass();
 
             if ( bundle.getObjectMap().containsKey( klass ) )

@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.calendar;
 
 /*
@@ -28,7 +55,11 @@ package org.hisp.dhis.calendar;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
+import java.util.Date;
+import java.util.TimeZone;
+
+import javax.validation.constraints.NotNull;
+
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -36,9 +67,7 @@ import org.joda.time.IllegalInstantException;
 import org.joda.time.LocalDateTime;
 import org.joda.time.chrono.ISOChronology;
 
-import javax.validation.constraints.NotNull;
-import java.util.Date;
-import java.util.TimeZone;
+import com.google.common.base.MoreObjects;
 
 /**
  * Class representing a specific calendar date.
@@ -88,7 +117,7 @@ public class DateTimeUnit
     private int minute;
 
     /**
-     * Second  of minute, range is 0 - 59.
+     * Second of minute, range is 0 - 59.
      */
     private int second;
 
@@ -98,7 +127,8 @@ public class DateTimeUnit
     private int millis;
 
     /**
-     * TimeZone for this dateTime instance, defaults to the local tz, used when converting to/from joda/jdk calenders.
+     * TimeZone for this dateTime instance, defaults to the local tz, used when
+     * converting to/from joda/jdk calenders.
      */
     private TimeZone timeZone = TimeZone.getDefault();
 
@@ -298,7 +328,8 @@ public class DateTimeUnit
     {
         try
         {
-            return new DateTime( year, month, day, hour, minute, second, millis, chronology.withZone( DateTimeZone.forTimeZone( timeZone ) ) );
+            return new DateTime( year, month, day, hour, minute, second, millis,
+                chronology.withZone( DateTimeZone.forTimeZone( timeZone ) ) );
         }
         catch ( IllegalInstantException ex )
         {
@@ -337,14 +368,15 @@ public class DateTimeUnit
      */
     public static DateTimeUnit fromJodaDateTime( DateTime dateTime )
     {
-        return new DateTimeUnit( dateTime.getYear(), dateTime.getMonthOfYear(), dateTime.getDayOfMonth(), dateTime.getDayOfWeek() );
+        return new DateTimeUnit( dateTime.getYear(), dateTime.getMonthOfYear(), dateTime.getDayOfMonth(),
+            dateTime.getDayOfWeek() );
     }
 
     /**
      * Converts from Joda-Time DateTime to DateUnit
      *
      * @param dateTime DateTime object
-     * @param iso8601  whether date time is iso8601
+     * @param iso8601 whether date time is iso8601
      * @return Populated DateUnit object
      */
     public static DateTimeUnit fromJodaDateTime( DateTime dateTime, boolean iso8601 )
@@ -352,7 +384,8 @@ public class DateTimeUnit
         DateTimeUnit dateTimeUnit = new DateTimeUnit( iso8601 );
         dateTimeUnit.setDate( dateTime.getYear(), dateTime.getMonthOfYear(), dateTime.getDayOfMonth() );
         dateTimeUnit.setDayOfWeek( dateTime.getDayOfWeek() );
-        dateTimeUnit.setTime( dateTime.getHourOfDay(), dateTime.getMinuteOfHour(), dateTime.getSecondOfMinute(), dateTime.getMillisOfSecond() );
+        dateTimeUnit.setTime( dateTime.getHourOfDay(), dateTime.getMinuteOfHour(), dateTime.getSecondOfMinute(),
+            dateTime.getMillisOfSecond() );
         dateTimeUnit.setTimeZone( dateTime.getZone().toTimeZone() );
 
         return dateTimeUnit;
@@ -380,23 +413,34 @@ public class DateTimeUnit
         return fromJodaDateTime( new DateTime( date.getTime() ), true );
     }
 
-    // Note that we do not include dayOfWeek in equals/hashCode, this might not always be set
+    // Note that we do not include dayOfWeek in equals/hashCode, this might not
+    // always be set
     @Override
     public boolean equals( Object o )
     {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
 
         DateTimeUnit that = (DateTimeUnit) o;
 
-        if ( day != that.day ) return false;
-        if ( hour != that.hour ) return false;
-        if ( iso8601 != that.iso8601 ) return false;
-        if ( millis != that.millis ) return false;
-        if ( minute != that.minute ) return false;
-        if ( month != that.month ) return false;
-        if ( second != that.second ) return false;
-        if ( year != that.year ) return false;
+        if ( day != that.day )
+            return false;
+        if ( hour != that.hour )
+            return false;
+        if ( iso8601 != that.iso8601 )
+            return false;
+        if ( millis != that.millis )
+            return false;
+        if ( minute != that.minute )
+            return false;
+        if ( month != that.month )
+            return false;
+        if ( second != that.second )
+            return false;
+        if ( year != that.year )
+            return false;
         // if ( !timeZone.equals( that.timeZone ) ) return false;
 
         return true;

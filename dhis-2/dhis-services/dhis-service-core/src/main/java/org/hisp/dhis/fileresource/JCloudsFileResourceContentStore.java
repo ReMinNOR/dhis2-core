@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.fileresource;
 
 /*
@@ -42,6 +69,8 @@ import java.util.regex.Pattern;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -66,8 +95,6 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -98,8 +125,8 @@ public class JCloudsFileResourceContentStore
 
     private static final String JCLOUDS_PROVIDER_KEY_TRANSIENT = "transient";
 
-    private static final List<String> SUPPORTED_PROVIDERS =
-        Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM, JCLOUDS_PROVIDER_KEY_AWS_S3, JCLOUDS_PROVIDER_KEY_TRANSIENT );
+    private static final List<String> SUPPORTED_PROVIDERS = Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM,
+        JCLOUDS_PROVIDER_KEY_AWS_S3, JCLOUDS_PROVIDER_KEY_TRANSIENT );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -133,14 +160,12 @@ public class JCloudsFileResourceContentStore
         config = new BlobStoreProperties(
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_PROVIDER ),
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_LOCATION ),
-            configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER )
-        );
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER ) );
 
         Pair<Credentials, Properties> providerConfig = configureForProvider(
             config.provider,
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_IDENTITY ),
-            configurationProvider.getProperty( ConfigurationKey.FILESTORE_SECRET )
-        );
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_SECRET ) );
 
         // ---------------------------------------------------------------------
         // Set up JClouds context
@@ -204,7 +229,8 @@ public class JCloudsFileResourceContentStore
         }
         catch ( IOException e )
         {
-            log.warn( String.format( "Unable to retrieve fileResource with key: %s. Message: %s", key, e.getMessage() ) );
+            log.warn(
+                String.format( "Unable to retrieve fileResource with key: %s. Message: %s", key, e.getMessage() ) );
             return null;
         }
     }
@@ -367,7 +393,8 @@ public class JCloudsFileResourceContentStore
 
     @Override
     public void copyContent( String key, OutputStream output )
-        throws IOException, NoSuchElementException
+        throws IOException,
+        NoSuchElementException
     {
         if ( !blobExists( key ) )
         {
@@ -376,7 +403,7 @@ public class JCloudsFileResourceContentStore
 
         Blob blob = getBlob( key );
 
-        try ( InputStream in = blob.getPayload().openStream() )
+        try (InputStream in = blob.getPayload().openStream())
         {
             IOUtils.copy( in, output );
         }
@@ -425,18 +452,17 @@ public class JCloudsFileResourceContentStore
 
     private boolean requestSigningSupported( BlobRequestSigner signer )
     {
-        return !( signer instanceof RequestSigningUnsupported) && !( signer instanceof LocalBlobRequestSigner );
+        return !(signer instanceof RequestSigningUnsupported) && !(signer instanceof LocalBlobRequestSigner);
     }
 
     private static Location createRegionLocation( BlobStoreProperties config, Location provider )
     {
-        return config.location != null ?
-            new LocationBuilder()
-                .scope( LocationScope.REGION )
-                .id( config.location )
-                .description( config.location )
-                .parent( provider )
-                .build() : null;
+        return config.location != null ? new LocationBuilder()
+            .scope( LocationScope.REGION )
+            .id( config.location )
+            .description( config.location )
+            .parent( provider )
+            .build() : null;
     }
 
     private Pair<Credentials, Properties> configureForProvider( String provider, String identity, String secret )
@@ -491,8 +517,8 @@ public class JCloudsFileResourceContentStore
                 if ( container != null )
                 {
                     log.warn( String.format( "Container name '%s' is illegal. " +
-                            "Standard domain name naming conventions apply (no underscores allowed). " +
-                            "Using default container name ' %s'", container,
+                        "Standard domain name naming conventions apply (no underscores allowed). " +
+                        "Using default container name ' %s'", container,
                         ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue() ) );
                 }
 

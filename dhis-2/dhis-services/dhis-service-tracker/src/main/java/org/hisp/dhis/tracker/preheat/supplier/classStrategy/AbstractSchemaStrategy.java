@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 /*
@@ -61,7 +88,7 @@ import org.mapstruct.factory.Mappers;
 /**
  * Abstract Tracker Preheat strategy that applies to strategies that employ the
  * generic {@link QueryService} to fetch data (mostly for Metadata classes)
- * 
+ *
  * @author Luciano Fiandesio
  */
 public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrategy
@@ -127,21 +154,22 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     {
         return schema.getKlass().getSimpleName();
     }
-    
-    @SuppressWarnings( {"unchecked", "rawtypes"} )
-    private List<IdentifiableObject> cacheAwareFetch( User user, Schema schema, TrackerIdentifier identifier, List<String> ids, Class<? extends PreheatMapper> mapper )
+
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
+    private List<IdentifiableObject> cacheAwareFetch( User user, Schema schema, TrackerIdentifier identifier,
+        List<String> ids, Class<? extends PreheatMapper> mapper )
     {
         TrackerIdScheme idScheme = identifier.getIdScheme();
-        
+
         List<IdentifiableObject> objects;
         final String cacheKey = buildCacheKey( schema );
-        
+
         if ( isCacheable() ) // check if this strategy requires caching
         {
             if ( isLoadAllEntities( ids ) )
             {
                 return map( cacheAndReturnLookupData( schema ), mapper );
-            }   
+            }
             else
             {
                 Map<String, IdentifiableObject> foundInCache = new HashMap<>();
@@ -158,12 +186,14 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
                     // remove from the list of ids the ids found in cache
                     ids.removeAll( foundInCache.keySet() );
 
-                    // execute the query, fetching only the ids which are not in cache
+                    // execute the query, fetching only the ids which are not in
+                    // cache
                     objects = map(
                         (List<IdentifiableObject>) queryService.query( buildQuery( schema, user, idScheme, ids ) ),
                         mapper );
 
-                    // put objects in query based on given scheme. If the key can't get resolved, send null to the
+                    // put objects in query based on given scheme. If the key
+                    // can't get resolved, send null to the
                     // cacheService, which will ignore the entry
                     objects.forEach( o -> cache.put( cacheKey,
                         PreheatUtils.resolveKey( identifier, o ).orElseGet( null ), o, getCacheTTL(), getCapacity() ) );
@@ -184,10 +214,10 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
                     (List<IdentifiableObject>) queryService.query( buildQuery( schema, user, idScheme, ids ) ),
                     mapper );
         }
-            
+
         return objects;
     }
-    
+
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     private List<IdentifiableObject> map( List<IdentifiableObject> objects, Class<? extends PreheatMapper> mapper )
     {
@@ -202,7 +232,6 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
                 .map( IdentifiableObject.class::cast ).collect( Collectors.toList() );
         }
     }
-    
 
     private Query buildQuery( Schema schema, User user, TrackerIdScheme idScheme, List<String> ids )
     {
@@ -220,7 +249,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         {
             return Restrictions.in( "code", ids );
         }
-        else if( TrackerIdScheme.NAME.equals( idScheme) )
+        else if ( TrackerIdScheme.NAME.equals( idScheme ) )
         {
             return Restrictions.in( "name", ids );
         }
@@ -230,7 +259,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     private List<IdentifiableObject> cacheAndReturnLookupData( Schema schema )
     {
         List<IdentifiableObject> objects;

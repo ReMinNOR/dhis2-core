@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.programrule;
 
 /*
@@ -38,7 +65,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -51,15 +77,23 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Sets;
+
 public class ProgramRuleActionServiceTest
     extends DhisSpringTest
 {
     private ProgramRule programRuleA;
+
     private ProgramRule programRuleB;
+
     private ProgramRule programRuleC;
+
     private TrackedEntityAttribute attributeA;
+
     private DataElement dataElementA;
+
     private Program programA;
+
     private ProgramStage programStageA;
 
     @Autowired
@@ -92,32 +126,37 @@ public class ProgramRuleActionServiceTest
         programRuleB = createProgramRule( 'B', programA );
         programRuleC = createProgramRule( 'C', programA );
         dataElementA = createDataElement( 'A' );
-        attributeA = createTrackedEntityAttribute('a');
+        attributeA = createTrackedEntityAttribute( 'a' );
 
         programService.addProgram( programA );
-        programStageService.saveProgramStage(programStageA);
+        programStageService.saveProgramStage( programStageA );
         programRuleService.addProgramRule( programRuleA );
         programRuleService.addProgramRule( programRuleB );
         programRuleService.addProgramRule( programRuleC );
         dataElementService.addDataElement( dataElementA );
-        attributeService.addTrackedEntityAttribute(attributeA);
+        attributeService.addTrackedEntityAttribute( attributeA );
     }
 
     @Test
     public void testAddGet()
     {
-        ProgramRuleAction actionA = new ProgramRuleAction( "ActionA", programRuleA, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true", null, null);
-        ProgramRuleAction actionB = new ProgramRuleAction( "ActionB", programRuleA, ProgramRuleActionType.DISPLAYTEXT, null, null, null, null, null, "con","Hello", "$placeofliving", null, null);
-        ProgramRuleAction actionC = new ProgramRuleAction( "ActionC", programRuleA, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, null, null, null, null);
-        ProgramRuleAction actionD = new ProgramRuleAction( "ActionD", programRuleA, ProgramRuleActionType.HIDEFIELD, null, attributeA, null, null, null, null, null, null, null, null);
-        ProgramRuleAction actionE = new ProgramRuleAction( "ActionE", programRuleA, ProgramRuleActionType.CREATEEVENT, null, null, null, programStageA, null, null, null, "{wqpUVEeJR3D:30,mrVkW9h2Rdp:'live'}", null, null);
-        
+        ProgramRuleAction actionA = new ProgramRuleAction( "ActionA", programRuleA, ProgramRuleActionType.ASSIGN, null,
+            null, null, null, null, null, "$myvar", "true", null, null );
+        ProgramRuleAction actionB = new ProgramRuleAction( "ActionB", programRuleA, ProgramRuleActionType.DISPLAYTEXT,
+            null, null, null, null, null, "con", "Hello", "$placeofliving", null, null );
+        ProgramRuleAction actionC = new ProgramRuleAction( "ActionC", programRuleA, ProgramRuleActionType.HIDEFIELD,
+            dataElementA, null, null, null, null, null, null, null, null, null );
+        ProgramRuleAction actionD = new ProgramRuleAction( "ActionD", programRuleA, ProgramRuleActionType.HIDEFIELD,
+            null, attributeA, null, null, null, null, null, null, null, null );
+        ProgramRuleAction actionE = new ProgramRuleAction( "ActionE", programRuleA, ProgramRuleActionType.CREATEEVENT,
+            null, null, null, programStageA, null, null, null, "{wqpUVEeJR3D:30,mrVkW9h2Rdp:'live'}", null, null );
+
         long idA = actionService.addProgramRuleAction( actionA );
         long idB = actionService.addProgramRuleAction( actionB );
         long idC = actionService.addProgramRuleAction( actionC );
         long idD = actionService.addProgramRuleAction( actionD );
         long idE = actionService.addProgramRuleAction( actionE );
-        
+
         assertEquals( actionA, actionService.getProgramRuleAction( idA ) );
         assertEquals( actionB, actionService.getProgramRuleAction( idB ) );
         assertEquals( actionC, actionService.getProgramRuleAction( idC ) );
@@ -128,24 +167,29 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testGetByProgram()
     {
-        ProgramRuleAction actionD = new ProgramRuleAction( "ActionD", programRuleB, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true", null, null);
-        ProgramRuleAction actionE = new ProgramRuleAction( "ActionE", programRuleB, ProgramRuleActionType.DISPLAYTEXT, null, null, null, null, null, "con","Hello", "$placeofliving", null, null);
-        ProgramRuleAction actionF = new ProgramRuleAction( "ActionF", programRuleB, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, null, null, null, null);
-        //Add an action that is not part of programRuleB....
-        ProgramRuleAction actionG = new ProgramRuleAction( "ActionG", programRuleC, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, null, null, null, null);
+        ProgramRuleAction actionD = new ProgramRuleAction( "ActionD", programRuleB, ProgramRuleActionType.ASSIGN, null,
+            null, null, null, null, null, "$myvar", "true", null, null );
+        ProgramRuleAction actionE = new ProgramRuleAction( "ActionE", programRuleB, ProgramRuleActionType.DISPLAYTEXT,
+            null, null, null, null, null, "con", "Hello", "$placeofliving", null, null );
+        ProgramRuleAction actionF = new ProgramRuleAction( "ActionF", programRuleB, ProgramRuleActionType.HIDEFIELD,
+            dataElementA, null, null, null, null, null, null, null, null, null );
+        // Add an action that is not part of programRuleB....
+        ProgramRuleAction actionG = new ProgramRuleAction( "ActionG", programRuleC, ProgramRuleActionType.HIDEFIELD,
+            dataElementA, null, null, null, null, null, null, null, null, null );
 
         actionService.addProgramRuleAction( actionD );
         actionService.addProgramRuleAction( actionE );
         actionService.addProgramRuleAction( actionF );
         actionService.addProgramRuleAction( actionG );
 
-        //Get all the 3 rules for programB
+        // Get all the 3 rules for programB
         List<ProgramRuleAction> rules = actionService.getProgramRuleAction( programRuleB );
         assertEquals( 3, rules.size() );
         assertTrue( rules.contains( actionD ) );
         assertTrue( rules.contains( actionE ) );
         assertTrue( rules.contains( actionF ) );
-        //Make sure that the action connected to rule A is not returned as part of list of actions in rule B.
+        // Make sure that the action connected to rule A is not returned as part
+        // of list of actions in rule B.
         assertFalse( rules.contains( actionG ) );
 
     }
@@ -153,10 +197,11 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testUpdate()
     {
-        ProgramRuleAction actionH = new ProgramRuleAction( "ActionH", programRuleB, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true", null, null);
-        
+        ProgramRuleAction actionH = new ProgramRuleAction( "ActionH", programRuleB, ProgramRuleActionType.ASSIGN, null,
+            null, null, null, null, null, "$myvar", "true", null, null );
+
         long idH = actionService.addProgramRuleAction( actionH );
-        
+
         actionH.setName( "new name" );
         actionH.setData( "$newdata" );
         actionH.setLocation( "newlocation" );
@@ -172,12 +217,14 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testDeleteProgramRuleVariable()
     {
-        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.ASSIGN, null, null, null, null, null, null, "$myvar", "true", null, null);
-        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.DISPLAYTEXT, null, null, null, null, null, "con","Hello", "$placeofliving", null, null);
-        
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.ASSIGN, null,
+            null, null, null, null, null, "$myvar", "true", null, null );
+        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.DISPLAYTEXT,
+            null, null, null, null, null, "con", "Hello", "$placeofliving", null, null );
+
         long idI = actionService.addProgramRuleAction( actionI );
         long idJ = actionService.addProgramRuleAction( actionJ );
-        
+
         assertNotNull( actionService.getProgramRuleAction( idI ) );
         assertNotNull( actionService.getProgramRuleAction( idJ ) );
 
@@ -195,8 +242,11 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testProgramRuleActionWithNoDataObject()
     {
-        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDEFIELD, dataElementA, null, null, null, null, null, "$myvar", "true", null, null );
-        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.SETMANDATORYFIELD, null, null, null, null, null, "con","Hello", "$placeofliving", null, null );
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDEFIELD,
+            dataElementA, null, null, null, null, null, "$myvar", "true", null, null );
+        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA,
+            ProgramRuleActionType.SETMANDATORYFIELD, null, null, null, null, null, "con", "Hello", "$placeofliving",
+            null, null );
 
         actionService.addProgramRuleAction( actionI );
         actionService.addProgramRuleAction( actionJ );
@@ -214,8 +264,11 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testProgramRuleActionWithNoNotification()
     {
-        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.SENDMESSAGE, null, null, null, null, null, null, "$myvar", "true", null, null );
-        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA, ProgramRuleActionType.SCHEDULEMESSAGE, null, null, null, null, null, "con","Hello", "$placeofliving", null, null );
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.SENDMESSAGE,
+            null, null, null, null, null, null, "$myvar", "true", null, null );
+        ProgramRuleAction actionJ = new ProgramRuleAction( "ActionJ", programRuleA,
+            ProgramRuleActionType.SCHEDULEMESSAGE, null, null, null, null, null, "con", "Hello", "$placeofliving", null,
+            null );
 
         actionI.setTemplateUid( "tempUId" );
 
@@ -235,7 +288,8 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testProgramRuleActionWithNoSectionId()
     {
-        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDESECTION, null, null, null, null, null, null, "$myvar", "true", null, null );
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDESECTION,
+            null, null, null, null, null, null, "$myvar", "true", null, null );
 
         actionService.addProgramRuleAction( actionI );
 
@@ -252,7 +306,8 @@ public class ProgramRuleActionServiceTest
     @Test
     public void testProgramRuleActionWithNoStageId()
     {
-        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA, ProgramRuleActionType.HIDEPROGRAMSTAGE, null, null, null, null, null, null, "$myvar", "true", null, null );
+        ProgramRuleAction actionI = new ProgramRuleAction( "ActionI", programRuleA,
+            ProgramRuleActionType.HIDEPROGRAMSTAGE, null, null, null, null, null, null, "$myvar", "true", null, null );
 
         actionService.addProgramRuleAction( actionI );
 

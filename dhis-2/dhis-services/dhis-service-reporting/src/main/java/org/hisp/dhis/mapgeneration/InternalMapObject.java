@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.mapgeneration;
 
 /*
@@ -28,18 +55,18 @@ package org.hisp.dhis.mapgeneration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.locationtech.jts.geom.Geometry;
+import java.awt.*;
+
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.SchemaException;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.opengis.feature.simple.SimpleFeatureType;
-
-import java.awt.*;
 
 /**
  * An internal representation of a map object (feature) in a map layer.
@@ -61,12 +88,17 @@ public class InternalMapObject
     private static final float LINE_STROKE_WIDTH = 0.1f;
 
     private static final String CIRCLE = "Circle";
+
     private static final String POINT = "Point";
+
     private static final String POLYGON = "Polygon";
+
     private static final String MULTI_POLYGON = "MultiPolygon";
+
     private static final String GEOMETRIES = "geometries";
 
     public static final String TYPE_THEMATIC = "thematic";
+
     public static final String TYPE_BOUNDARY = "boundary";
 
     protected String name;
@@ -205,7 +237,6 @@ public class InternalMapObject
         }
     }
 
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -315,7 +346,7 @@ public class InternalMapObject
     public String toString()
     {
         return String.format( "InternalMapObject {" + " name: \"%s\"," + " value: %.2f," + " radius: %d,"
-                + " fillColor: %s," + " fillOpacity: %.2f" + " strokeColor: %s" + " }", name, value,
+            + " fillColor: %s," + " fillOpacity: %.2f" + " strokeColor: %s" + " }", name, value,
             radius, fillColor, fillOpacity, strokeColor );
     }
 }

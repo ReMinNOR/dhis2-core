@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.sms.listener;
 
 /*
@@ -82,9 +109,13 @@ import com.google.common.collect.Sets;
 public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
 {
     private static final String TEI_REGISTRATION_COMMAND = "tei";
+
     private static final String ATTRIBUTE_VALUE = "TEST";
+
     private static final String SMS_TEXT = TEI_REGISTRATION_COMMAND + " " + "attr=sample";
+
     private static final String ORIGINATOR = "47400000";
+
     private static final String SUCCESS_MESSAGE = "Command has been processed successfully";
 
     @Rule
@@ -126,20 +157,29 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     private TrackedEntityRegistrationSMSListener subject;
 
     private TrackedEntityType trackedEntityType;
+
     private TrackedEntityInstance trackedEntityInstance;
+
     private TrackedEntityAttribute trackedEntityAttribute;
+
     private TrackedEntityAttributeValue trackedEntityAttributeValue;
+
     private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
 
     private Program program;
 
     private OrganisationUnit organisationUnit;
+
     private User user;
 
     private SMSCommand teiRegistrationCommand;
+
     private SMSCode smsCode;
+
     private IncomingSms incomingSms;
+
     private IncomingSms updatedIncomingSms;
+
     private OutboundMessageResponse response = new OutboundMessageResponse();
 
     private String message = "";
@@ -179,12 +219,12 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
         when( trackedEntityInstanceService.getTrackedEntityInstance( anyLong() ) ).thenReturn( trackedEntityInstance );
         when( programService.hasOrgUnit( program, organisationUnit ) ).thenReturn( true );
-        
+
         // Mock for incomingSmsService
         doAnswer( invocation -> {
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
             return updatedIncomingSms;
-        }).when( incomingSmsService ).update( any() );
+        } ).when( incomingSmsService ).update( any() );
 
         subject.receive( incomingSms );
 
@@ -222,12 +262,12 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         program.getOrganisationUnits().add( organisationUnit );
         program.setTrackedEntityType( trackedEntityType );
 
-
         trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstance.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
         trackedEntityInstance.setOrganisationUnit( organisationUnit );
 
-        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', trackedEntityInstance, trackedEntityAttribute );
+        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', trackedEntityInstance,
+            trackedEntityAttribute );
         trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
 
         smsCode = new SMSCode();
