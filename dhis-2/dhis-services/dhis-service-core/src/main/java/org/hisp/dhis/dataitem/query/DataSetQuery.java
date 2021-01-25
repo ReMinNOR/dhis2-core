@@ -29,7 +29,9 @@ package org.hisp.dhis.dataitem.query;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.SetUtils.hashSet;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
+import static org.hisp.dhis.common.JsonbConverter.fromJsonb;
 import static org.hisp.dhis.dataitem.query.shared.CommonStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
@@ -41,6 +43,8 @@ import java.util.List;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.translation.Translation;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -78,7 +82,10 @@ public class DataSetQuery implements DataItemQuery
         while ( rowSet.next() )
         {
             final DataItem viewItem = new DataItem();
+            final Translation[] translations = fromJsonb( (PGobject) rowSet.getObject( "translations" ),
+                Translation[].class );
 
+            viewItem.setTranslations( hashSet( translations ) );
             viewItem.setName( rowSet.getString( "name" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
             viewItem.setDimensionItemType( REPORTING_RATE.name() );
@@ -113,7 +120,7 @@ public class DataSetQuery implements DataItemQuery
     private String getDateSetQuery( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT ds.\"name\" AS name, ds.uid AS uid"
+            "SELECT ds.\"name\" AS name, ds.uid AS uid, ds.translations"
                 + " FROM dataset ds"
                 + " WHERE ("
                 + sharingConditions( "ds", paramsMap )

@@ -29,8 +29,10 @@ package org.hisp.dhis.dataitem.query;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.SetUtils.hashSet;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
+import static org.hisp.dhis.common.JsonbConverter.fromJsonb;
 import static org.hisp.dhis.dataitem.query.shared.CommonStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
@@ -44,6 +46,8 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.translation.Translation;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -81,7 +85,10 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
         {
             final DataItem viewItem = new DataItem();
             final ValueType valueType = ValueType.fromString( rowSet.getString( "valuetype" ) );
+            final Translation[] translations = fromJsonb( (PGobject) rowSet.getObject( "translations" ),
+                Translation[].class );
 
+            viewItem.setTranslations( hashSet( translations ) );
             viewItem.setName( rowSet.getString( "program_name" ) + SPACE + rowSet.getString( "name" ) );
             viewItem.setValueType( valueType.name() );
             viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
@@ -129,7 +136,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder(
             "SELECT p.\"name\" AS program_name, p.uid AS program_uid,"
-                + " de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype"
+                + " de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype, de.translations"
                 + " FROM dataelement de"
                 + " JOIN programstagedataelement psde ON psde.dataelementid = de.dataelementid"
                 + " JOIN programstage ps ON psde.programstageid = ps.programstageid"
@@ -142,7 +149,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
 
         sql.append( valueTypeFiltering( "de", paramsMap ) );
 
-        sql.append( " GROUP BY p.\"name\", p.uid, de.\"name\", de.uid, de.valuetype" );
+        sql.append( " GROUP BY p.\"name\", p.uid, de.\"name\", de.uid, de.valuetype, de.translations" );
 
         sql.append( commonOrdering( "p", paramsMap ) );
 

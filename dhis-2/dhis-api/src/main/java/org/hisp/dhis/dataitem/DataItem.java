@@ -33,19 +33,14 @@ import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.translation.TranslationProperty.NAME;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.UserContext;
+import org.hisp.dhis.common.cache.TranslationPropertyCache;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.translation.TranslationProperty;
-import org.hisp.dhis.user.UserSettingKey;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -95,70 +90,37 @@ public class DataItem implements Serializable
     @JacksonXmlProperty( namespace = DXF_2_0 )
     private String simplifiedValueType;
 
-    /**
-     * Set of available object translation, normally filtered by locale.
-     */
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     @Getter( value = NONE )
     @Setter( value = NONE )
-    protected Set<Translation> translations = new HashSet<>();
+    private Set<Translation> translations;
 
-    /**
-     * Cache for object translations, where the cache key is a combination of
-     * locale and translation property, and value is the translated value.
-     */
     @Getter( value = NONE )
     @Setter( value = NONE )
-    protected Map<String, String> translationCache = new HashMap<>();
-
-    private DataItem dataItem;
+    private transient final TranslationPropertyCache translationPropertyCache = new TranslationPropertyCache();
 
     public String getDisplayName()
     {
-        return getTranslation( NAME, getName() );
+        return translationPropertyCache.getOrDefault( NAME, getName() );
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "translations", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "translation", namespace = DXF_2_0 )
+    public Set<Translation> getTranslations()
+    {
+        translations = translations != null ? translations : new HashSet<>();
+        return translations;
     }
 
     /**
-     * Returns a translated value for this object for the given property. The
-     * current locale is read from the user context.
-     *
-     * @param property the translation property.
-     * @param defaultValue the value to use if there are no translations.
-     * @return a translated value.
+     * Clears out cache when setting translations.
      */
-    protected String getTranslation( TranslationProperty property, String defaultValue )
+    public void setTranslations( final Set<Translation> translations )
     {
-        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
-
-        defaultValue = defaultValue != null ? defaultValue.trim() : null;
-
-        if ( locale == null || property == null )
-        {
-            return defaultValue;
-        }
-
-        loadTranslationsCacheIfEmpty();
-
-        String cacheKey = Translation.getCacheKey( locale.toString(), property );
-
-        return translationCache.getOrDefault( cacheKey, defaultValue );
-    }
-
-    /**
-     * Populates the translationsCache map unless it is already populated.
-     */
-    private void loadTranslationsCacheIfEmpty()
-    {
-        if ( translationCache.isEmpty() && translations != null )
-        {
-            for ( Translation translation : translations )
-            {
-                if ( translation.getLocale() != null && translation.getProperty() != null
-                    && !StringUtils.isEmpty( translation.getValue() ) )
-                {
-                    String key = Translation.getCacheKey( translation.getLocale(), translation.getProperty() );
-                    translationCache.put( key, translation.getValue() );
-                }
-            }
-        }
+        translationPropertyCache.clear();
+        this.translations = translations;
+        translationPropertyCache.loadIfEmpty( translations );
     }
 }

@@ -40,18 +40,23 @@ import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.apache.commons.lang3.StringUtils.wrap;
+import static org.hisp.dhis.common.UserContext.getUserSetting;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.common.ValueType.getAggregatables;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.ILIKE_DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.ILIKE_NAME;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.LOCALE;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_GROUP_UIDS;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.VALUE_TYPES;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2016;
+import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -78,6 +83,8 @@ public class FilteringHelper
     private static final String VALUE_TYPE_EQUAL_FILTER_PREFIX = "valueType:eq:";
 
     private static final String ILIKE_NAME_FILTER_PREFIX = "name:ilike:";
+
+    private static final String ILIKE_DISPLAY_NAME_FILTER = "displayName:ilike";
 
     private FilteringHelper()
     {
@@ -290,6 +297,34 @@ public class FilteringHelper
         return EMPTY;
     }
 
+    public static String extractValueFromIlikeDisplayNameFilter( final List<String> filters )
+    {
+        final byte ILIKE_VALUE = 2;
+
+        if ( CollectionUtils.isNotEmpty( filters ) )
+        {
+            for ( final String filter : filters )
+            {
+                if ( hasIlikeDisplayNameFilter( filter ) )
+                {
+                    final String[] array = filter.split( ":" );
+                    final boolean hasIlikeValue = array.length == 3;
+
+                    if ( hasIlikeValue )
+                    {
+                        return trimToEmpty( array[ILIKE_VALUE] );
+                    }
+                    else
+                    {
+                        throw new IllegalQueryException( new ErrorMessage( E2014, filter ) );
+                    }
+                }
+            }
+        }
+
+        return EMPTY;
+    }
+
     /**
      * Sets the filtering defined by filters list into the paramsMap.
      *
@@ -305,6 +340,16 @@ public class FilteringHelper
         if ( isNotBlank( ilikeName ) )
         {
             paramsMap.addValue( ILIKE_NAME, wrap( ilikeName, "%" ) );
+        }
+
+        final String ilikeDisplayName = extractValueFromIlikeDisplayNameFilter( filters );
+
+        if ( isNotBlank( ilikeDisplayName ) )
+        {
+            final Locale currentLocale = getUserSetting( DB_LOCALE );
+
+            paramsMap.addValue( ILIKE_DISPLAY_NAME, wrap( ilikeDisplayName, "%" ) );
+            paramsMap.addValue( LOCALE, currentLocale.getLanguage() );
         }
 
         if ( containsValueTypeFilter( filters ) )
@@ -416,19 +461,24 @@ public class FilteringHelper
         }
     }
 
-    public static boolean hasEqualsValueTypeFilter( final String filter )
+    private static boolean hasEqualsValueTypeFilter( final String filter )
     {
         return trimToEmpty( filter ).contains( VALUE_TYPE_EQUAL_FILTER_PREFIX );
     }
 
-    public static boolean hasInValueTypeFilter( final String filter )
+    private static boolean hasInValueTypeFilter( final String filter )
     {
         return trimToEmpty( filter ).contains( VALUE_TYPE_IN_FILTER_PREFIX );
     }
 
-    public static boolean hasIlikeNameFilter( final String filter )
+    private static boolean hasIlikeNameFilter( final String filter )
     {
         return trimToEmpty( filter ).contains( ILIKE_NAME_FILTER_PREFIX );
+    }
+
+    private static boolean hasIlikeDisplayNameFilter( final String filter )
+    {
+        return trimToEmpty( filter ).contains( ILIKE_DISPLAY_NAME_FILTER );
     }
 
     private static boolean hasEqualsDimensionTypeFilter( final String filter )

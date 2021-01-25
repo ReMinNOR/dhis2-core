@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataitem.query;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -28,59 +28,36 @@ package org.hisp.dhis.dataitem.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import static org.springframework.util.Assert.notNull;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.dataitem.DataItem;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import java.lang.reflect.Type;
+
+import org.postgresql.util.PGobject;
+
+import com.google.gson.Gson;
 
 /**
- * Interface responsible for providing the basic and necessary methods regarding
- * general data item queries.
+ * Helper class responsible for providing basic and generic methods for Jsonb
+ * manipulations.
  *
  * @author maikel arabori
  */
-public interface DataItemQuery
+public class JsonbConverter
 {
-    String ILIKE_NAME = "ilikeName";
-
-    String ILIKE_DISPLAY_NAME = "ilikeDisplayName";
-
-    String LOCALE = "locale";
-
-    String VALUE_TYPES = "valueTypes";
-
-    String USER_GROUP_UIDS = "userGroupUids";
-
-    String USER_ID = "userUid";
-
-    String MAX_LIMIT = "maxLimit";
-
-    String NAME_ORDER = "nameOrder";
+    private static final Gson gson = new Gson();
 
     /**
-     * Responsible for building the respective query statement and executing it
-     * in order to find the list of items based on the given parameter map.
-     * 
-     * @param paramsMap
-     * @return the data items found
-     */
-    List<DataItem> find( MapSqlParameterSource paramsMap );
-
-    /**
-     * Responsible for building the respective count statement and executing it
-     * in order to find the total of data items for the given parameter map.
+     * Converts from a jsonb (PGobject) into the given type class.
      *
-     * @param paramsMap
-     * @return the items found
+     * @param jsonObject the jsonb object
+     * @param type the object type expected from this conversion
+     * @param <T>
+     * @return the converted object respecting the type
      */
-    int count( MapSqlParameterSource paramsMap );
+    public static <T> T fromJsonb( final PGobject jsonObject, final Type type )
+    {
+        notNull( type, "Argument type cannot be bull" );
 
-    /**
-     * Simply returns the entity associated with the respective interface
-     * implementation.
-     * 
-     * @return the entity associated to the interface implementation
-     */
-    Class<? extends BaseDimensionalItemObject> getAssociatedEntity();
+        return (T) gson.fromJson( jsonObject.getValue(), type );
+    }
 }

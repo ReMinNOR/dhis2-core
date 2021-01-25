@@ -28,8 +28,11 @@ package org.hisp.dhis.dataitem.query.shared;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.ILIKE_DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.ILIKE_NAME;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.LOCALE;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.VALUE_TYPES;
 import static org.springframework.util.Assert.hasText;
 import static org.springframework.util.Assert.isInstanceOf;
@@ -64,6 +67,8 @@ public class FilteringStatement
             filtering.append( " AND (" + tableAlias + ".\"name\" ILIKE :" + ILIKE_NAME + ")" );
         }
 
+        filtering.append( displayNameAndLocaleFiltering( tableAlias, paramsMap ) );
+
         return filtering.toString();
     }
 
@@ -81,6 +86,8 @@ public class FilteringStatement
             filtering.append( " AND (" + tableAlias1 + ".\"name\" ILIKE :" + ILIKE_NAME + " OR " + tableAlias2
                 + ".\"name\" ILIKE :" + ILIKE_NAME + ")" );
         }
+
+        filtering.append( displayNameAndLocaleFiltering( tableAlias1, tableAlias2, paramsMap ) );
 
         return filtering.toString();
     }
@@ -119,5 +126,52 @@ public class FilteringStatement
         }
 
         return false;
+    }
+
+    private static String displayNameAndLocaleFiltering( final String tableAlias,
+        final MapSqlParameterSource paramsMap )
+    {
+        if ( paramsMap != null && paramsMap.hasValue( ILIKE_DISPLAY_NAME ) && paramsMap.hasValue( LOCALE ) )
+        {
+            isInstanceOf( String.class, paramsMap.getValue( ILIKE_DISPLAY_NAME ),
+                ILIKE_DISPLAY_NAME + " cannot be null and must be a String." );
+            hasText( (String) paramsMap.getValue( ILIKE_DISPLAY_NAME ), ILIKE_DISPLAY_NAME + " cannot be null/blank." );
+            isInstanceOf( String.class, paramsMap.getValue( LOCALE ),
+                LOCALE + " cannot be null and must be a String." );
+            hasText( (String) paramsMap.getValue( LOCALE ), LOCALE + " cannot be null/blank." );
+
+            return " AND (EXISTS (SELECT * FROM jsonb_array_elements(" + tableAlias + ".translations)"
+                + " AS x(o) WHERE x.o ->> 'property' = 'NAME' "
+                + " AND x.o ->> 'locale' = :locale AND x.o ->> 'value' ILIKE :" + ILIKE_DISPLAY_NAME + ")"
+                + " OR " + tableAlias + ".\"name\" ILIKE :" + ILIKE_DISPLAY_NAME + ")";
+        }
+
+        return EMPTY;
+    }
+
+    private static String displayNameAndLocaleFiltering( final String tableAlias1, final String tableAlias2,
+        final MapSqlParameterSource paramsMap )
+    {
+        if ( paramsMap != null && paramsMap.hasValue( ILIKE_DISPLAY_NAME ) && paramsMap.hasValue( LOCALE ) )
+        {
+            isInstanceOf( String.class, paramsMap.getValue( ILIKE_DISPLAY_NAME ),
+                ILIKE_DISPLAY_NAME + " cannot be null and must be a String." );
+            hasText( (String) paramsMap.getValue( ILIKE_DISPLAY_NAME ), ILIKE_DISPLAY_NAME + " cannot be null/blank." );
+            isInstanceOf( String.class, paramsMap.getValue( LOCALE ),
+                LOCALE + " cannot be null and must be a String." );
+            hasText( (String) paramsMap.getValue( LOCALE ), LOCALE + " cannot be null/blank." );
+
+            return " AND (EXISTS (SELECT * FROM jsonb_array_elements(" + tableAlias1 + ".translations)"
+                + " AS x(o) WHERE x.o ->> 'property' = 'NAME' "
+                + " AND x.o ->> 'locale' = :locale AND x.o ->> 'value' ILIKE :" + ILIKE_DISPLAY_NAME + ")"
+                + " OR " + tableAlias1 + ".\"name\" ILIKE :" + ILIKE_DISPLAY_NAME + ")"
+                + " OR"
+                + " (EXISTS (SELECT * FROM jsonb_array_elements(" + tableAlias2 + ".translations)"
+                + " AS x(o) WHERE x.o ->> 'property' = 'NAME' "
+                + " AND x.o ->> 'locale' = :locale AND x.o ->> 'value' ILIKE :" + ILIKE_DISPLAY_NAME + ")"
+                + " OR " + tableAlias2 + ".\"name\" ILIKE :" + ILIKE_DISPLAY_NAME + ")";
+        }
+
+        return EMPTY;
     }
 }

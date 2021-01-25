@@ -28,18 +28,16 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.apache.commons.lang3.StringUtils;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.annotation.Description;
+import org.hisp.dhis.common.cache.AttributeValueCache;
+import org.hisp.dhis.common.cache.TranslationPropertyCache;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
@@ -50,16 +48,16 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.SharingUtils;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Bob Jolliffe
@@ -107,20 +105,13 @@ public class BaseIdentifiableObject
     protected Set<AttributeValue> attributeValues = new HashSet<>();
 
     /**
-     * Cache of attribute values which allows for lookup by attribute identifier.
-     */
-    protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
-
-    /**
      * Set of available object translation, normally filtered by locale.
      */
     protected Set<Translation> translations = new HashSet<>();
 
-    /**
-     * Cache for object translations, where the cache key is a combination of
-     * locale and translation property, and value is the translated value.
-     */
-    protected Map<String, String> translationCache = new HashMap<>();
+    private transient final AttributeValueCache attributeValueCache = new AttributeValueCache();
+
+    private transient final TranslationPropertyCache translationPropertyCache = new TranslationPropertyCache();
 
     /**
      * This object is available as external read-only.
@@ -285,7 +276,8 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayName()
     {
-        return getTranslation( TranslationProperty.NAME, getName() );
+        translationPropertyCache.loadIfEmpty( translations );
+        return translationPropertyCache.getOrDefault( TranslationProperty.NAME, getName() );
     }
 
     @Override
@@ -346,20 +338,21 @@ public class BaseIdentifiableObject
     @Override
     public void setAttributeValues( Set<AttributeValue> attributeValues )
     {
-        cacheAttributeValues.clear();
+        attributeValueCache.clear();
         this.attributeValues = attributeValues;
+        attributeValueCache.loadIfEmpty( attributeValues );
     }
 
     public AttributeValue getAttributeValue( Attribute attribute )
     {
-        loadAttributeValuesCacheIfEmpty();
-        return cacheAttributeValues.get( attribute.getUid() );
+        attributeValueCache.loadIfEmpty( attributeValues );
+        return attributeValueCache.getOrDefault( attribute.getUid() );
     }
 
     public AttributeValue getAttributeValue( String attributeUid )
     {
-        loadAttributeValuesCacheIfEmpty();
-        return cacheAttributeValues.get( attributeUid );
+        attributeValueCache.loadIfEmpty( attributeValues );
+        return attributeValueCache.getOrDefault( attributeUid );
     }
 
     @Override
@@ -376,60 +369,15 @@ public class BaseIdentifiableObject
      */
     public void setTranslations( Set<Translation> translations )
     {
-        this.translationCache.clear();
+        translationPropertyCache.clear();
         this.translations = translations;
+        translationPropertyCache.loadIfEmpty( translations );
     }
 
-    /**
-     * Returns a translated value for this object for the given property. The
-     * current locale is read from the user context.
-     *
-     * @param property     the translation property.
-     * @param defaultValue the value to use if there are no translations.
-     * @return a translated value.
-     */
     protected String getTranslation( TranslationProperty property, String defaultValue )
     {
-        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
-
-        defaultValue = defaultValue != null ? defaultValue.trim() : null;
-
-        if ( locale == null || property == null )
-        {
-            return defaultValue;
-        }
-
-        loadTranslationsCacheIfEmpty();
-
-        String cacheKey = Translation.getCacheKey( locale.toString(), property );
-
-        return translationCache.getOrDefault( cacheKey, defaultValue );
-    }
-
-    /**
-     * Populates the translationsCache map unless it is already populated.
-     */
-    private void loadTranslationsCacheIfEmpty()
-    {
-        if ( translationCache.isEmpty() && translations != null )
-        {
-            for ( Translation translation : translations )
-            {
-                if ( translation.getLocale() != null && translation.getProperty() != null && !StringUtils.isEmpty( translation.getValue() ) )
-                {
-                    String key = Translation.getCacheKey( translation.getLocale(), translation.getProperty() );
-                    translationCache.put( key, translation.getValue() );
-                }
-            }
-        }
-    }
-
-    private void loadAttributeValuesCacheIfEmpty()
-    {
-        if ( cacheAttributeValues.isEmpty() && attributeValues != null )
-        {
-            attributeValues.forEach( av -> cacheAttributeValues.put( av.getAttribute().getUid(), av ) );
-        }
+        translationPropertyCache.loadIfEmpty( translations );
+        return translationPropertyCache.getOrDefault( property, defaultValue );
     }
 
     @Override
@@ -454,7 +402,7 @@ public class BaseIdentifiableObject
 
     public void setOwner( String userId )
     {
-         getSharing().setOwner( userId );
+        getSharing().setOwner( userId );
     }
 
     @Override
@@ -485,7 +433,7 @@ public class BaseIdentifiableObject
 
     public void setExternalAccess( Boolean externalAccess )
     {
-         getSharing().setExternal( externalAccess );
+        getSharing().setExternal( externalAccess );
     }
 
     @Override
@@ -499,7 +447,7 @@ public class BaseIdentifiableObject
 
     public void setUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
     {
-         getSharing().setDtoUserGroupAccesses( userGroupAccesses );
+        getSharing().setDtoUserGroupAccesses( userGroupAccesses );
         this.userGroupAccesses = userGroupAccesses;
     }
 
@@ -509,12 +457,12 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<org.hisp.dhis.user.UserAccess> getUserAccesses()
     {
-       return SharingUtils.getDtoUserAccess( sharing );
+        return SharingUtils.getDtoUserAccess( sharing );
     }
 
     public void setUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
     {
-         getSharing().setDtoUserAccesses( userAccesses );
+        getSharing().setDtoUserAccesses( userAccesses );
         this.userAccesses = userAccesses;
     }
 
@@ -570,7 +518,7 @@ public class BaseIdentifiableObject
 
     public void setSharing( Sharing sharing )
     {
-         this.sharing = sharing;
+        this.sharing = sharing;
     }
 
     @Override
@@ -610,7 +558,8 @@ public class BaseIdentifiableObject
     }
 
     /**
-     * Class check uses isAssignableFrom and get-methods to handle proxied objects.
+     * Class check uses isAssignableFrom and get-methods to handle proxied
+     * objects.
      */
     @Override
     public boolean equals( Object o )

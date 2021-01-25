@@ -52,6 +52,13 @@ public class QueryExecutor
 {
     private final List<DataItemQuery> dataItemQueries;
 
+    /**
+     * Finds the list of items respective to the given entity.
+     * 
+     * @param entity the target entity to look for
+     * @param paramsMap the parameters
+     * @return the list of DataItem found
+     */
     public List<DataItem> find( final Class<? extends BaseDimensionalItemObject> entity,
         final MapSqlParameterSource paramsMap )
     {
@@ -69,6 +76,13 @@ public class QueryExecutor
         return emptyList();
     }
 
+    /**
+     * Counts the total of items found for the given entity.
+     *
+     * @param entity the target entity to look for
+     * @param paramsMap the parameters
+     * @return the total of items found
+     */
     public int count( final Class<? extends BaseDimensionalItemObject> entity,
         final MapSqlParameterSource paramsMap )
     {

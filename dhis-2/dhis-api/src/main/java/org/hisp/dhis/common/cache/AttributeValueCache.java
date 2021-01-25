@@ -1,4 +1,4 @@
-package org.hisp.dhis.dataitem.query;
+package org.hisp.dhis.common.cache;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -28,59 +28,57 @@ package org.hisp.dhis.dataitem.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.dataitem.DataItem;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.collections4.MapUtils;
+import org.hisp.dhis.attribute.AttributeValue;
 
 /**
- * Interface responsible for providing the basic and necessary methods regarding
- * general data item queries.
+ * Cache component for attribute values. Holds an internal map allowing clients
+ * to set and load AttributeValue objects by its uid.
  *
  * @author maikel arabori
  */
-public interface DataItemQuery
+public class AttributeValueCache
 {
-    String ILIKE_NAME = "ilikeName";
-
-    String ILIKE_DISPLAY_NAME = "ilikeDisplayName";
-
-    String LOCALE = "locale";
-
-    String VALUE_TYPES = "valueTypes";
-
-    String USER_GROUP_UIDS = "userGroupUids";
-
-    String USER_ID = "userUid";
-
-    String MAX_LIMIT = "maxLimit";
-
-    String NAME_ORDER = "nameOrder";
+    private final Map<String, AttributeValue> cache = new HashMap<>();
 
     /**
-     * Responsible for building the respective query statement and executing it
-     * in order to find the list of items based on the given parameter map.
-     * 
-     * @param paramsMap
-     * @return the data items found
-     */
-    List<DataItem> find( MapSqlParameterSource paramsMap );
-
-    /**
-     * Responsible for building the respective count statement and executing it
-     * in order to find the total of data items for the given parameter map.
+     * Retrieves the attribute value related to the given uid.
      *
-     * @param paramsMap
-     * @return the items found
+     * @param uid the attribute value's uid
+     * @return the respective attribute value
      */
-    int count( MapSqlParameterSource paramsMap );
+    public AttributeValue getOrDefault( final String uid )
+    {
+        return cache.get( uid );
+    }
 
     /**
-     * Simply returns the entity associated with the respective interface
-     * implementation.
-     * 
-     * @return the entity associated to the interface implementation
+     * Populates the attributeValueCache map unless it is already populated.
+     *
+     * @param attributeValues the list of attribute values to be cached
      */
-    Class<? extends BaseDimensionalItemObject> getAssociatedEntity();
+    public void loadIfEmpty( final Set<AttributeValue> attributeValues )
+    {
+        if ( MapUtils.isEmpty( cache ) && isNotEmpty( attributeValues ) )
+        {
+            for ( final AttributeValue attributeValue : attributeValues )
+            {
+                if ( attributeValue != null && attributeValue.getAttribute().getUid() != null )
+                {
+                    cache.put( attributeValue.getAttribute().getUid(), attributeValue );
+                }
+            }
+        }
+    }
+
+    public void clear()
+    {
+        cache.clear();
+    }
 }

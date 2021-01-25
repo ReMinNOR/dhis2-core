@@ -80,7 +80,7 @@ public class OrderingHelper
             {
                 for ( final String orderingPair : orderingPairs )
                 {
-                    chainOfComparators.addComparator( getComparator( orderingPair, dimensionalItems ) );
+                    chainOfComparators.addComparator( getComparator( orderingPair ) );
                 }
 
                 dimensionalItems.sort( chainOfComparators );
@@ -117,8 +117,7 @@ public class OrderingHelper
     }
 
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    private static Comparator<DataItem> getComparator( final String orderingParam,
-        final List<DataItem> dimensionalItems )
+    private static Comparator<DataItem> getComparator( final String orderingParam )
     {
         final String[] orderingAttributes = split( orderingParam, ":" );
         final boolean hasValidOrderingAttributes = orderingAttributes != null && orderingAttributes.length == 2;

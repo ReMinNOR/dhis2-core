@@ -130,25 +130,6 @@ public class DataItemQueryTests extends ApiTest
     }
 
     @Test
-    public void testFilterByProgramUsingDefaultPagination()
-    {
-        // Given
-        final String theDimensionType = "PROGRAM_INDICATOR";
-        final String theProgramId = Constants.EVENT_PROGRAM_ID;
-        final String aValidFilteringAttribute = "program.id";
-        final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + aValidFilteringAttribute + ":eq:%s";
-
-        // When
-        final ApiResponse response = dataItemActions.get( format( theUrlParams, theDimensionType, theProgramId ) );
-
-        // Then
-        response.validate().statusCode( is( FOUND ) );
-        response.validate().body( "pager", isA( Object.class ) );
-        response.validate().body( "dataItems", is( not( empty() ) ) );
-        response.validate().body( "dataItems.code", hasItem( "AAAAAAA-1234" ) );
-    }
-
-    @Test
     public void testFilterUsingInvalidDimensionTypeUsingDefaultPagination()
     {
         // Given

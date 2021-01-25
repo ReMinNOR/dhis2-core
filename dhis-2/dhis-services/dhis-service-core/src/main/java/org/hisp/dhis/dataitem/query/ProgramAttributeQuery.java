@@ -29,8 +29,10 @@ package org.hisp.dhis.dataitem.query;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.SetUtils.hashSet;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.common.JsonbConverter.fromJsonb;
 import static org.hisp.dhis.dataitem.query.shared.CommonStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
@@ -44,6 +46,8 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.translation.Translation;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -81,7 +85,10 @@ public class ProgramAttributeQuery implements DataItemQuery
         {
             final DataItem viewItem = new DataItem();
             final ValueType valueType = ValueType.fromString( rowSet.getString( "valuetype" ) );
+            final Translation[] translations = fromJsonb( (PGobject) rowSet.getObject( "translations" ),
+                Translation[].class );
 
+            viewItem.setTranslations( hashSet( translations ) );
             viewItem.setName( rowSet.getString( "program_name" ) + SPACE + rowSet.getString( "name" ) );
             viewItem.setValueType( valueType.name() );
             viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
@@ -128,7 +135,7 @@ public class ProgramAttributeQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder(
             "SELECT p.\"name\" AS program_name, p.uid AS program_uid, t.\"name\" AS name, t.uid AS uid,"
-                + " t.valuetype AS valuetype"
+                + " t.valuetype AS valuetype, t.translations"
                 + " FROM trackedentityattribute t"
                 + " JOIN program_attributes pa ON pa.trackedentityattributeid = t.trackedentityattributeid"
                 + " JOIN program p ON pa.programid = p.programid"
@@ -140,7 +147,7 @@ public class ProgramAttributeQuery implements DataItemQuery
 
         sql.append( valueTypeFiltering( "t", paramsMap ) );
 
-        sql.append( " GROUP BY p.\"name\", p.uid, t.\"name\", t.uid, t.valuetype" );
+        sql.append( " GROUP BY p.\"name\", p.uid, t.\"name\", t.uid, t.valuetype, t.translations" );
 
         sql.append( commonOrdering( "p", paramsMap ) );
 
