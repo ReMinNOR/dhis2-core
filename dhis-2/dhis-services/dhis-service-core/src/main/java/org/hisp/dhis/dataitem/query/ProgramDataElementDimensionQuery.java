@@ -94,6 +94,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
             viewItem.setCombinedId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
+            viewItem.setCode( rowSet.getString( "code" ) );
             viewItem.setDimensionItemType( PROGRAM_DATA_ELEMENT.name() );
 
             dataItems.add( viewItem );
@@ -135,7 +136,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder(
             "SELECT p.\"name\" AS program_name, p.uid AS program_uid,"
-                + " de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype, de.translations"
+                + " de.\"name\", de.uid, de.valuetype, de.code, de.translations"
                 + " FROM dataelement de"
                 + " JOIN programstagedataelement psde ON psde.dataelementid = de.dataelementid"
                 + " JOIN programstage ps ON psde.programstageid = ps.programstageid"
@@ -148,7 +149,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
 
         sql.append( valueTypeFiltering( "de", paramsMap ) );
 
-        sql.append( " GROUP BY p.\"name\", p.uid, de.\"name\", de.uid, de.valuetype, de.translations" );
+        sql.append( " GROUP BY p.\"name\", p.uid, de.\"name\", de.uid, de.valuetype, de.code, de.translations" );
 
         sql.append( commonOrdering( "p", paramsMap ) );
 

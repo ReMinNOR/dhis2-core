@@ -94,6 +94,7 @@ public class ProgramAttributeQuery implements DataItemQuery
             viewItem.setCombinedId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
+            viewItem.setCode( rowSet.getString( "code" ) );
             viewItem.setDimensionItemType( PROGRAM_ATTRIBUTE.name() );
 
             dataItems.add( viewItem );
@@ -133,8 +134,8 @@ public class ProgramAttributeQuery implements DataItemQuery
     private String getProgramAttributeQueryWith( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT p.\"name\" AS program_name, p.uid AS program_uid, t.\"name\" AS name, t.uid AS uid,"
-                + " t.valuetype AS valuetype, t.translations"
+            "SELECT p.\"name\" AS program_name, p.uid AS program_uid, t.\"name\", t.uid,"
+                + " t.valuetype, t.code, t.translations"
                 + " FROM trackedentityattribute t"
                 + " JOIN program_attributes pa ON pa.trackedentityattributeid = t.trackedentityattributeid"
                 + " JOIN program p ON pa.programid = p.programid"
@@ -146,7 +147,7 @@ public class ProgramAttributeQuery implements DataItemQuery
 
         sql.append( valueTypeFiltering( "t", paramsMap ) );
 
-        sql.append( " GROUP BY p.\"name\", p.uid, t.\"name\", t.uid, t.valuetype, t.translations" );
+        sql.append( " GROUP BY p.\"name\", p.uid, t.\"name\", t.uid, t.valuetype, t.code, t.translations" );
 
         sql.append( commonOrdering( "p", paramsMap ) );
 

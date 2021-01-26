@@ -215,7 +215,7 @@ public class FilteringHelper
      * @throws IllegalQueryException if the filter points to a non supported
      *         value type.
      */
-    public static Set<String> extractAllValueTypesFromFilters( final List<String> filters )
+    public static Set<String> extractAllValueTypesFromFilters( final Set<String> filters )
     {
         final Set<String> valueTypes = new HashSet<>();
 
@@ -241,7 +241,7 @@ public class FilteringHelper
         return valueTypes;
     }
 
-    public static String extractValueFromIlikeNameFilter( final List<String> filters )
+    public static String extractValueFromIlikeNameFilter( final Set<String> filters )
     {
         final byte ILIKE_VALUE = 2;
 
@@ -269,7 +269,7 @@ public class FilteringHelper
         return EMPTY;
     }
 
-    public static String extractValueFromIlikeDisplayNameFilter( final List<String> filters )
+    public static String extractValueFromIlikeDisplayNameFilter( final Set<String> filters )
     {
         final byte ILIKE_VALUE = 2;
 
@@ -304,7 +304,7 @@ public class FilteringHelper
      * @param paramsMap the map that will receive the filtering params
      * @param currentUser the current user logged
      */
-    public static void setFiltering( final List<String> filters, final MapSqlParameterSource paramsMap,
+    public static void setFiltering( final Set<String> filters, final MapSqlParameterSource paramsMap,
         final User currentUser )
     {
         final String ilikeName = extractValueFromIlikeNameFilter( filters );
@@ -321,7 +321,11 @@ public class FilteringHelper
             final Locale currentLocale = getUserSetting( DB_LOCALE );
 
             paramsMap.addValue( ILIKE_DISPLAY_NAME, wrap( ilikeDisplayName, "%" ) );
-            paramsMap.addValue( LOCALE, currentLocale.getLanguage() );
+
+            if ( currentLocale != null && isNotBlank( currentLocale.getLanguage() ) )
+            {
+                paramsMap.addValue( LOCALE, currentLocale.getLanguage() );
+            }
         }
 
         if ( containsValueTypeFilter( filters ) )
@@ -369,7 +373,7 @@ public class FilteringHelper
      * @param filters
      * @return true if a dimension type filter is found, false otherwise.
      */
-    public static boolean containsDimensionTypeFilter( final List<String> filters )
+    public static boolean containsDimensionTypeFilter( final Set<String> filters )
     {
         if ( CollectionUtils.isNotEmpty( filters ) )
         {
@@ -391,7 +395,7 @@ public class FilteringHelper
      * @param filters
      * @return true if a value type filter is found, false otherwise.
      */
-    public static boolean containsValueTypeFilter( final List<String> filters )
+    public static boolean containsValueTypeFilter( final Set<String> filters )
     {
         if ( CollectionUtils.isNotEmpty( filters ) )
         {
@@ -416,7 +420,7 @@ public class FilteringHelper
      *         non-aggregatable value types.
      */
     public static void assertThatValueTypeFilterHasOnlyAggregatableTypes( final Set<String> valueTypeNames,
-        final List<String> filters )
+        final Set<String> filters )
     {
         if ( CollectionUtils.isNotEmpty( valueTypeNames ) )
         {

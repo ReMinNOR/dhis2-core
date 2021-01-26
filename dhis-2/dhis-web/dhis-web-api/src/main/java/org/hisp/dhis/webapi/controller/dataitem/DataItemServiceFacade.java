@@ -97,7 +97,7 @@ public class DataItemServiceFacade
      * @return the consolidated collection of entities found.
      */
     List<DataItem> retrieveDataItemEntities(
-        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities, final List<String> filters,
+        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities, final Set<String> filters,
         final WebOptions options, final OrderParams orderParams )
     {
         List<DataItem> dataItems = new ArrayList<>();
@@ -145,7 +145,7 @@ public class DataItemServiceFacade
      * @param filters
      * @return the data items classes to be queried
      */
-    Set<Class<? extends BaseDimensionalItemObject>> extractTargetEntities( final List<String> filters )
+    Set<Class<? extends BaseDimensionalItemObject>> extractTargetEntities( final Set<String> filters )
     {
         final Set<Class<? extends BaseDimensionalItemObject>> targetedEntities = new HashSet<>( 0 );
 
@@ -162,7 +162,7 @@ public class DataItemServiceFacade
         return targetedEntities;
     }
 
-    private void addFilteredTargetEntities( final List<String> filters,
+    private void addFilteredTargetEntities( final Set<String> filters,
         final Set<Class<? extends BaseDimensionalItemObject>> targetedEntities )
     {
         final Iterator<String> iterator = filters.iterator();

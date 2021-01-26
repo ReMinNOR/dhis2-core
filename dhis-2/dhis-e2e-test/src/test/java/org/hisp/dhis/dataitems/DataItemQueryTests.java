@@ -1,9 +1,13 @@
 package org.hisp.dhis.dataitems;
 
-
-
 import static java.lang.String.format;
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.everyItem;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.isA;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 
@@ -53,7 +57,8 @@ public class DataItemQueryTests extends ApiTest
         response.validate().statusCode( is( FOUND ) );
         response.validate().body( "pager", isA( Object.class ) );
         response.validate().body( "dataItems", is( not( empty() ) ) );
-        response.validate().body( "dataItems.dimensionItemType", ( anyOf( hasItem(  "PROGRAM_INDICATOR" ), hasItem( "DATA_ELEMENT" ) )));
+        response.validate().body( "dataItems.dimensionItemType",
+            (anyOf( hasItem( "PROGRAM_INDICATOR" ), hasItem( "DATA_ELEMENT" ) )) );
     }
 
     @Test
@@ -77,7 +82,7 @@ public class DataItemQueryTests extends ApiTest
     public void testGetAllDataItemsUsingDefaultPaginationOrderedByCode()
     {
         // When
-        final ApiResponse response = dataItemActions.get( "?order=code:asc" );
+        final ApiResponse response = dataItemActions.get( "?order=name:asc" );
 
         // Then
         response.validate().statusCode( is( FOUND ) );
@@ -130,13 +135,13 @@ public class DataItemQueryTests extends ApiTest
     {
         // Given
         final String theDimensionType = "PROGRAM_INDICATOR";
-        final String aNonExistingProgram = "non-existing-id";
-        final String aValidFilteringAttribute = "program.id";
-        final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + aValidFilteringAttribute + ":eq:%s";
+        final String aNonExistingName = "non-existing-Name";
+        final String aValidFilteringAttribute = "name";
+        final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + aValidFilteringAttribute + ":ilike:%s";
 
         // When
         final ApiResponse response = dataItemActions
-            .get( format( theUrlParams, theDimensionType, aNonExistingProgram ) );
+            .get( format( theUrlParams, theDimensionType, aNonExistingName ) );
 
         // Then
         response.validate().statusCode( is( NOT_FOUND ) );
@@ -162,44 +167,21 @@ public class DataItemQueryTests extends ApiTest
         response.validate().body( "httpStatus", is( "Conflict" ) );
         response.validate().body( "httpStatusCode", is( CONFLICT ) );
         response.validate().body( "status", is( "ERROR" ) );
-        response.validate().body( "errorCode", is( nullValue() ) );
-        response.validate().body( "message", containsString( "Unknown path property" ) );
+        response.validate().body( "errorCode", is( "E2017" ) );
+        response.validate().body( "message", containsString( "Filter not supported: `" + aNonExistingAttr + "`" ) );
     }
 
     @Test
-    public void testFilterUsingInvalidAttributeTypeAndDefaultPagination()
+    public void testWhenFilteringByNonExistingNameWithoutPagination()
     {
         // Given
         final String theDimensionType = "PROGRAM_INDICATOR";
-        final String theProgramId = Constants.EVENT_PROGRAM_ID;
-        final String anInvalidType = "program";
-        final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + anInvalidType
-            + ":eq:%s&order=code:asc";
-
-        // When
-        final ApiResponse response = dataItemActions.get( format( theUrlParams, theDimensionType, theProgramId ) );
-
-        // Then
-        response.validate().statusCode( is( CONFLICT ) );
-        response.validate().body( "pager", is( nullValue() ) );
-        response.validate().body( "httpStatus", is( "Conflict" ) );
-        response.validate().body( "httpStatusCode", is( CONFLICT ) );
-        response.validate().body( "status", is( "ERROR" ) );
-        response.validate().body( "errorCode", is( nullValue() ) );
-        response.validate().body( "message", containsString( "Unable to parse" ) );
-    }
-
-    @Test
-    public void testWhenFilteringByNonExistingProgramWithoutPagination()
-    {
-        // Given
-        final String theDimensionType = "PROGRAM_INDICATOR";
-        final String aNonExistingProgram = "non-existing-id";
-        final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=program.id:eq:%s&paging=false";
+        final String aNonExistingName = "non-existing-name";
+        final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=name:ilike:%s&paging=false";
 
         // When
         final ApiResponse response = dataItemActions
-            .get( format( theUrlParams, theDimensionType, aNonExistingProgram ) );
+            .get( format( theUrlParams, theDimensionType, aNonExistingName ) );
 
         // Then
         response.validate().statusCode( is( NOT_FOUND ) );

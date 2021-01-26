@@ -100,6 +100,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
             viewItem.setTranslations( hashSet( translations ) );
             viewItem.setName( rowSet.getString( "name" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
+            viewItem.setCode( rowSet.getString( "code" ) );
             viewItem.setDimensionItemType( PROGRAM_INDICATOR.name() );
 
             // Specific case where we have to force a vale type. Program
@@ -150,7 +151,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
     private String getProgramIndicatorQuery( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT pi.\"name\" AS name, pi.uid AS uid, pi.translations"
+            "SELECT pi.\"name\", pi.uid, pi.code, pi.translations"
                 + " FROM programindicator pi"
                 + " WHERE ("
                 + sharingConditions( "pi", paramsMap )

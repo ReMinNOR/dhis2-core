@@ -1,6 +1,7 @@
 package org.hisp.dhis.webapi.controller.dataitem;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.join;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -11,6 +12,7 @@ import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.A
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFiltering;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
@@ -86,10 +88,10 @@ class ResponseHandler
      * @param fields the list of fields to be returned
      */
     void addResultsToNode( final RootNode rootNode,
-        final List<DataItem> dimensionalItemsFound, final List<String> fields )
+        final List<DataItem> dimensionalItemsFound, final Set<String> fields )
     {
         final CollectionNode collectionNode = fieldFilterService.toConcreteClassCollectionNode( DataItem.class,
-            new FieldFilterParams( dimensionalItemsFound, fields ), "dataItems", DXF_2_0 );
+            new FieldFilterParams( dimensionalItemsFound, newArrayList( fields ) ), "dataItems", DXF_2_0 );
 
         rootNode.addChild( collectionNode );
     }
@@ -107,7 +109,7 @@ class ResponseHandler
      */
     void addPaginationToNode( final RootNode rootNode,
         final List<Class<? extends BaseDimensionalItemObject>> targetEntities, final User currentUser,
-        final WebOptions options, final List<String> filters )
+        final WebOptions options, final Set<String> filters )
     {
         if ( options.hasPaging() && isNotEmpty( targetEntities ) )
         {
@@ -130,7 +132,7 @@ class ResponseHandler
     }
 
     private int countEntityRowsTotal( final Class<? extends BaseDimensionalItemObject> entity, final WebOptions options,
-        final List<String> filters, final User currentUser )
+        final Set<String> filters, final User currentUser )
     {
         // Defining query params map and setting common params
         final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userUid",
@@ -149,7 +151,7 @@ class ResponseHandler
     }
 
     private String createPageCountingCacheKey( final User currentUser,
-        final Class<? extends BaseDimensionalItemObject> entity, final List<String> filters, final WebOptions options )
+        final Class<? extends BaseDimensionalItemObject> entity, final Set<String> filters, final WebOptions options )
     {
         return currentUser.getUsername() + "." + entity + "." + join( "|", filters ) + "."
             + options.getRootJunction().name();

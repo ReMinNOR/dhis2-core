@@ -1,12 +1,13 @@
 package org.hisp.dhis.webapi.controller.dataitem;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.feedback.ErrorCode.E3012;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.validateFilters;
 import static org.springframework.http.HttpStatus.FOUND;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -121,14 +122,16 @@ public class DataItemQueryController
         final OrderParams orderParams )
     {
         // Defining the input params.
-        final List<String> fields = newArrayList( contextService.getParameterValues( FIELDS ) );
-        final List<String> filters = newArrayList( contextService.getParameterValues( FILTER ) );
+        final Set<String> fields = newHashSet( contextService.getParameterValues( FIELDS ) );
+        final Set<String> filters = newHashSet( contextService.getParameterValues( FILTER ) );
         final WebOptions options = new WebOptions( urlParameters );
 
         if ( fields.isEmpty() )
         {
             fields.addAll( Preset.ALL.getFields() );
         }
+
+        validateFilters( filters );
 
         // Extracting the target entities to be queried.
         final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = dataItemServiceFacade

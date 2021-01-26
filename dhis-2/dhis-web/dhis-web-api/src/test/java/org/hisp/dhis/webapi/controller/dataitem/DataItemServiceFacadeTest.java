@@ -1,9 +1,8 @@
 package org.hisp.dhis.webapi.controller.dataitem;
 
-import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.String.valueOf;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -73,7 +72,7 @@ public class DataItemServiceFacadeTest
         final Set<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = new HashSet<>(
             asList( targetEntity ) );
         final List<DataItem> expectedItemsFound = asList( mockDataItem( INDICATOR ), mockDataItem( INDICATOR ) );
-        final List<String> anyFilters = asList( "anyFilter" );
+        final Set<String> anyFilters = newHashSet( "anyFilter" );
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
         final Set<String> anyOrdering = new HashSet<>( asList( "name:desc" ) );
         final OrderParams anyOrderParams = new OrderParams( anyOrdering );
@@ -89,8 +88,8 @@ public class DataItemServiceFacadeTest
 
         // Then
         assertThat( actualDimensionalItems, hasSize( 2 ) );
-        assertThat( actualDimensionalItems.get( 0 ).getDimensionItemType(), is( INDICATOR ) );
-        assertThat( actualDimensionalItems.get( 1 ).getDimensionItemType(), is( INDICATOR ) );
+        assertThat( actualDimensionalItems.get( 0 ).getDimensionItemType(), is( INDICATOR.name() ) );
+        assertThat( actualDimensionalItems.get( 1 ).getDimensionItemType(), is( INDICATOR.name() ) );
     }
 
     @Test
@@ -98,7 +97,7 @@ public class DataItemServiceFacadeTest
     {
         // Given
         final Set<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = emptySet();
-        final List<String> anyFilters = asList( "anyFilter" );
+        final Set<String> anyFilters = newHashSet( "anyFilter" );
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
         final Set<String> anyOrdering = new HashSet<>( asList( "name:desc" ) );
         final OrderParams anyOrderParams = new OrderParams( anyOrdering );
@@ -117,7 +116,7 @@ public class DataItemServiceFacadeTest
         // Given
         final Set<Class<? extends BaseDimensionalItemObject>> expectedTargetEntities = new HashSet<>(
             asList( Indicator.class ) );
-        final List<String> theFilters = newArrayList( "dimensionItemType:eq:INDICATOR" );
+        final Set<String> theFilters = newHashSet( "dimensionItemType:eq:INDICATOR" );
 
         // When
         final Set<Class<? extends BaseDimensionalItemObject>> actualTargetEntities = dataItemServiceFacade
@@ -133,7 +132,7 @@ public class DataItemServiceFacadeTest
         // Given
         final Set<Class<? extends BaseDimensionalItemObject>> expectedTargetEntities = new HashSet<>(
             asList( Indicator.class, DataSet.class ) );
-        final List<String> theFilters = newArrayList( "dimensionItemType:in:[INDICATOR, DATA_SET]" );
+        final Set<String> theFilters = newHashSet( "dimensionItemType:in:[INDICATOR, DATA_SET]" );
 
         // When
         final Set<Class<? extends BaseDimensionalItemObject>> actualTargetEntities = dataItemServiceFacade
@@ -147,7 +146,7 @@ public class DataItemServiceFacadeTest
     public void testExtractTargetEntitiesWhenThereIsNoExplicitTargetSet()
     {
         // Given
-        final List<String> noTargetEntitiesFilters = emptyList();
+        final Set<String> noTargetEntitiesFilters = emptySet();
 
         // When
         final Set<Class<? extends BaseDimensionalItemObject>> actualTargetEntities = dataItemServiceFacade

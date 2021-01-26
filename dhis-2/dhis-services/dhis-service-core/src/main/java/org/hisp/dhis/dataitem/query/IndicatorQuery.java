@@ -100,6 +100,7 @@ public class IndicatorQuery implements DataItemQuery
             viewItem.setTranslations( hashSet( translations ) );
             viewItem.setName( rowSet.getString( "name" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
+            viewItem.setCode( rowSet.getString( "code" ) );
             viewItem.setDimensionItemType( INDICATOR.name() );
 
             // Specific case where we have to force a vale type. Indicators
@@ -150,7 +151,7 @@ public class IndicatorQuery implements DataItemQuery
     private String getIndicatorQuery( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT i.\"name\" AS name, i.uid AS uid, i.translations"
+            "SELECT i.\"name\", i.uid, i.code, i.translations"
                 + " FROM indicator i"
                 + " WHERE ("
                 + sharingConditions( "i", paramsMap )

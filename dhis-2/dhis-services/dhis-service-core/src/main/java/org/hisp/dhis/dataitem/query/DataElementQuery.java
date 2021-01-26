@@ -93,6 +93,7 @@ public class DataElementQuery implements DataItemQuery
             viewItem.setValueType( valueType.name() );
             viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
             viewItem.setId( rowSet.getString( "uid" ) );
+            viewItem.setCode( rowSet.getString( "code" ) );
             viewItem.setDimensionItemType( DATA_ELEMENT.name() );
 
             dataItems.add( viewItem );
@@ -130,7 +131,7 @@ public class DataElementQuery implements DataItemQuery
     private String getDataElementQueryWith( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT de.\"name\" AS name, de.uid AS uid, de.valuetype AS valuetype, de.translations"
+            "SELECT de.\"name\", de.uid, de.valuetype, de.code, de.translations"
                 + " FROM dataelement de"
                 + " WHERE ("
                 + sharingConditions( "de", paramsMap )

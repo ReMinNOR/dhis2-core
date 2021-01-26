@@ -87,6 +87,7 @@ public class DataSetQuery implements DataItemQuery
             viewItem.setTranslations( hashSet( translations ) );
             viewItem.setName( rowSet.getString( "name" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
+            viewItem.setCode( rowSet.getString( "code" ) );
             viewItem.setDimensionItemType( REPORTING_RATE.name() );
 
             dataItems.add( viewItem );
@@ -119,7 +120,7 @@ public class DataSetQuery implements DataItemQuery
     private String getDateSetQuery( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT ds.\"name\" AS name, ds.uid AS uid, ds.translations"
+            "SELECT ds.\"name\", ds.uid, ds.code, ds.translations"
                 + " FROM dataset ds"
                 + " WHERE ("
                 + sharingConditions( "ds", paramsMap )

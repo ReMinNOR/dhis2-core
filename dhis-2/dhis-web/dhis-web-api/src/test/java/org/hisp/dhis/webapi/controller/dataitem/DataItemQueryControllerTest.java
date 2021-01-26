@@ -79,10 +79,10 @@ public class DataItemQueryControllerTest
         final List<DataItem> itemsFound = singletonList( new DataItem() );
 
         // When
-        when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
+        when( dataItemServiceFacade.extractTargetEntities( anySet() ) ).thenReturn( targetEntities );
         when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( true );
         when( dataItemServiceFacade.retrieveDataItemEntities(
-            anySet(), anyList(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
+            anySet(), anySet(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
 
         final ResponseEntity<RootNode> actualResponse = dataItemQueryController.getJson( anyUrlParameters,
             anyOrderParams, anyUser );
@@ -90,9 +90,9 @@ public class DataItemQueryControllerTest
         // Then
         assertThat( actualResponse, is( not( nullValue() ) ) );
         assertThat( actualResponse.getStatusCode(), is( FOUND ) );
-        verify( responseHandler, times( 1 ) ).addResultsToNode( any( RootNode.class ), anyList(), anyList() );
+        verify( responseHandler, times( 1 ) ).addResultsToNode( any( RootNode.class ), anyList(), anySet() );
         verify( responseHandler, times( 1 ) ).addPaginationToNode( any( RootNode.class ), anyList(), any(), any(),
-            anyList() );
+            anySet() );
     }
 
     @Test
@@ -107,10 +107,10 @@ public class DataItemQueryControllerTest
         final List<DataItem> itemsFound = emptyList();
 
         // When
-        when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
+        when( dataItemServiceFacade.extractTargetEntities( anySet() ) ).thenReturn( targetEntities );
         when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( true );
         when( dataItemServiceFacade.retrieveDataItemEntities(
-            anySet(), anyList(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
+            anySet(), anySet(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
 
         final ResponseEntity<RootNode> actualResponse = dataItemQueryController.getJson( anyUrlParameters,
             anyOrderParams, anyUser );
@@ -118,8 +118,8 @@ public class DataItemQueryControllerTest
         // Then
         assertThat( actualResponse, is( not( nullValue() ) ) );
         assertThat( actualResponse.getStatusCode(), is( NOT_FOUND ) );
-        verify( responseHandler, times( 1 ) ).addResultsToNode( any(), anyList(), anyList() );
-        verify( responseHandler, times( 1 ) ).addPaginationToNode( any(), anyList(), any(), any(), anyList() );
+        verify( responseHandler, times( 1 ) ).addResultsToNode( any(), anyList(), anySet() );
+        verify( responseHandler, times( 1 ) ).addPaginationToNode( any(), anyList(), any(), any(), anySet() );
     }
 
     @Test
@@ -134,7 +134,7 @@ public class DataItemQueryControllerTest
         final boolean invalidAcl = false;
 
         // When
-        when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
+        when( dataItemServiceFacade.extractTargetEntities( anySet() ) ).thenReturn( targetEntities );
         when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( invalidAcl );
 
         final IllegalQueryException ex = assertThrows( IllegalQueryException.class,

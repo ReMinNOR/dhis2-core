@@ -1,5 +1,6 @@
 package org.hisp.dhis.webapi.controller.dataitem;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.String.valueOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -24,6 +25,7 @@ import static org.mockito.junit.MockitoJUnit.rule;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.cache.CacheProvider;
@@ -85,7 +87,7 @@ public class ResponseHandlerTest
         final DataItem anyDataItem = new DataItem();
         anyDataItem.setName( "any" );
         final List<DataItem> anyDimensionalItems = singletonList( anyDataItem );
-        final List<String> anyFields = singletonList( "name" );
+        final Set<String> anyFields = newHashSet( "name" );
         final CollectionNode anyCollectionNode = new CollectionNode( "any" );
 
         // When
@@ -107,7 +109,7 @@ public class ResponseHandlerTest
         final RootNode anyRootNode = new RootNode( "any" );
         final List<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = asList( Indicator.class,
             DataSet.class );
-        final List<String> anyFilters = singletonList( "any" );
+        final Set<String> anyFilters = newHashSet( "any" );
         final User anyUser = new User();
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
         final String[] testEnvironmentVars = { "test" };
@@ -136,7 +138,7 @@ public class ResponseHandlerTest
         final RootNode anyRootNode = new RootNode( "any" );
         final List<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = asList( Indicator.class,
             DataSet.class );
-        final List<String> anyFilters = singletonList( "any" );
+        final Set<String> anyFilters = newHashSet( "any" );
         final User anyUser = new User();
         final WebOptions webOptionsNoPaging = mockWebOptionsNoPaging();
         final String[] testEnvironmentVars = { "test" };
@@ -162,7 +164,7 @@ public class ResponseHandlerTest
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
         final List<Class<? extends BaseDimensionalItemObject>> emptyTargetEntities = emptyList();
-        final List<String> anyFilters = singletonList( "any" );
+        final Set<String> anyFilters = newHashSet( "any" );
         final User anyUser = new User();
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
         final String[] testEnvironmentVars = { "test" };

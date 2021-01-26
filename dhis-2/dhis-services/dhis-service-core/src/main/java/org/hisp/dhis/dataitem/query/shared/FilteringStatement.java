@@ -130,19 +130,29 @@ public class FilteringStatement
     private static String displayNameAndLocaleFiltering( final String tableAlias,
         final MapSqlParameterSource paramsMap )
     {
-        if ( paramsMap != null && paramsMap.hasValue( ILIKE_DISPLAY_NAME ) && paramsMap.hasValue( LOCALE ) )
+        if ( paramsMap != null && paramsMap.hasValue( ILIKE_DISPLAY_NAME ) )
         {
             isInstanceOf( String.class, paramsMap.getValue( ILIKE_DISPLAY_NAME ),
                 ILIKE_DISPLAY_NAME + " cannot be null and must be a String." );
             hasText( (String) paramsMap.getValue( ILIKE_DISPLAY_NAME ), ILIKE_DISPLAY_NAME + " cannot be null/blank." );
-            isInstanceOf( String.class, paramsMap.getValue( LOCALE ),
-                LOCALE + " cannot be null and must be a String." );
-            hasText( (String) paramsMap.getValue( LOCALE ), LOCALE + " cannot be null/blank." );
 
-            return " AND (EXISTS (SELECT * FROM jsonb_array_elements(" + tableAlias + ".translations)"
-                + " AS x(o) WHERE x.o ->> 'property' = 'NAME' "
-                + " AND x.o ->> 'locale' = :locale AND x.o ->> 'value' ILIKE :" + ILIKE_DISPLAY_NAME + ")"
-                + " OR " + tableAlias + ".\"name\" ILIKE :" + ILIKE_DISPLAY_NAME + ")";
+            if ( paramsMap.hasValue( LOCALE ) )
+            {
+                isInstanceOf( String.class, paramsMap.getValue( LOCALE ),
+                    LOCALE + " cannot be null and must be a String." );
+                hasText( (String) paramsMap.getValue( LOCALE ), LOCALE + " cannot be null/blank." );
+
+                return " AND (EXISTS (SELECT * FROM jsonb_array_elements(" + tableAlias + ".translations)"
+                    + " AS x(o) WHERE x.o ->> 'property' = 'NAME' "
+                    + " AND x.o ->> 'locale' = :locale AND x.o ->> 'value' ILIKE :" + ILIKE_DISPLAY_NAME + ")"
+                    + " OR " + tableAlias + ".\"name\" ILIKE :" + ILIKE_DISPLAY_NAME + ")";
+            }
+            else
+            {
+                // No locale, so we default the comparison to the raw name.
+                return " AND (" + tableAlias + ".\"name\" ILIKE :" + ILIKE_NAME + ")";
+            }
+
         }
 
         return EMPTY;
@@ -151,24 +161,34 @@ public class FilteringStatement
     private static String displayNameAndLocaleFiltering( final String tableAlias1, final String tableAlias2,
         final MapSqlParameterSource paramsMap )
     {
-        if ( paramsMap != null && paramsMap.hasValue( ILIKE_DISPLAY_NAME ) && paramsMap.hasValue( LOCALE ) )
+        if ( paramsMap != null && paramsMap.hasValue( ILIKE_DISPLAY_NAME ) )
         {
             isInstanceOf( String.class, paramsMap.getValue( ILIKE_DISPLAY_NAME ),
                 ILIKE_DISPLAY_NAME + " cannot be null and must be a String." );
             hasText( (String) paramsMap.getValue( ILIKE_DISPLAY_NAME ), ILIKE_DISPLAY_NAME + " cannot be null/blank." );
-            isInstanceOf( String.class, paramsMap.getValue( LOCALE ),
-                LOCALE + " cannot be null and must be a String." );
-            hasText( (String) paramsMap.getValue( LOCALE ), LOCALE + " cannot be null/blank." );
 
-            return " AND (EXISTS (SELECT * FROM jsonb_array_elements(" + tableAlias1 + ".translations)"
-                + " AS x(o) WHERE x.o ->> 'property' = 'NAME' "
-                + " AND x.o ->> 'locale' = :locale AND x.o ->> 'value' ILIKE :" + ILIKE_DISPLAY_NAME + ")"
-                + " OR " + tableAlias1 + ".\"name\" ILIKE :" + ILIKE_DISPLAY_NAME + ")"
-                + " OR"
-                + " (EXISTS (SELECT * FROM jsonb_array_elements(" + tableAlias2 + ".translations)"
-                + " AS x(o) WHERE x.o ->> 'property' = 'NAME' "
-                + " AND x.o ->> 'locale' = :locale AND x.o ->> 'value' ILIKE :" + ILIKE_DISPLAY_NAME + ")"
-                + " OR " + tableAlias2 + ".\"name\" ILIKE :" + ILIKE_DISPLAY_NAME + ")";
+            if ( paramsMap.hasValue( LOCALE ) )
+            {
+                isInstanceOf( String.class, paramsMap.getValue( LOCALE ),
+                    LOCALE + " cannot be null and must be a String." );
+                hasText( (String) paramsMap.getValue( LOCALE ), LOCALE + " cannot be null/blank." );
+
+                return " AND (EXISTS (SELECT * FROM jsonb_array_elements(" + tableAlias1 + ".translations)"
+                    + " AS x(o) WHERE x.o ->> 'property' = 'NAME' "
+                    + " AND x.o ->> 'locale' = :locale AND x.o ->> 'value' ILIKE :" + ILIKE_DISPLAY_NAME + ")"
+                    + " OR " + tableAlias1 + ".\"name\" ILIKE :" + ILIKE_DISPLAY_NAME + ")"
+                    + " OR"
+                    + " (EXISTS (SELECT * FROM jsonb_array_elements(" + tableAlias2 + ".translations)"
+                    + " AS x(o) WHERE x.o ->> 'property' = 'NAME' "
+                    + " AND x.o ->> 'locale' = :locale AND x.o ->> 'value' ILIKE :" + ILIKE_DISPLAY_NAME + ")"
+                    + " OR " + tableAlias2 + ".\"name\" ILIKE :" + ILIKE_DISPLAY_NAME + ")";
+            }
+            else
+            {
+                // No locale, so we default the comparison to the raw name.
+                return " AND (" + tableAlias1 + ".\"name\" ILIKE :" + ILIKE_NAME + " OR " + tableAlias2
+                    + ".\"name\" ILIKE :" + ILIKE_NAME + ")";
+            }
         }
 
         return EMPTY;

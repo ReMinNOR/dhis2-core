@@ -1,6 +1,6 @@
 package org.hisp.dhis.webapi.controller.dataitem.helper;
 
-import static java.util.Collections.singletonList;
+import static com.google.common.collect.Sets.newHashSet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
@@ -14,7 +14,6 @@ import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.ex
 import static org.junit.Assert.assertThrows;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -128,7 +127,7 @@ public class FilteringHelperTest
     public void testContainsDimensionTypeFilterUsingEqualsQuery()
     {
         // Given
-        final List<String> anyFilters = singletonList( "dimensionItemType:eq:DATA_SET" );
+        final Set<String> anyFilters = newHashSet( "dimensionItemType:eq:DATA_SET" );
         final boolean expectedTrueResult = true;
 
         // When
@@ -142,7 +141,7 @@ public class FilteringHelperTest
     public void testContainsDimensionTypeFilterUsingInQuery()
     {
         // Given
-        final List<String> anyFilters = singletonList( "dimensionItemType:in:[DATA_SET,INDICATOR]" );
+        final Set<String> anyFilters = newHashSet( "dimensionItemType:in:[DATA_SET,INDICATOR]" );
         final boolean expectedTrueResult = true;
 
         // When
@@ -156,7 +155,7 @@ public class FilteringHelperTest
     public void testContainsDimensionTypeFilterWhenThereDimensionItemTypeFilterIsNotSet()
     {
         // Given
-        final List<String> anyFilters = singletonList( "displayName:ilike:anc" );
+        final Set<String> anyFilters = newHashSet( "displayName:ilike:anc" );
         final boolean expectedFalseResult = false;
 
         // When

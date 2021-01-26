@@ -62,6 +62,8 @@ public enum ErrorCode
     E2014( "Unable to parse filter `{0}`" ),
     E2015( "Unable to parse order param: `{0}`" ),
     E2016( "Unable to parse element `{0}` on filter `{1}`. The values available are: {2}" ),
+    E2017( "Filter not supported: `{0}`" ),
+    E2018( "Operator not supported: `{0}`" ),
 
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),
