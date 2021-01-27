@@ -3,9 +3,9 @@ package org.hisp.dhis.webapi.controller.dataitem.validator;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
-import static org.hisp.dhis.feedback.ErrorCode.E2032;
 import static org.hisp.dhis.feedback.ErrorCode.E2033;
 import static org.hisp.dhis.feedback.ErrorCode.E2034;
+import static org.hisp.dhis.feedback.ErrorCode.E2035;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Attribute.getNames;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.getCombinations;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Operation.getAbbreviations;
@@ -56,18 +56,18 @@ public class FilterValidator
 
                         if ( !getNames().contains( filterName ) )
                         {
-                            throw new IllegalQueryException( new ErrorMessage( E2032, filterName ) );
+                            throw new IllegalQueryException( new ErrorMessage( E2033, filterName ) );
                         }
 
                         if ( !getAbbreviations().contains( operator ) )
                         {
-                            throw new IllegalQueryException( new ErrorMessage( E2033, operator ) );
+                            throw new IllegalQueryException( new ErrorMessage( E2034, operator ) );
                         }
 
                         if ( getCombinations().stream().noneMatch( combination -> filter.startsWith( combination ) ) )
                         {
                             throw new IllegalQueryException(
-                                new ErrorMessage( E2034, StringUtils.substringBeforeLast( filter, ":" ) ) );
+                                new ErrorMessage( E2035, StringUtils.substringBeforeLast( filter, ":" ) ) );
                         }
                     }
                     else
