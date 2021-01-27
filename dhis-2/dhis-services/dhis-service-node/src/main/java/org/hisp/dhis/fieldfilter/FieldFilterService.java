@@ -60,12 +60,12 @@ public interface FieldFilterService
      * simply to return back a CollectionNode based on the concrete "klass" and
      * its direct attributes.
      *
-     * @param klass
-     * @param params
-     * @param collectionName
-     * @param namespace
-     * @return
+     * @param klass the concrete class
+     * @param fieldFilterParams the fields to be added to the response
+     * @param collectionName the name of the collection for the node
+     * @param namespace a namespace for the node
+     * @return a CollectionNode populated/based on the input arguments
      */
-    CollectionNode toConcreteClassCollectionNode( Class<?> klass, FieldFilterParams params, String collectionName,
-        String namespace );
+    CollectionNode toConcreteClassCollectionNode( Class<?> klass, FieldFilterParams fieldFilterParams,
+        String collectionName, String namespace );
 }

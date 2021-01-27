@@ -32,7 +32,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_GROUP_UIDS;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_ID;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_UID;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.ownerAccessCondition;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.publicAccessCondition;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
@@ -271,8 +271,8 @@ public class UserAccessStatementTest
     {
         // Given
         final String tableAlias = "de";
-        final String expectedStatement = "(jsonb_has_user_id(" + tableAlias + ".sharing, :" + USER_ID + ") = TRUE "
-            + "AND jsonb_check_user_access(" + tableAlias + ".sharing, :" + USER_ID + ", 'r%') = TRUE)";
+        final String expectedStatement = "(jsonb_has_user_id(" + tableAlias + ".sharing, :" + USER_UID + ") = TRUE "
+            + "AND jsonb_check_user_access(" + tableAlias + ".sharing, :" + USER_UID + ", 'r%') = TRUE)";
 
         // When
         final String actualStatement = userAccessCondition( tableAlias );

@@ -25,13 +25,13 @@ import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2016;
 import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DIMENSION_TYPE_EQUAL;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DIMENSION_TYPE_IN;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DISPLAY_NAME_ILIKE;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.NAME_ILIKE;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.PROGRAM_ID_EQUAL;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.VALUE_TYPE_EQUAL;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.VALUE_TYPE_IN;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DISPLAY_NAME_ILIKE;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.NAME_ILIKE;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.PROGRAM_ID_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithOneOfPrefixes;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.filterHasPrefix;
 
@@ -77,7 +77,7 @@ public class FilteringHelper
     {
         final Set<Class<? extends BaseDimensionalItemObject>> dimensionTypes = new HashSet<>();
 
-        if ( contains( filter, DIMENSION_TYPE_IN.getPrefix() ) )
+        if ( contains( filter, DIMENSION_TYPE_IN.getCombination() ) )
         {
             final String[] dimensionTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
                 "," );
@@ -115,14 +115,14 @@ public class FilteringHelper
         final byte DIMENSION_TYPE = 2;
         Class<? extends BaseDimensionalItemObject> entity = null;
 
-        if ( filterHasPrefix( filter, DIMENSION_TYPE_EQUAL.getPrefix() ) )
+        if ( filterHasPrefix( filter, DIMENSION_TYPE_EQUAL.getCombination() ) )
         {
-            final String[] array = filter.split( ":" );
-            final boolean hasDimensionType = array.length == 3;
+            final String[] dimensionFilterPair = filter.split( ":" );
+            final boolean hasDimensionType = dimensionFilterPair.length == 3;
 
             if ( hasDimensionType )
             {
-                entity = entityClassFromString( array[DIMENSION_TYPE] );
+                entity = entityClassFromString( dimensionFilterPair[DIMENSION_TYPE] );
             }
             else
             {
@@ -149,7 +149,7 @@ public class FilteringHelper
     {
         final Set<String> valueTypes = new HashSet<>();
 
-        if ( contains( filter, VALUE_TYPE_IN.getPrefix() ) )
+        if ( contains( filter, VALUE_TYPE_IN.getCombination() ) )
         {
             final String[] valueTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
                 "," );
@@ -186,7 +186,7 @@ public class FilteringHelper
         final byte VALUE_TYPE = 2;
         String valueType = null;
 
-        if ( filterHasPrefix( filter, VALUE_TYPE_EQUAL.getPrefix() ) )
+        if ( filterHasPrefix( filter, VALUE_TYPE_EQUAL.getCombination() ) )
         {
             final String[] array = filter.split( ":" );
             final boolean hasValueType = array.length == 3;
@@ -247,7 +247,7 @@ public class FilteringHelper
         {
             for ( final String filter : filters )
             {
-                if ( filterHasPrefix( filter, NAME_ILIKE.getPrefix() ) )
+                if ( filterHasPrefix( filter, NAME_ILIKE.getCombination() ) )
                 {
                     final String[] array = filter.split( ":" );
                     final boolean hasIlikeValue = array.length == 3;
@@ -275,7 +275,7 @@ public class FilteringHelper
         {
             for ( final String filter : filters )
             {
-                if ( filterHasPrefix( filter, DISPLAY_NAME_ILIKE.getPrefix() ) )
+                if ( filterHasPrefix( filter, DISPLAY_NAME_ILIKE.getCombination() ) )
                 {
                     final String[] array = filter.split( ":" );
                     final boolean hasIlikeValue = array.length == 3;
@@ -303,7 +303,7 @@ public class FilteringHelper
         {
             for ( final String filter : filters )
             {
-                if ( filterHasPrefix( filter, PROGRAM_ID_EQUAL.getPrefix() ) )
+                if ( filterHasPrefix( filter, PROGRAM_ID_EQUAL.getCombination() ) )
                 {
                     final String[] array = filter.split( ":" );
                     final boolean hasProgramIdValue = array.length == 3;
@@ -346,16 +346,16 @@ public class FilteringHelper
         {
             final Locale currentLocale = getUserSetting( DB_LOCALE );
 
-            paramsMap.addValue( DISPLAY_NAME, wrap( ilikeDisplayName, "%" ) );
+            paramsMap.addValue( DISPLAY_NAME, wrap( trimToEmpty( ilikeDisplayName ), "%" ) );
 
             if ( currentLocale != null && isNotBlank( currentLocale.getLanguage() ) )
             {
-                paramsMap.addValue( LOCALE, currentLocale.getLanguage() );
+                paramsMap.addValue( LOCALE, trimToEmpty( currentLocale.getLanguage() ) );
             }
         }
 
-        if ( containsFilterWithOneOfPrefixes( filters, VALUE_TYPE_EQUAL.getPrefix(),
-            VALUE_TYPE_IN.getPrefix() ) )
+        if ( containsFilterWithOneOfPrefixes( filters, VALUE_TYPE_EQUAL.getCombination(),
+            VALUE_TYPE_IN.getCombination() ) )
         {
             final Set<String> valueTypesFilter = extractAllValueTypesFromFilters( filters );
             assertThatValueTypeFilterHasOnlyAggregatableTypes( valueTypesFilter, filters );
@@ -382,7 +382,7 @@ public class FilteringHelper
         {
             final Set<String> userGroupUids = currentUser.getGroups().stream()
                 .filter( group -> group != null )
-                .map( group -> group.getUid() )
+                .map( group -> trimToEmpty( group.getUid() ) )
                 .collect( toSet() );
             paramsMap.addValue( USER_GROUP_UIDS, "{" + join( ",", userGroupUids ) + "}" );
         }
@@ -418,7 +418,7 @@ public class FilteringHelper
     {
         try
         {
-            return fromString( valueType ).name();
+            return fromString( trimToEmpty( valueType ) ).name();
         }
         catch ( IllegalArgumentException e )
         {
@@ -429,7 +429,7 @@ public class FilteringHelper
 
     private static Class<? extends BaseDimensionalItemObject> entityClassFromString( final String entityType )
     {
-        final Class<? extends BaseDimensionalItemObject> entity = DATA_TYPE_ENTITY_MAP.get( entityType );
+        final Class<? extends BaseDimensionalItemObject> entity = DATA_TYPE_ENTITY_MAP.get( trimToEmpty( entityType ) );
 
         if ( entity == null )
         {

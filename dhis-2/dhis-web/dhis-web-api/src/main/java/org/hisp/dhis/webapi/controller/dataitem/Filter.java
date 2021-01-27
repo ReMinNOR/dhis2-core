@@ -41,7 +41,7 @@ public class Filter
 
         private String abbreviation;
 
-        Operation( String abbreviation )
+        Operation( final String abbreviation )
         {
             this.abbreviation = abbreviation;
         }
@@ -57,31 +57,31 @@ public class Filter
         }
     }
 
-    public enum Prefix
+    public enum Combination
     {
         DIMENSION_TYPE_IN( "dimensionItemType:in:" ),
         DIMENSION_TYPE_EQUAL( "dimensionItemType:eq:" ),
         VALUE_TYPE_IN( "valueType:in:" ),
         VALUE_TYPE_EQUAL( "valueType:eq:" ),
         NAME_ILIKE( "name:ilike:" ),
-        DISPLAY_NAME_ILIKE( "displayName:ilike" ),
+        DISPLAY_NAME_ILIKE( "displayName:ilike:" ),
         PROGRAM_ID_EQUAL( "programId:eq:" );
 
-        private String prefix;
+        private String combination;
 
-        Prefix( String prefix )
+        Combination( final String combination )
         {
-            this.prefix = prefix;
+            this.combination = combination;
         }
 
-        public String getPrefix()
+        public String getCombination()
         {
-            return this.prefix;
+            return this.combination;
         }
 
-        public static Set<String> getPrefixes()
+        public static Set<String> getCombinations()
         {
-            return of( Prefix.values() ).map( Prefix::getPrefix ).collect( toSet() );
+            return of( Combination.values() ).map( Combination::getCombination ).collect( toSet() );
         }
     }
 }

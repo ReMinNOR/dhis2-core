@@ -1,12 +1,13 @@
 package org.hisp.dhis.webapi.controller.dataitem;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.join;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.MAX_LIMIT;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_UID;
 import static org.hisp.dhis.node.NodeUtils.createPager;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFiltering;
@@ -33,6 +34,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * This class is responsible for handling the result and pagination nodes. This
  * component is coupled to the controller class, where it's being used.
@@ -46,10 +49,11 @@ import org.springframework.stereotype.Component;
  *
  * @author maikel arabori
  */
+@RequiredArgsConstructor
 @Component
 class ResponseHandler
 {
-    private final String CACHE_DATA_ITEMS_PAGINATION = "dataItemsPagination";
+    private static final String CACHE_DATA_ITEMS_PAGINATION = "dataItemsPagination";
 
     private final QueryExecutor queryExecutor;
 
@@ -62,22 +66,6 @@ class ResponseHandler
     private final CacheProvider cacheProvider;
 
     private Cache<Integer> PAGE_COUNTING_CACHE;
-
-    ResponseHandler( final QueryExecutor queryExecutor, final LinkService linkService,
-        final FieldFilterService fieldFilterService, final Environment environment, final CacheProvider cacheProvider )
-    {
-        checkNotNull( queryExecutor );
-        checkNotNull( linkService );
-        checkNotNull( fieldFilterService );
-        checkNotNull( environment );
-        checkNotNull( cacheProvider );
-
-        this.queryExecutor = queryExecutor;
-        this.linkService = linkService;
-        this.fieldFilterService = fieldFilterService;
-        this.environment = environment;
-        this.cacheProvider = cacheProvider;
-    }
 
     /**
      * Appends the given dimensionalItemsFound (the collection of results) and
@@ -134,8 +122,8 @@ class ResponseHandler
     private int countEntityRowsTotal( final Class<? extends BaseDimensionalItemObject> entity, final WebOptions options,
         final Set<String> filters, final User currentUser )
     {
-        // Defining query params map and setting common params
-        final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userUid",
+        // Defining query params map and setting common params.
+        final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( USER_UID,
             currentUser.getUid() );
 
         setFiltering( filters, paramsMap, currentUser );
@@ -144,7 +132,7 @@ class ResponseHandler
         if ( options.hasPaging() )
         {
             final int maxLimit = options.getPage() * options.getPageSize();
-            paramsMap.addValue( "maxRows", maxLimit );
+            paramsMap.addValue( MAX_LIMIT, maxLimit );
         }
 
         return queryExecutor.count( entity, paramsMap );

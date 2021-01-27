@@ -5,13 +5,17 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2032;
 import static org.hisp.dhis.feedback.ErrorCode.E2033;
+import static org.hisp.dhis.feedback.ErrorCode.E2034;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Attribute.getNames;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.getCombinations;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Operation.getAbbreviations;
 
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.webapi.controller.dataitem.Filter;
 
 /**
  * Validator class responsible for validating filter parameters.
@@ -20,6 +24,10 @@ import org.hisp.dhis.feedback.ErrorMessage;
  */
 public class FilterValidator
 {
+    private FilterValidator()
+    {
+    }
+
     /**
      * Checks if the given set o filters are valid, and contains only filter
      * names and operators supported.
@@ -54,6 +62,12 @@ public class FilterValidator
                         if ( !getAbbreviations().contains( operator ) )
                         {
                             throw new IllegalQueryException( new ErrorMessage( E2033, operator ) );
+                        }
+
+                        if ( getCombinations().stream().noneMatch( combination -> filter.startsWith( combination ) ) )
+                        {
+                            throw new IllegalQueryException(
+                                new ErrorMessage( E2034, StringUtils.substringBeforeLast( filter, ":" ) ) );
                         }
                     }
                     else
@@ -120,15 +134,14 @@ public class FilterValidator
      * 
      * @param filter the full filter param, in the format: name:eq:someName,
      *        where 'name' is the attribute and 'eq' is the operator
-     * @param prefix the prefix to be matched. See
-     *        {@link org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix} for
-     *        valid ones
+     * @param prefix the prefix to be matched. See {@link Filter.Combination}
+     *        for valid ones
      * @return true if the current filter starts with given prefix, false
      *         otherwise
      */
     public static boolean filterHasPrefix( final String filter, final String prefix )
     {
-        return trimToEmpty( filter ).startsWith( prefix );
+        return trimToEmpty( filter ).startsWith( trimToEmpty( prefix ) );
     }
 
     /**
@@ -138,11 +151,9 @@ public class FilterValidator
      * @param filter the full filter param, in the format: name:eq:someName,
      *        where 'name' is the attribute and 'eq' is the operator
      * @param prefixOne the first prefix to be matched. See
-     *        {@link org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix} for
-     *        valid ones
+     *        {@link Filter.Combination} for valid ones
      * @param prefixTwo the second prefix to be matched. See
-     *        {@link org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix} for
-     *        valid ones
+     *        {@link Filter.Combination} for valid ones
      * @return true if the current filter starts with any one of the given
      *         prefixes, false otherwise
      */

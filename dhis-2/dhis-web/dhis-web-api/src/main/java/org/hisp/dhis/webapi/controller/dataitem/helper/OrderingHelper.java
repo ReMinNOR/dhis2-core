@@ -4,6 +4,9 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.feedback.ErrorCode.E2015;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.DESC;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.ORDERING_ATTRIBUTE_NAME;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.ORDERING_VALUE;
 
 import java.util.Comparator;
 import java.util.List;
@@ -25,18 +28,13 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class OrderingHelper
 {
-    private static final int ORDERING_ATTRIBUTE_NAME = 0;
-
-    private static final int ORDERING_ATTRIBUTE_VALUE = 1;
-
-    private static final String DESC = "desc";
-
     private OrderingHelper()
     {
     }
 
     /**
-     * Sorts the given list based on the given sorting params.
+     * Sorts the given list based on the given sorting params. This is an
+     * in-memory sorting on top of the given list of DataItem objects.
      *
      * @param dimensionalItems
      * @param sortingParams
@@ -45,17 +43,17 @@ public class OrderingHelper
     {
         if ( sortingParams != null && isNotEmpty( dimensionalItems ) )
         {
-            final ComparatorChain<DataItem> chainOfComparators = new ComparatorChain<>();
+            final ComparatorChain<DataItem> comparatorChain = new ComparatorChain<>();
             final Set<String> orderingPairs = sortingParams.getOrders();
 
             if ( isNotEmpty( orderingPairs ) )
             {
                 for ( final String orderingPair : orderingPairs )
                 {
-                    chainOfComparators.addComparator( getComparator( orderingPair ) );
+                    comparatorChain.addComparator( getComparator( trimToEmpty( orderingPair ) ) );
                 }
 
-                dimensionalItems.sort( chainOfComparators );
+                dimensionalItems.sort( comparatorChain );
             }
         }
     }
@@ -65,7 +63,8 @@ public class OrderingHelper
      * the given "orderParams" into the provided "paramsMap". It's important to
      * highlight that the "key" added to the "paramsMap" will contain the actual
      * order param, ie.: "name" + "Order". So, if there is a "name" as order
-     * param, the "key" will result in "nameOrder".
+     * param, the "key" will result in "nameOrder". This method is used to set
+     * the ordering at database level.
      *
      * @param orderParams the source of ordering params
      * @param paramsMap the map that will receive the order params
@@ -78,37 +77,46 @@ public class OrderingHelper
 
             for ( final String order : orders )
             {
-                final String[] array = order.split( ":" );
+                final String[] orderAttributeValuePair = order.split( ":" );
 
                 // Concatenation of param name (ie.:"name") + "Order". It will
-                // result
-                // in "nameOrder".
-                paramsMap.addValue( trimToEmpty( array[0] ).concat( "Order" ), array[1] );
+                // result in "nameOrder".
+                paramsMap.addValue( trimToEmpty( orderAttributeValuePair[ORDERING_ATTRIBUTE_NAME] ).concat( "Order" ),
+                    trimToEmpty( orderAttributeValuePair[ORDERING_VALUE] ) );
             }
         }
     }
 
+    /**
+     * Creates and configure a Comparator based on the given ordering.
+     * 
+     * @param ordering accepts "asc" or "desc". A valid format could be:
+     *        "name:asc"
+     * @return the correct Comparator definition based on the orderingparam
+     * @throws IllegalQueryException if the given ordering is not syntax valid
+     */
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    private static Comparator<DataItem> getComparator( final String orderingParam )
+    private static Comparator<DataItem> getComparator( final String ordering )
     {
-        final String[] orderingAttributes = split( orderingParam, ":" );
+        final String[] orderingAttributes = split( ordering, ":" );
         final boolean hasValidOrderingAttributes = orderingAttributes != null && orderingAttributes.length == 2;
 
         if ( hasValidOrderingAttributes )
         {
             final BeanComparator<DataItem> comparator = new BeanComparator(
-                orderingAttributes[ORDERING_ATTRIBUTE_NAME], new NullComparator<>( true ) );
+                trimToEmpty( orderingAttributes[ORDERING_ATTRIBUTE_NAME] ), new NullComparator<>( true ) );
 
-            if ( DESC.equals( orderingAttributes[ORDERING_ATTRIBUTE_VALUE] ) )
+            if ( DESC.equals( trimToEmpty( orderingAttributes[ORDERING_VALUE] ) ) )
             {
                 return comparator.reversed();
             }
 
+            // Returns the natural order.
             return comparator;
         }
         else
         {
-            throw new IllegalQueryException( new ErrorMessage( E2015, orderingParam ) );
+            throw new IllegalQueryException( new ErrorMessage( E2015, ordering ) );
         }
     }
 }

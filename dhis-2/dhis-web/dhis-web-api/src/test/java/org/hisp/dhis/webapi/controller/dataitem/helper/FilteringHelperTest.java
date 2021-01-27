@@ -8,8 +8,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DIMENSION_TYPE_EQUAL;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DIMENSION_TYPE_IN;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithPrefix;
@@ -133,7 +133,7 @@ public class FilteringHelperTest
         final boolean expectedTrueResult = true;
 
         // When
-        final boolean actualResult = containsFilterWithPrefix( anyFilters, DIMENSION_TYPE_EQUAL.getPrefix() );
+        final boolean actualResult = containsFilterWithPrefix( anyFilters, DIMENSION_TYPE_EQUAL.getCombination() );
 
         // Then
         assertThat( actualResult, is( expectedTrueResult ) );
@@ -147,7 +147,7 @@ public class FilteringHelperTest
         final boolean expectedTrueResult = true;
 
         // When
-        final boolean actualResult = containsFilterWithPrefix( anyFilters, DIMENSION_TYPE_IN.getPrefix() );
+        final boolean actualResult = containsFilterWithPrefix( anyFilters, DIMENSION_TYPE_IN.getCombination() );
 
         // Then
         assertThat( actualResult, is( expectedTrueResult ) );
@@ -161,7 +161,7 @@ public class FilteringHelperTest
         final boolean expectedFalseResult = false;
 
         // When
-        final boolean actualResult = containsFilterWithPrefix( anyFilters, DIMENSION_TYPE_IN.getPrefix() );
+        final boolean actualResult = containsFilterWithPrefix( anyFilters, DIMENSION_TYPE_IN.getCombination() );
 
         // Then
         assertThat( actualResult, is( expectedFalseResult ) );

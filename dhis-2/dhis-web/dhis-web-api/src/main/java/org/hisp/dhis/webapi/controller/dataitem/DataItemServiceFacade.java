@@ -1,9 +1,8 @@
 package org.hisp.dhis.webapi.controller.dataitem;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DIMENSION_TYPE_EQUAL;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DIMENSION_TYPE_IN;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFiltering;
@@ -39,6 +38,7 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableMap;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -51,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author maikel arabori
  */
 @Slf4j
+@RequiredArgsConstructor
 @Component
 public class DataItemServiceFacade
 {
@@ -74,18 +75,6 @@ public class DataItemServiceFacade
             .put( "PROGRAM_ATTRIBUTE", ProgramTrackedEntityAttributeDimensionItem.class )
             .build();
     // @formatter:on
-
-    DataItemServiceFacade( final CurrentUserService currentUserService, final AclService aclService,
-        final QueryExecutor queryExecutor )
-    {
-        checkNotNull( currentUserService );
-        checkNotNull( aclService );
-        checkNotNull( queryExecutor );
-
-        this.currentUserService = currentUserService;
-        this.aclService = aclService;
-        this.queryExecutor = queryExecutor;
-    }
 
     /**
      * This method will iterate through the list of target entities, and query
@@ -151,8 +140,8 @@ public class DataItemServiceFacade
     {
         final Set<Class<? extends BaseDimensionalItemObject>> targetedEntities = new HashSet<>( 0 );
 
-        if ( containsFilterWithOneOfPrefixes( filters, DIMENSION_TYPE_EQUAL.getPrefix(),
-            DIMENSION_TYPE_IN.getPrefix() ) )
+        if ( containsFilterWithOneOfPrefixes( filters, DIMENSION_TYPE_EQUAL.getCombination(),
+            DIMENSION_TYPE_IN.getCombination() ) )
         {
             addFilteredTargetEntities( filters, targetedEntities );
         }

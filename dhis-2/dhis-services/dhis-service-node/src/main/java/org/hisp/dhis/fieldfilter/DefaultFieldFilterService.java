@@ -268,7 +268,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         if ( !StringUtils.hasText( fields )
             || "*".equals( org.apache.commons.lang3.StringUtils.trimToEmpty( fields ) ) )
         {
-            for ( Field property : klass.getDeclaredFields() )
+            for ( final Field property : klass.getDeclaredFields() )
             {
                 fieldMap.put( property.getName(), new FieldMap() );
             }

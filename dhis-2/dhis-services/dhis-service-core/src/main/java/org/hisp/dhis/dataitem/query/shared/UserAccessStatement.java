@@ -28,7 +28,7 @@
 package org.hisp.dhis.dataitem.query.shared;
 
 import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_GROUP_UIDS;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_ID;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_UID;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_GROUPS_ACCESS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_IDS;
 import static org.springframework.util.Assert.hasText;
@@ -134,8 +134,8 @@ public class UserAccessStatement
     {
         assertTableAlias( tableAlias );
 
-        return "(jsonb_has_user_id(" + tableAlias + ".sharing, :" + USER_ID + ") = TRUE "
-            + "AND jsonb_check_user_access(" + tableAlias + ".sharing, :" + USER_ID + ", 'r%') = TRUE)";
+        return "(jsonb_has_user_id(" + tableAlias + ".sharing, :" + USER_UID + ") = TRUE "
+            + "AND jsonb_check_user_access(" + tableAlias + ".sharing, :" + USER_UID + ", 'r%') = TRUE)";
     }
 
     static String userGroupAccessCondition( final String tableAlias )

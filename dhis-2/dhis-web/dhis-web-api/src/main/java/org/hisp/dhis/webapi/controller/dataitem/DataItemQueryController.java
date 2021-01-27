@@ -1,6 +1,5 @@
 package org.hisp.dhis.webapi.controller.dataitem;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
@@ -8,6 +7,7 @@ import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.feedback.ErrorCode.E3012;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.validateNamesAndOperators;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.validateOrderParams;
 import static org.springframework.http.HttpStatus.FOUND;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -48,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ApiVersion( { DEFAULT, ALL } )
+@RequiredArgsConstructor
 @RestController
 public class DataItemQueryController
 {
@@ -64,20 +66,6 @@ public class DataItemQueryController
     private final ResponseHandler responseHandler;
 
     private final AclService aclService;
-
-    public DataItemQueryController( final DataItemServiceFacade dataItemServiceFacade,
-        final ContextService contextService, final ResponseHandler responseHandler, final AclService aclService )
-    {
-        checkNotNull( dataItemServiceFacade );
-        checkNotNull( contextService );
-        checkNotNull( responseHandler );
-        checkNotNull( aclService );
-
-        this.dataItemServiceFacade = dataItemServiceFacade;
-        this.contextService = contextService;
-        this.responseHandler = responseHandler;
-        this.aclService = aclService;
-    }
 
     /**
      * Retrieve all data items based in the URL filters and parameters.
@@ -132,6 +120,7 @@ public class DataItemQueryController
         }
 
         validateNamesAndOperators( filters );
+        validateOrderParams( orderParams.getOrders() );
 
         // Extracting the target entities to be queried.
         final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = dataItemServiceFacade

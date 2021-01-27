@@ -78,11 +78,9 @@ public class IndicatorQuery implements DataItemQuery
         final List<DataItem> dataItems = new ArrayList<>();
 
         // Very specific case, for Indicator objects, needed to handle filter by
-        // value
-        // type NUMBER.
+        // value type NUMBER.
         // When the value type filter does not have a NUMBER type, we should not
-        // execute
-        // this query.
+        // execute this query.
         // It returns an empty instead.
         if ( skipNumberValueType( paramsMap ) )
         {
@@ -104,8 +102,7 @@ public class IndicatorQuery implements DataItemQuery
             viewItem.setDimensionItemType( INDICATOR.name() );
 
             // Specific case where we have to force a vale type. Indicators
-            // don't have a
-            // value type but they always evaluate to numbers.
+            // don't have a value type but they always evaluate to numbers.
             viewItem.setValueType( NUMBER.name() );
             viewItem.setSimplifiedValueType( NUMBER.name() );
 
@@ -119,11 +116,9 @@ public class IndicatorQuery implements DataItemQuery
     public int count( final MapSqlParameterSource paramsMap )
     {
         // Very specific case, for Indicator objects, needed to handle filter by
-        // value
-        // type NUMBER.
+        // value type NUMBER.
         // When the value type filter does not have a NUMBER type, we should not
-        // execute
-        // this query.
+        // execute this query.
         // It returns ZERO instead.
         if ( skipNumberValueType( paramsMap ) )
         {

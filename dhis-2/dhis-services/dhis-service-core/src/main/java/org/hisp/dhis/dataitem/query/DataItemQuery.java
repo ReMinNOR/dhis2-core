@@ -41,6 +41,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public interface DataItemQuery
 {
+    // TODO: MAIKEL: Add support for ORDER BY display name? Is it possible?
+    // select * from table ORDER BY data->>'value' ASC
+
     String NAME = "name";
 
     String DISPLAY_NAME = "displayName";
@@ -51,7 +54,7 @@ public interface DataItemQuery
 
     String USER_GROUP_UIDS = "userGroupUids";
 
-    String USER_ID = "userUid";
+    String USER_UID = "userUid";
 
     String PROGRAM_ID = "programId";
 
