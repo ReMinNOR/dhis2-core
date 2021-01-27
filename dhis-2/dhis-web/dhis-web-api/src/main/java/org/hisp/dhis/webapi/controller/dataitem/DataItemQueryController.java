@@ -7,7 +7,7 @@ import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.feedback.ErrorCode.E3012;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
-import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.validateFilters;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.validateNamesAndOperators;
 import static org.springframework.http.HttpStatus.FOUND;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -131,7 +131,7 @@ public class DataItemQueryController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        validateFilters( filters );
+        validateNamesAndOperators( filters );
 
         // Extracting the target entities to be queried.
         final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = dataItemServiceFacade

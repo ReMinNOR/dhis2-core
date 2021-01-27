@@ -12,7 +12,8 @@ public class Filter
         DIMENSION_TYPE( "dimensionItemType" ),
         VALUE_TYPE( "valueType" ),
         NAME( "name" ),
-        DISPLAY_NAME( "displayName" );
+        DISPLAY_NAME( "displayName" ),
+        PROGRAM_ID( "programId" );
 
         private String name;
 
@@ -53,6 +54,34 @@ public class Filter
         public static Set<String> getAbbreviations()
         {
             return of( Operation.values() ).map( Operation::getAbbreviation ).collect( toSet() );
+        }
+    }
+
+    public enum Prefix
+    {
+        DIMENSION_TYPE_IN( "dimensionItemType:in:" ),
+        DIMENSION_TYPE_EQUAL( "dimensionItemType:eq:" ),
+        VALUE_TYPE_IN( "valueType:in:" ),
+        VALUE_TYPE_EQUAL( "valueType:eq:" ),
+        NAME_ILIKE( "name:ilike:" ),
+        DISPLAY_NAME_ILIKE( "displayName:ilike" ),
+        PROGRAM_ID_EQUAL( "programId:eq:" );
+
+        private String prefix;
+
+        Prefix( String prefix )
+        {
+            this.prefix = prefix;
+        }
+
+        public String getPrefix()
+        {
+            return this.prefix;
+        }
+
+        public static Set<String> getPrefixes()
+        {
+            return of( Prefix.values() ).map( Prefix::getPrefix ).collect( toSet() );
         }
     }
 }

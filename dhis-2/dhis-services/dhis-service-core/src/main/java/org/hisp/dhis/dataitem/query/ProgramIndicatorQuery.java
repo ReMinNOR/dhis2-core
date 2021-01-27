@@ -29,6 +29,7 @@ package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.SetUtils.hashSet;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.JsonbConverter.fromJsonb;
 import static org.hisp.dhis.common.ValueType.NUMBER;
@@ -37,6 +38,8 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFilte
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipNumberValueType;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
+import static org.springframework.util.Assert.hasText;
+import static org.springframework.util.Assert.isInstanceOf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,6 +104,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
             viewItem.setName( rowSet.getString( "name" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
             viewItem.setCode( rowSet.getString( "code" ) );
+            viewItem.setProgramId( rowSet.getString( "program_uid" ) );
+            viewItem.setCombinedId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
             viewItem.setDimensionItemType( PROGRAM_INDICATOR.name() );
 
             // Specific case where we have to force a vale type. Program
@@ -133,11 +138,14 @@ public class ProgramIndicatorQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder(
             "SELECT COUNT(DISTINCT pi.uid)"
                 + " FROM programindicator pi"
+                + " JOIN program p ON p.programid = pi.programid"
                 + " WHERE ("
                 + sharingConditions( "pi", paramsMap )
                 + ")" );
 
         sql.append( commonFiltering( "pi", paramsMap ) );
+
+        sql.append( specificFiltering( paramsMap ) );
 
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
     }
@@ -151,18 +159,35 @@ public class ProgramIndicatorQuery implements DataItemQuery
     private String getProgramIndicatorQuery( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder(
-            "SELECT pi.\"name\", pi.uid, pi.code, pi.translations"
+            "SELECT pi.\"name\", pi.uid, pi.code, p.uid AS program_uid, pi.translations"
                 + " FROM programindicator pi"
+                + " JOIN program p ON p.programid = pi.programid"
                 + " WHERE ("
                 + sharingConditions( "pi", paramsMap )
                 + ")" );
 
         sql.append( commonFiltering( "pi", paramsMap ) );
 
+        sql.append( specificFiltering( paramsMap ) );
+
         sql.append( commonOrdering( "pi", paramsMap ) );
 
         sql.append( maxLimit( paramsMap ) );
 
         return sql.toString();
+    }
+
+    private String specificFiltering( final MapSqlParameterSource paramsMap )
+    {
+        if ( paramsMap != null && paramsMap.hasValue( PROGRAM_ID ) )
+        {
+            isInstanceOf( String.class, paramsMap.getValue( PROGRAM_ID ),
+                PROGRAM_ID + " cannot be null and must be a String." );
+            hasText( (String) paramsMap.getValue( PROGRAM_ID ), PROGRAM_ID + " cannot be null/blank." );
+
+            return " AND p.uid = :" + PROGRAM_ID;
+        }
+
+        return EMPTY;
     }
 }

@@ -15,15 +15,25 @@ import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.common.UserContext.getUserSetting;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.common.ValueType.getAggregatables;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.ILIKE_DISPLAY_NAME;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.ILIKE_NAME;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.LOCALE;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.NAME;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_GROUP_UIDS;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.VALUE_TYPES;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2016;
 import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DIMENSION_TYPE_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DIMENSION_TYPE_IN;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DISPLAY_NAME_ILIKE;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.NAME_ILIKE;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.PROGRAM_ID_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.VALUE_TYPE_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.VALUE_TYPE_IN;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithOneOfPrefixes;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.filterHasPrefix;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -46,18 +56,6 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class FilteringHelper
 {
-    private static final String DIMENSION_TYPE_IN_FILTER_PREFIX = "dimensionItemType:in:";
-
-    private static final String DIMENSION_TYPE_EQUAL_FILTER_PREFIX = "dimensionItemType:eq:";
-
-    private static final String VALUE_TYPE_IN_FILTER_PREFIX = "valueType:in:";
-
-    private static final String VALUE_TYPE_EQUAL_FILTER_PREFIX = "valueType:eq:";
-
-    private static final String ILIKE_NAME_FILTER_PREFIX = "name:ilike:";
-
-    private static final String ILIKE_DISPLAY_NAME_FILTER = "displayName:ilike";
-
     private FilteringHelper()
     {
     }
@@ -79,7 +77,7 @@ public class FilteringHelper
     {
         final Set<Class<? extends BaseDimensionalItemObject>> dimensionTypes = new HashSet<>();
 
-        if ( contains( filter, DIMENSION_TYPE_IN_FILTER_PREFIX ) )
+        if ( contains( filter, DIMENSION_TYPE_IN.getPrefix() ) )
         {
             final String[] dimensionTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
                 "," );
@@ -117,7 +115,7 @@ public class FilteringHelper
         final byte DIMENSION_TYPE = 2;
         Class<? extends BaseDimensionalItemObject> entity = null;
 
-        if ( hasEqualsDimensionTypeFilter( filter ) )
+        if ( filterHasPrefix( filter, DIMENSION_TYPE_EQUAL.getPrefix() ) )
         {
             final String[] array = filter.split( ":" );
             final boolean hasDimensionType = array.length == 3;
@@ -151,7 +149,7 @@ public class FilteringHelper
     {
         final Set<String> valueTypes = new HashSet<>();
 
-        if ( contains( filter, VALUE_TYPE_IN_FILTER_PREFIX ) )
+        if ( contains( filter, VALUE_TYPE_IN.getPrefix() ) )
         {
             final String[] valueTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
                 "," );
@@ -188,7 +186,7 @@ public class FilteringHelper
         final byte VALUE_TYPE = 2;
         String valueType = null;
 
-        if ( hasEqualsValueTypeFilter( filter ) )
+        if ( filterHasPrefix( filter, VALUE_TYPE_EQUAL.getPrefix() ) )
         {
             final String[] array = filter.split( ":" );
             final boolean hasValueType = array.length == 3;
@@ -249,7 +247,7 @@ public class FilteringHelper
         {
             for ( final String filter : filters )
             {
-                if ( hasIlikeNameFilter( filter ) )
+                if ( filterHasPrefix( filter, NAME_ILIKE.getPrefix() ) )
                 {
                     final String[] array = filter.split( ":" );
                     final boolean hasIlikeValue = array.length == 3;
@@ -277,7 +275,7 @@ public class FilteringHelper
         {
             for ( final String filter : filters )
             {
-                if ( hasIlikeDisplayNameFilter( filter ) )
+                if ( filterHasPrefix( filter, DISPLAY_NAME_ILIKE.getPrefix() ) )
                 {
                     final String[] array = filter.split( ":" );
                     final boolean hasIlikeValue = array.length == 3;
@@ -285,6 +283,34 @@ public class FilteringHelper
                     if ( hasIlikeValue )
                     {
                         return trimToEmpty( array[ILIKE_VALUE] );
+                    }
+                    else
+                    {
+                        throw new IllegalQueryException( new ErrorMessage( E2014, filter ) );
+                    }
+                }
+            }
+        }
+
+        return EMPTY;
+    }
+
+    public static String extractValueFromEqProgramIdFilter( final Set<String> filters )
+    {
+        final byte EQ_PROGRAM_ID_VALUE = 2;
+
+        if ( CollectionUtils.isNotEmpty( filters ) )
+        {
+            for ( final String filter : filters )
+            {
+                if ( filterHasPrefix( filter, PROGRAM_ID_EQUAL.getPrefix() ) )
+                {
+                    final String[] array = filter.split( ":" );
+                    final boolean hasProgramIdValue = array.length == 3;
+
+                    if ( hasProgramIdValue )
+                    {
+                        return trimToEmpty( array[EQ_PROGRAM_ID_VALUE] );
                     }
                     else
                     {
@@ -311,7 +337,7 @@ public class FilteringHelper
 
         if ( isNotBlank( ilikeName ) )
         {
-            paramsMap.addValue( ILIKE_NAME, wrap( ilikeName, "%" ) );
+            paramsMap.addValue( NAME, wrap( ilikeName, "%" ) );
         }
 
         final String ilikeDisplayName = extractValueFromIlikeDisplayNameFilter( filters );
@@ -320,7 +346,7 @@ public class FilteringHelper
         {
             final Locale currentLocale = getUserSetting( DB_LOCALE );
 
-            paramsMap.addValue( ILIKE_DISPLAY_NAME, wrap( ilikeDisplayName, "%" ) );
+            paramsMap.addValue( DISPLAY_NAME, wrap( ilikeDisplayName, "%" ) );
 
             if ( currentLocale != null && isNotBlank( currentLocale.getLanguage() ) )
             {
@@ -328,7 +354,8 @@ public class FilteringHelper
             }
         }
 
-        if ( containsValueTypeFilter( filters ) )
+        if ( containsFilterWithOneOfPrefixes( filters, VALUE_TYPE_EQUAL.getPrefix(),
+            VALUE_TYPE_IN.getPrefix() ) )
         {
             final Set<String> valueTypesFilter = extractAllValueTypesFromFilters( filters );
             assertThatValueTypeFilterHasOnlyAggregatableTypes( valueTypesFilter, filters );
@@ -342,6 +369,14 @@ public class FilteringHelper
                 getAggregatables().stream().map( type -> type.name() ).collect( toSet() ) );
         }
 
+        final String programId = extractValueFromEqProgramIdFilter( filters );
+
+        // Add program id filtering id, if present.
+        if ( isNotBlank( programId ) )
+        {
+            paramsMap.addValue( PROGRAM_ID, programId );
+        }
+
         // Add user group filtering, when present.
         if ( currentUser != null && CollectionUtils.isNotEmpty( currentUser.getGroups() ) )
         {
@@ -351,64 +386,6 @@ public class FilteringHelper
                 .collect( toSet() );
             paramsMap.addValue( USER_GROUP_UIDS, "{" + join( ",", userGroupUids ) + "}" );
         }
-    }
-
-    private static String getValueTypeOrThrow( final String valueType )
-    {
-        try
-        {
-            return fromString( valueType ).name();
-        }
-        catch ( IllegalArgumentException e )
-        {
-            throw new IllegalQueryException(
-                new ErrorMessage( E2016, valueType, "valueType", ValueType.getAggregatables() ) );
-        }
-    }
-
-    /**
-     * Simply checks if the given list of filters contains a dimension type
-     * filter.
-     *
-     * @param filters
-     * @return true if a dimension type filter is found, false otherwise.
-     */
-    public static boolean containsDimensionTypeFilter( final Set<String> filters )
-    {
-        if ( CollectionUtils.isNotEmpty( filters ) )
-        {
-            for ( final String filter : filters )
-            {
-                if ( hasEqualsDimensionTypeFilter( filter ) || hasInDimensionTypeFilter( filter ) )
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Simply checks if the given list of filters contains a value type filter.
-     *
-     * @param filters
-     * @return true if a value type filter is found, false otherwise.
-     */
-    public static boolean containsValueTypeFilter( final Set<String> filters )
-    {
-        if ( CollectionUtils.isNotEmpty( filters ) )
-        {
-            for ( final String filter : filters )
-            {
-                if ( hasEqualsValueTypeFilter( filter ) || hasInValueTypeFilter( filter ) )
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -437,34 +414,17 @@ public class FilteringHelper
         }
     }
 
-    private static boolean hasEqualsValueTypeFilter( final String filter )
+    private static String getValueTypeOrThrow( final String valueType )
     {
-        return trimToEmpty( filter ).contains( VALUE_TYPE_EQUAL_FILTER_PREFIX );
-    }
-
-    private static boolean hasInValueTypeFilter( final String filter )
-    {
-        return trimToEmpty( filter ).contains( VALUE_TYPE_IN_FILTER_PREFIX );
-    }
-
-    private static boolean hasIlikeNameFilter( final String filter )
-    {
-        return trimToEmpty( filter ).contains( ILIKE_NAME_FILTER_PREFIX );
-    }
-
-    private static boolean hasIlikeDisplayNameFilter( final String filter )
-    {
-        return trimToEmpty( filter ).contains( ILIKE_DISPLAY_NAME_FILTER );
-    }
-
-    private static boolean hasEqualsDimensionTypeFilter( final String filter )
-    {
-        return trimToEmpty( filter ).contains( DIMENSION_TYPE_EQUAL_FILTER_PREFIX );
-    }
-
-    private static boolean hasInDimensionTypeFilter( final String filter )
-    {
-        return trimToEmpty( filter ).contains( DIMENSION_TYPE_IN_FILTER_PREFIX );
+        try
+        {
+            return fromString( valueType ).name();
+        }
+        catch ( IllegalArgumentException e )
+        {
+            throw new IllegalQueryException(
+                new ErrorMessage( E2016, valueType, "valueType", ValueType.getAggregatables() ) );
+        }
     }
 
     private static Class<? extends BaseDimensionalItemObject> entityClassFromString( final String entityType )

@@ -2,7 +2,8 @@ package org.hisp.dhis.webapi.controller.dataitem;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.containsDimensionTypeFilter;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DIMENSION_TYPE_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFiltering;
@@ -10,6 +11,7 @@ import static org.hisp.dhis.webapi.controller.dataitem.helper.OrderingHelper.set
 import static org.hisp.dhis.webapi.controller.dataitem.helper.OrderingHelper.sort;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.setMaxResultsWhenPaging;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.slice;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithOneOfPrefixes;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -149,7 +151,8 @@ public class DataItemServiceFacade
     {
         final Set<Class<? extends BaseDimensionalItemObject>> targetedEntities = new HashSet<>( 0 );
 
-        if ( containsDimensionTypeFilter( filters ) )
+        if ( containsFilterWithOneOfPrefixes( filters, DIMENSION_TYPE_EQUAL.getPrefix(),
+            DIMENSION_TYPE_IN.getPrefix() ) )
         {
             addFilteredTargetEntities( filters, targetedEntities );
         }

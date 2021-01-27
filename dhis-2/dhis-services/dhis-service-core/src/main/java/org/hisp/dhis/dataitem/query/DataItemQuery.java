@@ -41,9 +41,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public interface DataItemQuery
 {
-    String ILIKE_NAME = "ilikeName";
+    String NAME = "name";
 
-    String ILIKE_DISPLAY_NAME = "ilikeDisplayName";
+    String DISPLAY_NAME = "displayName";
 
     String LOCALE = "locale";
 
@@ -52,6 +52,8 @@ public interface DataItemQuery
     String USER_GROUP_UIDS = "userGroupUids";
 
     String USER_ID = "userUid";
+
+    String PROGRAM_ID = "programId";
 
     String MAX_LIMIT = "maxLimit";
 

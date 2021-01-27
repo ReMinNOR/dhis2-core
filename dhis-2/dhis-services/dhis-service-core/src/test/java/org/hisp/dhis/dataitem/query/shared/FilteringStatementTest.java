@@ -33,7 +33,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.ILIKE_NAME;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.NAME;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.VALUE_TYPES;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipNumberValueType;
@@ -56,8 +56,8 @@ public class FilteringStatementTest
         // Given
         final String aTableAlias = "de";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( ILIKE_NAME, "abc" );
-        final String expectedStatement = " AND (" + aTableAlias + ".\"name\" ILIKE :" + ILIKE_NAME + ")";
+            .addValue( NAME, "abc" );
+        final String expectedStatement = " AND (" + aTableAlias + ".\"name\" ILIKE :" + NAME + ")";
 
         // When
         final String resultStatement = commonFiltering( aTableAlias, theParameterSource );
@@ -87,14 +87,14 @@ public class FilteringStatementTest
         // Given
         final String aTableAlias = "de";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( ILIKE_NAME, null );
+            .addValue( NAME, null );
 
         // When throws
         final IllegalArgumentException thrown = assertThrows(
             IllegalArgumentException.class,
             () -> commonFiltering( aTableAlias, theParameterSource ) );
 
-        assertThat( thrown.getMessage(), containsString( ILIKE_NAME + " cannot be null and must be a String." ) );
+        assertThat( thrown.getMessage(), containsString( NAME + " cannot be null and must be a String." ) );
     }
 
     @Test
@@ -103,14 +103,14 @@ public class FilteringStatementTest
         // Given
         final String aTableAlias = "de";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( ILIKE_NAME, EMPTY );
+            .addValue( NAME, EMPTY );
 
         // When throws
         final IllegalArgumentException thrown = assertThrows(
             IllegalArgumentException.class,
             () -> commonFiltering( aTableAlias, theParameterSource ) );
 
-        assertThat( thrown.getMessage(), containsString( ILIKE_NAME + " cannot be null/blank." ) );
+        assertThat( thrown.getMessage(), containsString( NAME + " cannot be null/blank." ) );
     }
 
     @Test
@@ -120,9 +120,9 @@ public class FilteringStatementTest
         final String tableAlias1 = "de";
         final String tableAlias2 = "p";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( ILIKE_NAME, "abc" );
-        final String expectedStatement = " AND (" + tableAlias1 + ".\"name\" ILIKE :" + ILIKE_NAME + " OR "
-            + tableAlias2 + ".\"name\" ILIKE :" + ILIKE_NAME + ")";
+            .addValue( NAME, "abc" );
+        final String expectedStatement = " AND (" + tableAlias1 + ".\"name\" ILIKE :" + NAME + " OR "
+            + tableAlias2 + ".\"name\" ILIKE :" + NAME + ")";
 
         // When
         final String resultStatement = commonFiltering( tableAlias1, tableAlias2, theParameterSource );

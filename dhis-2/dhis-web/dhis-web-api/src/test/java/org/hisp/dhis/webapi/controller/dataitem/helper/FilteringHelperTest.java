@@ -8,9 +8,11 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.containsDimensionTypeFilter;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DIMENSION_TYPE_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithPrefix;
 import static org.junit.Assert.assertThrows;
 
 import java.util.Arrays;
@@ -131,7 +133,7 @@ public class FilteringHelperTest
         final boolean expectedTrueResult = true;
 
         // When
-        final boolean actualResult = containsDimensionTypeFilter( anyFilters );
+        final boolean actualResult = containsFilterWithPrefix( anyFilters, DIMENSION_TYPE_EQUAL.getPrefix() );
 
         // Then
         assertThat( actualResult, is( expectedTrueResult ) );
@@ -145,21 +147,21 @@ public class FilteringHelperTest
         final boolean expectedTrueResult = true;
 
         // When
-        final boolean actualResult = containsDimensionTypeFilter( anyFilters );
+        final boolean actualResult = containsFilterWithPrefix( anyFilters, DIMENSION_TYPE_IN.getPrefix() );
 
         // Then
         assertThat( actualResult, is( expectedTrueResult ) );
     }
 
     @Test
-    public void testContainsDimensionTypeFilterWhenThereDimensionItemTypeFilterIsNotSet()
+    public void testContainsDimensionTypeFilterWhenDimensionItemTypeInFilterIsNotSet()
     {
         // Given
         final Set<String> anyFilters = newHashSet( "displayName:ilike:anc" );
         final boolean expectedFalseResult = false;
 
         // When
-        final boolean actualResult = containsDimensionTypeFilter( anyFilters );
+        final boolean actualResult = containsFilterWithPrefix( anyFilters, DIMENSION_TYPE_IN.getPrefix() );
 
         // Then
         assertThat( actualResult, is( expectedFalseResult ) );

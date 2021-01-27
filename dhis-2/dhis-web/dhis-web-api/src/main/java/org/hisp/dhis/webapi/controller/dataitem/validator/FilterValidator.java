@@ -14,7 +14,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
- * Validator class responsible for validating the filter parameters.
+ * Validator class responsible for validating filter parameters.
  * 
  * @author maikel arabori
  */
@@ -28,7 +28,7 @@ public class FilterValidator
      * @throws IllegalQueryException if the set contains a non-supported name or
      *         operator, or and invalid syntax.
      */
-    public static void validateFilters( final Set<String> filters )
+    public static void validateNamesAndOperators( final Set<String> filters )
     {
         final byte FILTER_NAME = 0;
         final byte FILTER_OPERATOR = 1;
@@ -63,5 +63,92 @@ public class FilterValidator
                 }
             }
         }
+    }
+
+    /**
+     * Simply checks if the given set of filters contains the given filter
+     * prefix.
+     *
+     * @param filters
+     * @param withPrefix
+     * @return true if a dimension type filter is found, false otherwise.
+     */
+    public static boolean containsFilterWithPrefix( final Set<String> filters, final String withPrefix )
+    {
+        if ( isNotEmpty( filters ) )
+        {
+            for ( final String filter : filters )
+            {
+                if ( filterHasPrefix( filter, withPrefix ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Simply checks if the given set of filters contains the given filter
+     * prefix.
+     *
+     * @param filters
+     * @param withPrefixOne
+     * @param withPrefixTwo
+     * @return true if a dimension type filter is found, false otherwise.
+     */
+    public static boolean containsFilterWithOneOfPrefixes( final Set<String> filters, final String withPrefixOne,
+        final String withPrefixTwo )
+    {
+        if ( isNotEmpty( filters ) )
+        {
+            for ( final String filter : filters )
+            {
+                if ( filterHasOneOfPrefixes( filter, withPrefixOne, withPrefixTwo ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Simply checks if a given filter start the prefix provided.
+     * 
+     * @param filter the full filter param, in the format: name:eq:someName,
+     *        where 'name' is the attribute and 'eq' is the operator
+     * @param prefix the prefix to be matched. See
+     *        {@link org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix} for
+     *        valid ones
+     * @return true if the current filter starts with given prefix, false
+     *         otherwise
+     */
+    public static boolean filterHasPrefix( final String filter, final String prefix )
+    {
+        return trimToEmpty( filter ).startsWith( prefix );
+    }
+
+    /**
+     * Simply checks if a given filter starts with any one of the prefix
+     * provided.
+     * 
+     * @param filter the full filter param, in the format: name:eq:someName,
+     *        where 'name' is the attribute and 'eq' is the operator
+     * @param prefixOne the first prefix to be matched. See
+     *        {@link org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix} for
+     *        valid ones
+     * @param prefixTwo the second prefix to be matched. See
+     *        {@link org.hisp.dhis.webapi.controller.dataitem.Filter.Prefix} for
+     *        valid ones
+     * @return true if the current filter starts with any one of the given
+     *         prefixes, false otherwise
+     */
+    public static boolean filterHasOneOfPrefixes( final String filter, final String prefixOne,
+        final String prefixTwo )
+    {
+        return trimToEmpty( filter ).startsWith( prefixOne ) || trimToEmpty( filter ).startsWith( prefixTwo );
     }
 }

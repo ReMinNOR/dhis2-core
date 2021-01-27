@@ -29,6 +29,7 @@ package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.SetUtils.hashSet;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.JsonbConverter.fromJsonb;
@@ -37,6 +38,8 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFilte
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
+import static org.springframework.util.Assert.hasText;
+import static org.springframework.util.Assert.isInstanceOf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -117,6 +120,8 @@ public class ProgramAttributeQuery implements DataItemQuery
 
         sql.append( commonFiltering( "p", "t", paramsMap ) );
 
+        sql.append( specificFiltering( paramsMap ) );
+
         if ( paramsMap.hasValue( VALUE_TYPES ) && paramsMap.getValue( VALUE_TYPES ) != null )
         {
             sql.append( " AND (t.valuetype IN (:" + VALUE_TYPES + "))" );
@@ -147,6 +152,8 @@ public class ProgramAttributeQuery implements DataItemQuery
 
         sql.append( valueTypeFiltering( "t", paramsMap ) );
 
+        sql.append( specificFiltering( paramsMap ) );
+
         sql.append( " GROUP BY p.\"name\", p.uid, t.\"name\", t.uid, t.valuetype, t.code, t.translations" );
 
         sql.append( commonOrdering( "p", paramsMap ) );
@@ -154,5 +161,19 @@ public class ProgramAttributeQuery implements DataItemQuery
         sql.append( maxLimit( paramsMap ) );
 
         return sql.toString();
+    }
+
+    private String specificFiltering( final MapSqlParameterSource paramsMap )
+    {
+        if ( paramsMap != null && paramsMap.hasValue( PROGRAM_ID ) )
+        {
+            isInstanceOf( String.class, paramsMap.getValue( PROGRAM_ID ),
+                PROGRAM_ID + " cannot be null and must be a String." );
+            hasText( (String) paramsMap.getValue( PROGRAM_ID ), PROGRAM_ID + " cannot be null/blank." );
+
+            return " AND p.uid = :" + PROGRAM_ID;
+        }
+
+        return EMPTY;
     }
 }
