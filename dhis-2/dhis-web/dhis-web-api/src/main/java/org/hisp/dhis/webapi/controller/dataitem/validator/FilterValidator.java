@@ -3,7 +3,8 @@ package org.hisp.dhis.webapi.controller.dataitem.validator;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
-import static org.hisp.dhis.feedback.ErrorCode.E2017;
+import static org.hisp.dhis.feedback.ErrorCode.E2032;
+import static org.hisp.dhis.feedback.ErrorCode.E2033;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Attribute.getNames;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Operation.getAbbreviations;
 
@@ -47,12 +48,12 @@ public class FilterValidator
 
                         if ( !getNames().contains( filterName ) )
                         {
-                            throw new IllegalQueryException( new ErrorMessage( E2017, filterName ) );
+                            throw new IllegalQueryException( new ErrorMessage( E2032, filterName ) );
                         }
 
                         if ( !getAbbreviations().contains( operator ) )
                         {
-                            throw new IllegalQueryException( new ErrorMessage( E2017, operator ) );
+                            throw new IllegalQueryException( new ErrorMessage( E2033, operator ) );
                         }
                     }
                     else
