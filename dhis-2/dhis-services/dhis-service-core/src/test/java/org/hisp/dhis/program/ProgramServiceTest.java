@@ -145,20 +145,6 @@ public class ProgramServiceTest
     }
 
     @Test
-    public void testGetProgramsByOu()
-    {
-        programService.addProgram( programA );
-        programService.addProgram( programB );
-        programService.addProgram( programC );
-
-        List<Program> programs = programService.getPrograms( organisationUnitA );
-        assertTrue( equals( programs, programA, programB ) );
-
-        programs = programService.getPrograms( organisationUnitB );
-        assertTrue( equals( programs, programC ) );
-    }
-
-    @Test
     public void testGetProgramsByType()
     {
         programService.addProgram( programA );

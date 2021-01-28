@@ -262,7 +262,6 @@ public class EventSecurityImportValidationTest
         user.addOrganisationUnit( organisationUnitA );
 
         Program p = programService.getProgram( "prabcdefghA" );
-        p.addOrganisationUnit( qfUVllTs6cS );
 
         programService.updateProgram( p );
 

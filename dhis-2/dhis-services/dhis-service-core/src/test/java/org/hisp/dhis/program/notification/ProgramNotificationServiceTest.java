@@ -693,7 +693,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         // Program
         Program programA = createProgram( 'A' );
         programA.setAutoFields();
-        programA.setOrganisationUnits( Sets.newHashSet( lvlTwoLeftLeft, lvlTwoLeftRight ) );
         programA.setNotificationTemplates(
             Sets.newHashSet( programNotificationTemplate, programNotificationTemplateForToday ) );
         programA.getProgramAttributes().add( programTrackedEntityAttribute );

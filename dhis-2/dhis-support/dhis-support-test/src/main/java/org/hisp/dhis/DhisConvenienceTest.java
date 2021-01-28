@@ -1472,11 +1472,6 @@ public abstract class DhisConvenienceTest
             }
         }
 
-        if ( organisationUnits != null )
-        {
-            program.getOrganisationUnits().addAll( organisationUnits );
-        }
-
         if ( categoryCombo != null )
         {
             program.setCategoryCombo( categoryCombo );

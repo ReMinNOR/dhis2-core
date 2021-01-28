@@ -250,7 +250,6 @@ public class TrackerEventSMSListenerTest
         categoryOptionCombo = createCategoryOptionCombo( 'C' );
         dataElement = createDataElement( 'D' );
 
-        program.getOrganisationUnits().add( organisationUnit );
         HashSet<ProgramStage> stages = new HashSet<>();
         stages.add( programStage );
         program.setProgramStages( stages );

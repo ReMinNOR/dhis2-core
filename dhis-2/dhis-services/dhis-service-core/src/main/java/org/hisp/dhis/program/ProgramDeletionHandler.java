@@ -38,7 +38,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -97,20 +96,6 @@ public class ProgramDeletionHandler
             if ( program != null && categoryCombo.equals( program.getCategoryCombo() ) )
             {
                 program.setCategoryCombo( defaultCategoryCombo );
-                idObjectManager.updateNoAcl( program );
-            }
-        }
-    }
-
-    @Override
-    public void deleteOrganisationUnit( OrganisationUnit unit )
-    {
-        Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
-
-        for ( Program program : programs )
-        {
-            if ( program.getOrganisationUnits().remove( unit ) )
-            {
                 idObjectManager.updateNoAcl( program );
             }
         }

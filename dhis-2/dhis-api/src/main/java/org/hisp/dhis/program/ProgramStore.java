@@ -54,14 +54,6 @@ public interface ProgramStore
     List<Program> getByType( ProgramType type );
 
     /**
-     * Get {@link Program} assigned to an {@link OrganisationUnit} by a type
-     *
-     * @param organisationUnit Where programs assigned
-     * @return Program list by a type specified
-     */
-    List<Program> get( OrganisationUnit organisationUnit );
-
-    /**
      * Get {@link Program} by TrackedEntityType
      *
      * @param trackedEntityType {@link TrackedEntityType}

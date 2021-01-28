@@ -107,7 +107,6 @@ public class AssignedUserValidationHookTest
         programA = createProgram( 'A' );
         programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         programA.setTrackedEntityType( teta );
-        programA.addOrganisationUnit( organisationUnitA );
         manager.save( programA );
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );

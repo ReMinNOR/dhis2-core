@@ -356,7 +356,6 @@ public class EnrollmentSMSListenerTest
         final ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute(
             program, trackedEntityAttribute );
         program.getProgramAttributes().add( programTrackedEntityAttribute );
-        program.getOrganisationUnits().add( organisationUnit );
         program.setTrackedEntityType( trackedEntityType );
         HashSet<ProgramStage> stages = new HashSet<>();
         stages.add( programStage );

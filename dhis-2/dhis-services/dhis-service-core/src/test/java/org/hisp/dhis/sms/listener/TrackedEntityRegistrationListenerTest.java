@@ -231,7 +231,6 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         programTrackedEntityAttribute = createProgramTrackedEntityAttribute( program, trackedEntityAttribute );
         trackedEntityAttribute = createTrackedEntityAttribute( 'A', ValueType.TEXT );
         program.getProgramAttributes().add( programTrackedEntityAttribute );
-        program.getOrganisationUnits().add( organisationUnit );
         program.setTrackedEntityType( trackedEntityType );
 
         trackedEntityInstance = createTrackedEntityInstance( organisationUnit );

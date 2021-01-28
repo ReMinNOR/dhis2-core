@@ -39,13 +39,6 @@
       <one-to-many class="org.hisp.dhis.program.ProgramSection" />
     </set>
 
-    <set name="organisationUnits" table="program_organisationunits">
-      <cache usage="read-write" />
-      <key column="programid" foreign-key="fk_program_organisationunits_programid" />
-      <many-to-many column="organisationunitid"
-        class="org.hisp.dhis.organisationunit.OrganisationUnit" foreign-key="fk_program_organisationunits_organisationunitid" />
-    </set>
-
     <property name="programType" column="type" type="org.hisp.dhis.program.ProgramTypeUserType" not-null="true" />
 
     <property name="displayIncidentDate" />

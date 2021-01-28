@@ -163,7 +163,6 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTest
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
         programA.setAccessLevel( AccessLevel.PROTECTED );
         programA.setPublicAccess( AccessStringHelper.FULL );
-        programA.addOrganisationUnit( organisationUnitB );
         manager.save( programA );
 
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();

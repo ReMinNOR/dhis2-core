@@ -40,14 +40,12 @@ import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.common.OrganisationUnitAssignable;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
@@ -63,7 +61,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Sets;
 
 /**
  * @author Abyot Asalefew
@@ -71,7 +68,7 @@ import com.google.common.collect.Sets;
 @JacksonXmlRootElement( localName = "program", namespace = DxfNamespaces.DXF_2_0 )
 public class Program
     extends BaseNameableObject
-    implements VersionedObject, MetadataObject, OrganisationUnitAssignable
+    implements VersionedObject, MetadataObject
 {
     private String formName;
 
@@ -80,8 +77,6 @@ public class Program
     private String enrollmentDateLabel;
 
     private String incidentDateLabel;
-
-    private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
     private Set<ProgramStage> programStages = new HashSet<>();
 
@@ -204,30 +199,6 @@ public class Program
     // -------------------------------------------------------------------------
     // Logic methods
     // -------------------------------------------------------------------------
-
-    public void addOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        organisationUnits.add( organisationUnit );
-        organisationUnit.getPrograms().add( this );
-    }
-
-    public void removeOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        organisationUnits.remove( organisationUnit );
-        organisationUnit.getPrograms().remove( this );
-    }
-
-    public void updateOrganisationUnits( Set<OrganisationUnit> updates )
-    {
-        Set<OrganisationUnit> toRemove = Sets.difference( organisationUnits, updates );
-        Set<OrganisationUnit> toAdd = Sets.difference( updates, organisationUnits );
-
-        toRemove.forEach( u -> u.getPrograms().remove( this ) );
-        toAdd.forEach( u -> u.getPrograms().add( this ) );
-
-        organisationUnits.clear();
-        organisationUnits.addAll( updates );
-    }
 
     /**
      * Returns IDs of searchable TrackedEntityAttributes.
@@ -424,22 +395,6 @@ public class Program
     public void setVersion( int version )
     {
         this.version = version;
-    }
-
-    @Override
-    @JsonProperty( "organisationUnits" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<OrganisationUnit> getOrganisationUnits()
-    {
-        return organisationUnits;
-    }
-
-    @Override
-    public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
-    {
-        this.organisationUnits = organisationUnits;
     }
 
     @JsonProperty( "programStages" )

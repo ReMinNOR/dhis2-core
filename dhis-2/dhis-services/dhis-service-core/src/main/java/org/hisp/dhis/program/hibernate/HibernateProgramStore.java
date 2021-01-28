@@ -76,16 +76,6 @@ public class HibernateProgramStore
     }
 
     @Override
-    public List<Program> get( OrganisationUnit organisationUnit )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate(
-                root -> builder.equal( root.join( "organisationUnits" ).get( "id" ), organisationUnit.getId() ) ) );
-    }
-
-    @Override
     public List<Program> getByTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
@@ -107,6 +97,7 @@ public class HibernateProgramStore
         return getQuery( hql ).setParameter( "dataEntryForm", dataEntryForm ).list();
     }
 
+    @Override
     public boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit )
     {
         NativeQuery<Long> query = getSession().createNativeQuery(

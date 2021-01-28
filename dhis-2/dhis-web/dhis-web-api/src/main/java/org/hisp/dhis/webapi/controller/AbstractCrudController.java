@@ -1325,11 +1325,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         for ( T entity : entityList )
         {
-            OrganisationUnitAssignable e = (OrganisationUnitAssignable) entity;
-            if ( e.getOrganisationUnits() != null && e.getOrganisationUnits().size() > 0 )
+            OrganisationUnitAssignable orgUnitAssignable = (OrganisationUnitAssignable) entity;
+            if ( orgUnitAssignable.getOrganisationUnits() != null && orgUnitAssignable.getOrganisationUnits().size() > 0 )
             {
-                e.setOrganisationUnits(
-                    e.getOrganisationUnits().stream().filter( ou -> orgUnits.contains( ou.getUid() ) )
+                orgUnitAssignable.setOrganisationUnits(
+                    orgUnitAssignable.getOrganisationUnits().stream().filter( ou -> orgUnits.contains( ou.getUid() ) )
                         .collect( Collectors.toSet() ) );
             }
         }

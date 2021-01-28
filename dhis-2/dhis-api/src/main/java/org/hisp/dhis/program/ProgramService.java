@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -101,14 +100,6 @@ public interface ProgramService
     List<Program> getAllPrograms();
 
     /**
-     * Get all {@link Program} belong to a orgunit
-     *
-     * @param organisationUnit {@link OrganisationUnit}
-     * @return The program list
-     */
-    List<Program> getPrograms( OrganisationUnit organisationUnit );
-
-    /**
      * Get {@link Program} by a type
      *
      * @param type The type of program. There are three types, include Multi
@@ -160,15 +151,6 @@ public interface ProgramService
      * @return Immutable set of programs associated with the current user.
      */
     Set<Program> getUserPrograms( ProgramType programType );
-
-    /**
-     * Sets the given merge organisation units on the given programs. Only the
-     * sub-hierarchy of the current user is modified.
-     *
-     * @param program the program.
-     * @param mergeOrganisationUnits the merge organisation units.
-     */
-    void mergeWithCurrentUserOrganisationUnits( Program program, Collection<OrganisationUnit> mergeOrganisationUnits );
 
     /**
      * Returns a list of generated, non-persisted program data elements for the

@@ -54,7 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-public class TrackerPreheatServiceIntegration
+public class TrackerPreheatServiceIntegrationTest
     extends TransactionalIntegrationTest
 {
     @Autowired
@@ -106,7 +106,6 @@ public class TrackerPreheatServiceIntegration
 
         // Set up placeholder Program, with attributeValue
         Program programA = createProgram( 'A' );
-        programA.addOrganisationUnit( ouA );
         programA.setTrackedEntityType( tetA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
         programA.setAttributeValues( Sets.newHashSet( new AttributeValue( "PROGRAM1", attributeA ) ) );

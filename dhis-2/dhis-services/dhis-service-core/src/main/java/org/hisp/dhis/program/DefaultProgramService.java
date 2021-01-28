@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -39,7 +38,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
@@ -48,7 +46,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * @author Abyot Asalefew
@@ -113,13 +110,6 @@ public class DefaultProgramService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Program> getPrograms( OrganisationUnit organisationUnit )
-    {
-        return programStore.get( organisationUnit );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public List<Program> getPrograms( ProgramType type )
     {
         return programStore.getByType( type );
@@ -171,27 +161,6 @@ public class DefaultProgramService
     {
         return getUserPrograms().stream().filter( p -> p.getProgramType() == programType )
             .collect( Collectors.toSet() );
-    }
-
-    @Override
-    @Transactional
-    public void mergeWithCurrentUserOrganisationUnits( Program program,
-        Collection<OrganisationUnit> mergeOrganisationUnits )
-    {
-        Set<OrganisationUnit> selectedOrgUnits = Sets.newHashSet( program.getOrganisationUnits() );
-
-        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-        params.setParents( currentUserService.getCurrentUser().getOrganisationUnits() );
-
-        Set<OrganisationUnit> userOrganisationUnits = Sets
-            .newHashSet( organisationUnitService.getOrganisationUnitsByQuery( params ) );
-
-        selectedOrgUnits.removeAll( userOrganisationUnits );
-        selectedOrgUnits.addAll( mergeOrganisationUnits );
-
-        program.updateOrganisationUnits( selectedOrgUnits );
-
-        updateProgram( program );
     }
 
     // -------------------------------------------------------------------------
