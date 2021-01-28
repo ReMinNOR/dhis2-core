@@ -68,8 +68,7 @@ import com.google.common.collect.Sets;
  */
 @Service( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
 public class DefaultOrganisationUnitService
-    implements
-    OrganisationUnitService
+    implements OrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
 
