@@ -1325,6 +1325,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         for ( T entity : entityList )
         {
+            // TODO Refactor and remove OrganisationUnitAssignable
             OrganisationUnitAssignable orgUnitAssignable = (OrganisationUnitAssignable) entity;
             if ( orgUnitAssignable.getOrganisationUnits() != null && orgUnitAssignable.getOrganisationUnits().size() > 0 )
             {
