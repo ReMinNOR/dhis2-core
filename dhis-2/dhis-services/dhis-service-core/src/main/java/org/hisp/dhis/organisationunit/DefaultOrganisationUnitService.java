@@ -523,13 +523,6 @@ public class DefaultOrganisationUnitService
         return organisationUnit != null && organisationUnit.isDescendant( organisationUnits );
     }
 
-    @Override
-    @Transactional
-    public void updateOrganisationUnitParent( long organisationUnitId, long parentId )
-    {
-        organisationUnitStore.updateOrganisationUnitParent( organisationUnitId, parentId );
-    }
-
     // -------------------------------------------------------------------------
     // OrganisationUnitLevel
     // -------------------------------------------------------------------------

@@ -440,18 +440,6 @@ public interface OrganisationUnitService
     boolean isInUserSearchHierarchy( User user, OrganisationUnit organisationUnit );
 
     // -------------------------------------------------------------------------
-    // OrganisationUnitHierarchy
-    // -------------------------------------------------------------------------
-
-    /**
-     * Updates the parent id of the organisation unit with the given id.
-     *
-     * @param organisationUnitId the child organisation unit identifier.
-     * @param parentId the parent organisation unit identifier.
-     */
-    void updateOrganisationUnitParent( long organisationUnitId, long parentId );
-
-    // -------------------------------------------------------------------------
     // OrganisationUnitLevel
     // -------------------------------------------------------------------------
 
