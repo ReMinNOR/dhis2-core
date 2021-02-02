@@ -50,6 +50,7 @@ import javax.annotation.PostConstruct;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -80,7 +81,6 @@ import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
@@ -265,8 +265,9 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         FieldMap fieldMap = new FieldMap();
 
-        if ( !StringUtils.hasText( fields )
-            || "*".equals( org.apache.commons.lang3.StringUtils.trimToEmpty( fields ) ) )
+        // If fields not specified OR set as "*", bring all fields.
+        if ( StringUtils.isNotBlank( fields )
+            || "*".equals( StringUtils.trimToEmpty( fields ) ) )
         {
             for ( final Field property : klass.getDeclaredFields() )
             {

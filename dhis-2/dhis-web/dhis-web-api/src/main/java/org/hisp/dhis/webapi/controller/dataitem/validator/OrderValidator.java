@@ -4,7 +4,7 @@ import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.hisp.dhis.feedback.ErrorCode.E2036;
+import static org.hisp.dhis.feedback.ErrorCode.E2037;
 
 import java.util.Set;
 
@@ -55,13 +55,13 @@ public class OrderValidator
                 if ( asList( DataItem.class.getDeclaredFields() ).stream()
                     .noneMatch( field -> orderAttributeName.equals( field.getName() ) ) )
                 {
-                    throw new IllegalQueryException( new ErrorMessage( E2036, orderAttributeName ) );
+                    throw new IllegalQueryException( new ErrorMessage( E2037, orderAttributeName ) );
                 }
 
                 // Check for valid ordering. Only "asc" and "desc" are allowed.
                 if ( !orderValue.equals( DESC ) && !orderValue.equals( ASC ) )
                 {
-                    throw new IllegalQueryException( new ErrorMessage( E2036, orderValue ) );
+                    throw new IllegalQueryException( new ErrorMessage( E2037, orderValue ) );
                 }
             }
         }
@@ -80,7 +80,7 @@ public class OrderValidator
             .noneMatch( field -> orderParam.equals( field.getName() ) ) )
         {
             throw new IllegalQueryException(
-                new ErrorMessage( E2036, substringBeforeLast( orderParam, ":" ) ) );
+                new ErrorMessage( E2037, substringBeforeLast( orderParam, ":" ) ) );
         }
     }
 }
