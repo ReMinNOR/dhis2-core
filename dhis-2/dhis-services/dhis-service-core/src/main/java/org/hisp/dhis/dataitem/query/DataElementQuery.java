@@ -28,13 +28,13 @@
 package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.SetUtils.hashSet;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
-import static org.hisp.dhis.common.JsonbConverter.fromJsonb;
 import static org.hisp.dhis.common.ValueType.fromString;
-import static org.hisp.dhis.dataitem.query.shared.CommonStatement.maxLimit;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayNameAndLocaleFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
+import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
@@ -45,8 +45,6 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataitem.DataItem;
-import org.hisp.dhis.translation.Translation;
-import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -85,10 +83,7 @@ public class DataElementQuery implements DataItemQuery
         {
             final DataItem viewItem = new DataItem();
             final ValueType valueType = fromString( rowSet.getString( "valuetype" ) );
-            final Translation[] translations = fromJsonb( (PGobject) rowSet.getObject( "translations" ),
-                Translation[].class );
 
-            viewItem.setTranslations( hashSet( translations ) );
             viewItem.setName( rowSet.getString( "name" ) );
             viewItem.setValueType( valueType.name() );
             viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
@@ -105,19 +100,36 @@ public class DataElementQuery implements DataItemQuery
     @Override
     public int count( final MapSqlParameterSource paramsMap )
     {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT COUNT(DISTINCT de.uid)"
-                + " FROM dataelement de"
-                + " WHERE ("
-                + sharingConditions( "de", paramsMap )
-                + ")" );
+        final StringBuilder sql = new StringBuilder();
 
-        sql.append( commonFiltering( "de", paramsMap ) );
+        sql.append( "SELECT COUNT(*) FROM (" )
+            .append(
+                "SELECT null, null, dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.translations" );
 
-        if ( paramsMap.hasValue( VALUE_TYPES ) && paramsMap.getValue( VALUE_TYPES ) != null )
+        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
         {
-            sql.append( " AND (de.valuetype IN (:" + VALUE_TYPES + "))" );
+            sql.append( ", displayname.value AS i18n_name" );
         }
+
+        sql.append( " FROM dataelement " );
+
+        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        {
+            sql.append(
+                ", jsonb_to_recordset(dataelement.translations) as displayname(value TEXT, locale TEXT, property TEXT)" );
+        }
+
+        sql.append( " WHERE (" )
+            .append( sharingConditions( "dataelement", paramsMap ) )
+            .append( ")" );
+
+        sql.append( nameFiltering( "dataelement", paramsMap ) );
+
+        sql.append( displayNameAndLocaleFiltering( "dataelement", paramsMap ) );
+
+        sql.append( valueTypeFiltering( "dataelement", paramsMap ) );
+
+        sql.append( ") t" );
 
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
     }
@@ -130,18 +142,35 @@ public class DataElementQuery implements DataItemQuery
 
     private String getDataElementQueryWith( final MapSqlParameterSource paramsMap )
     {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT de.\"name\", de.uid, de.valuetype, de.code, de.translations"
-                + " FROM dataelement de"
-                + " WHERE ("
-                + sharingConditions( "de", paramsMap )
-                + ")" );
+        final StringBuilder sql = new StringBuilder();
 
-        sql.append( commonFiltering( "de", paramsMap ) );
+        sql.append(
+            "SELECT null, null, dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.translations" );
 
-        sql.append( valueTypeFiltering( "de", paramsMap ) );
+        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        {
+            sql.append( ", displayname.value AS i18n_name" );
+        }
 
-        sql.append( commonOrdering( "de", paramsMap ) );
+        sql.append( " FROM dataelement " );
+
+        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        {
+            sql.append(
+                ", jsonb_to_recordset(dataelement.translations) as displayname(value TEXT, locale TEXT, property TEXT)" );
+        }
+
+        sql.append( " WHERE (" )
+            .append( sharingConditions( "dataelement", paramsMap ) )
+            .append( ")" );
+
+        sql.append( nameFiltering( "dataelement", paramsMap ) );
+
+        sql.append( displayNameAndLocaleFiltering( "dataelement", paramsMap ) );
+
+        sql.append( valueTypeFiltering( "dataelement", paramsMap ) );
+
+        sql.append( commonOrdering( "dataelement", paramsMap ) );
 
         sql.append( maxLimit( paramsMap ) );
 

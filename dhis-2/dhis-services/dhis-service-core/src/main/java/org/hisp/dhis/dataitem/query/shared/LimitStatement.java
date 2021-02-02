@@ -40,9 +40,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
-public class CommonStatement
+public class LimitStatement
 {
-    private CommonStatement()
+    private LimitStatement()
     {
     }
 

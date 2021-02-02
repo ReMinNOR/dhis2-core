@@ -47,16 +47,16 @@ public class UserAccessStatement
     {
     }
 
-    public static String sharingConditions( final String tableAlias, final MapSqlParameterSource paramsMap )
+    public static String sharingConditions( final String tableName, final MapSqlParameterSource paramsMap )
     {
         final StringBuilder conditions = new StringBuilder();
 
         conditions
-            .append( publicAccessCondition( tableAlias ) )
+            .append( publicAccessCondition( tableName ) )
             .append( " OR " )
-            .append( ownerAccessCondition( tableAlias ) )
+            .append( ownerAccessCondition( tableName ) )
             .append( " OR " )
-            .append( userAccessCondition( tableAlias ) );
+            .append( userAccessCondition( tableName ) );
 
         if ( paramsMap != null && paramsMap.hasValue( USER_GROUP_UIDS ) )
         {
@@ -64,31 +64,31 @@ public class UserAccessStatement
                 USER_GROUP_UIDS + " must be a String." );
             hasText( (String) paramsMap.getValue( USER_GROUP_UIDS ), USER_GROUP_UIDS + " cannot be null/blank." );
 
-            conditions.append( " OR (" + userGroupAccessCondition( tableAlias ) + ")" );
+            conditions.append( " OR (" + userGroupAccessCondition( tableName ) + ")" );
         }
 
         return conditions.toString();
     }
 
-    public static String sharingConditions( final String tableAlias1, final String tableAlias2,
+    public static String sharingConditions( final String tableOne, final String tableTwo,
         final MapSqlParameterSource paramsMap )
     {
         final StringBuilder conditions = new StringBuilder();
 
         conditions
             .append( "(" ) // Table 1 conditions
-            .append( publicAccessCondition( tableAlias1 ) )
+            .append( publicAccessCondition( tableOne ) )
             .append( " OR " )
-            .append( ownerAccessCondition( tableAlias1 ) )
+            .append( ownerAccessCondition( tableOne ) )
             .append( " OR " )
-            .append( userAccessCondition( tableAlias1 ) )
+            .append( userAccessCondition( tableOne ) )
             .append( ")" ) // Table 1 conditions end
             .append( " AND (" ) // Table 2 conditions
-            .append( publicAccessCondition( tableAlias2 ) )
+            .append( publicAccessCondition( tableTwo ) )
             .append( " OR " )
-            .append( ownerAccessCondition( tableAlias2 ) )
+            .append( ownerAccessCondition( tableTwo ) )
             .append( " OR " )
-            .append( userAccessCondition( tableAlias2 ) )
+            .append( userAccessCondition( tableTwo ) )
             .append( ")" ); // Table 2 conditions end
 
         if ( paramsMap != null && paramsMap.hasValue( USER_GROUP_UIDS ) )
@@ -100,10 +100,10 @@ public class UserAccessStatement
             conditions.append( " OR (" );
 
             // Program group access checks
-            conditions.append( userGroupAccessCondition( tableAlias1 ) );
+            conditions.append( userGroupAccessCondition( tableOne ) );
 
             // DataElement access checks
-            conditions.append( " AND " + userGroupAccessCondition( tableAlias2 ) );
+            conditions.append( " AND " + userGroupAccessCondition( tableTwo ) );
 
             // Closing OR condition
             conditions.append( ")" );
@@ -112,42 +112,42 @@ public class UserAccessStatement
         return conditions.toString();
     }
 
-    static String ownerAccessCondition( final String tableAlias )
+    static String ownerAccessCondition( final String tableName )
     {
-        assertTableAlias( tableAlias );
+        assertTableAlias( tableName );
 
-        return "(jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') IS NULL OR "
-            + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') = 'null' OR "
-            + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') = :userUid)";
+        return "(jsonb_extract_path_text(" + tableName + ".sharing, 'owner') IS NULL OR "
+            + "jsonb_extract_path_text(" + tableName + ".sharing, 'owner') = 'null' OR "
+            + "jsonb_extract_path_text(" + tableName + ".sharing, 'owner') = :userUid)";
     }
 
-    static String publicAccessCondition( final String tableAlias )
+    static String publicAccessCondition( final String tableName )
     {
-        assertTableAlias( tableAlias );
+        assertTableAlias( tableName );
 
-        return "(jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') IS NULL OR "
-            + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') = 'null' OR "
-            + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') LIKE 'r%')";
+        return "(jsonb_extract_path_text(" + tableName + ".sharing, 'public') IS NULL OR "
+            + "jsonb_extract_path_text(" + tableName + ".sharing, 'public') = 'null' OR "
+            + "jsonb_extract_path_text(" + tableName + ".sharing, 'public') LIKE 'r%')";
     }
 
-    static String userAccessCondition( final String tableAlias )
+    static String userAccessCondition( final String tableName )
     {
-        assertTableAlias( tableAlias );
+        assertTableAlias( tableName );
 
-        return "(jsonb_has_user_id(" + tableAlias + ".sharing, :" + USER_UID + ") = TRUE "
-            + "AND jsonb_check_user_access(" + tableAlias + ".sharing, :" + USER_UID + ", 'r%') = TRUE)";
+        return "(jsonb_has_user_id(" + tableName + ".sharing, :" + USER_UID + ") = TRUE "
+            + "AND jsonb_check_user_access(" + tableName + ".sharing, :" + USER_UID + ", 'r%') = TRUE)";
     }
 
-    static String userGroupAccessCondition( final String tableAlias )
+    static String userGroupAccessCondition( final String tableName )
     {
-        assertTableAlias( tableAlias );
+        assertTableAlias( tableName );
 
-        return "(" + HAS_USER_GROUP_IDS + "(" + tableAlias + ".sharing, :" + USER_GROUP_UIDS + ") = TRUE " +
-            "AND " + CHECK_USER_GROUPS_ACCESS + "(" + tableAlias + ".sharing, 'r%', :" + USER_GROUP_UIDS + ") = TRUE)";
+        return "(" + HAS_USER_GROUP_IDS + "(" + tableName + ".sharing, :" + USER_GROUP_UIDS + ") = TRUE " +
+            "AND " + CHECK_USER_GROUPS_ACCESS + "(" + tableName + ".sharing, 'r%', :" + USER_GROUP_UIDS + ") = TRUE)";
     }
 
-    private static void assertTableAlias( String tableAlias )
+    private static void assertTableAlias( String tableName )
     {
-        hasText( tableAlias, "The argument tableAlias cannot be null/blank." );
+        hasText( tableName, "The argument tableName cannot be null/blank." );
     }
 }

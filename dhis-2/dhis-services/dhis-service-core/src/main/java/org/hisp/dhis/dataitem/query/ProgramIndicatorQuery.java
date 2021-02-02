@@ -28,15 +28,14 @@
 package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.SetUtils.hashSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
-import static org.hisp.dhis.common.JsonbConverter.fromJsonb;
 import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.dataitem.query.shared.CommonStatement.maxLimit;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipNumberValueType;
-import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
+import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 import static org.springframework.util.Assert.hasText;
 import static org.springframework.util.Assert.isInstanceOf;
@@ -47,8 +46,6 @@ import java.util.List;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.translation.Translation;
-import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -84,7 +81,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         // When the value type filter does not have a NUMBER type, we should not
         // execute this query.
         // It returns an empty instead.
-        if ( skipNumberValueType( paramsMap ) )
+        if ( skipValueType( NUMBER, paramsMap ) )
         {
             return dataItems;
         }
@@ -95,15 +92,12 @@ public class ProgramIndicatorQuery implements DataItemQuery
         while ( rowSet.next() )
         {
             final DataItem viewItem = new DataItem();
-            final Translation[] translations = fromJsonb( (PGobject) rowSet.getObject( "translations" ),
-                Translation[].class );
 
-            viewItem.setTranslations( hashSet( translations ) );
             viewItem.setName( rowSet.getString( "name" ) );
-            viewItem.setId( rowSet.getString( "uid" ) );
-            viewItem.setCode( rowSet.getString( "code" ) );
+            viewItem.setDisplayName( defaultIfBlank( rowSet.getString( "pi_i18n_name" ), rowSet.getString( "name" ) ) );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );
-            viewItem.setCombinedId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
+            viewItem.setId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
+            viewItem.setCode( rowSet.getString( "code" ) );
             viewItem.setDimensionItemType( PROGRAM_INDICATOR.name() );
 
             // Specific case where we have to force a vale type. Program
@@ -126,22 +120,30 @@ public class ProgramIndicatorQuery implements DataItemQuery
         // When the value type filter does not have a NUMBER type, we should not
         // execute this query.
         // It returns ZERO.
-        if ( skipNumberValueType( paramsMap ) )
+        if ( skipValueType( NUMBER, paramsMap ) )
         {
             return 0;
         }
 
-        final StringBuilder sql = new StringBuilder(
-            "SELECT COUNT(DISTINCT pi.uid)"
-                + " FROM programindicator pi"
-                + " JOIN program p ON p.programid = pi.programid"
-                + " WHERE ("
-                + sharingConditions( "pi", paramsMap )
-                + ")" );
+        final StringBuilder sql = new StringBuilder();
 
-        sql.append( commonFiltering( "pi", paramsMap ) );
+        sql.append( "SELECT COUNT(*) FROM (" )
+            .append( getProgramIndicatorQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
+            .append( ") t" );
 
-        sql.append( specificFiltering( paramsMap ) );
+        // final StringBuilder sql = new StringBuilder(
+        // "SELECT COUNT(DISTINCT pi.uid)"
+        // + " FROM programindicator pi"
+        // + " JOIN program p ON p.programid = pi.programid"
+        // + " WHERE ("
+        // + sharingConditions( "pi", paramsMap )
+        // + ")" );
+        //
+        // sql.append( nameFiltering( "pi", paramsMap ) );
+        //
+        // sql.append( displayNameAndLocaleFiltering( "pi", paramsMap ) );
+        //
+        // sql.append( specificFiltering( paramsMap ) );
 
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
     }
@@ -154,19 +156,131 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
     private String getProgramIndicatorQuery( final MapSqlParameterSource paramsMap )
     {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT pi.\"name\", pi.uid, pi.code, p.uid AS program_uid, pi.translations"
-                + " FROM programindicator pi"
-                + " JOIN program p ON p.programid = pi.programid"
-                + " WHERE ("
-                + sharingConditions( "pi", paramsMap )
-                + ")" );
+        // final StringBuilder sql = new StringBuilder(
+        // "SELECT pi.\"name\", pi.uid, pi.code, p.uid AS program_uid,
+        // pi.translations"
+        // + " FROM programindicator pi"
+        // + " JOIN program p ON p.programid = pi.programid"
+        // + " WHERE ("
+        // + sharingConditions( "pi", paramsMap )
+        // + ")" );
 
-        sql.append( commonFiltering( "pi", paramsMap ) );
+        final StringBuilder sql = new StringBuilder();
+
+        sql.append(
+            "SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.translations" );
+
+        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        {
+            sql.append( ", pi_displayname.value AS pi_i18n_name" );
+        }
+
+        sql.append( " FROM programindicator" )
+            .append( " JOIN program ON program.programid = programindicator.programid" );
+
+        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        {
+            sql.append(
+                " LEFT JOIN jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
+                    + LOCALE + " AND p_displayname.property = 'NAME'" );
+            sql.append(
+                " LEFT JOIN jsonb_to_recordset(programindicator.translations) as pi_displayname(value TEXT, locale TEXT, property TEXT) ON pi_displayname.locale = :"
+                    + LOCALE + " AND pi_displayname.property = 'NAME'" );
+        }
+
+        sql.append( " WHERE (" )
+            .append( sharingConditions( "programindicator", paramsMap ) )
+            .append( ")" );
+
+        sql.append( nameFiltering( "programindicator", paramsMap ) );
 
         sql.append( specificFiltering( paramsMap ) );
 
-        sql.append( commonOrdering( "pi", paramsMap ) );
+        if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME )
+            && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME ) ) )
+        {
+            isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME ),
+                DISPLAY_NAME + " cannot be null and must be a String." );
+            hasText( (String) paramsMap.getValue( DISPLAY_NAME ), DISPLAY_NAME + " cannot be null/blank." );
+
+            if ( paramsMap.hasValue( LOCALE ) && paramsMap.hasValue( LOCALE )
+                && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+            {
+                isInstanceOf( String.class, paramsMap.getValue( LOCALE ),
+                    LOCALE + " cannot be null and must be a String." );
+                hasText( (String) paramsMap.getValue( LOCALE ), LOCALE + " cannot be null/blank." );
+
+                sql.append( " AND (pi_displayname.value ILIKE :" + DISPLAY_NAME + ")" );
+
+                sql.append( " UNION " )
+                    .append(
+                        "SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.translations, programindicator.\"name\" AS pi_i18n_name" )
+                    .append( " FROM programindicator" )
+                    .append( " JOIN program ON program.programid = programindicator.programid" )
+                    .append(
+                        " LEFT JOIN jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                    .append(
+                        " LEFT JOIN jsonb_to_recordset(programindicator.translations) as pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                    .append( " WHERE " )
+                    .append( " programindicator.uid NOT IN (" )
+                    .append( " SELECT programindicator.uid" )
+                    .append( " FROM programindicator" )
+                    .append( " JOIN program ON program.programid = programindicator.programid" )
+                    .append(
+                        " LEFT JOIN jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                    .append(
+                        " LEFT JOIN jsonb_to_recordset(programindicator.translations) as pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                    .append( "  WHERE" )
+                    .append( " (pi_displayname.locale = :" + LOCALE + ")" )
+                    .append( " )" )
+                    .append( " AND (programindicator.name ILIKE :" + DISPLAY_NAME + ")" )
+                    .append( " UNION " )
+                    .append(
+                        "SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.translations, programindicator.\"name\" as pi_i18n_name" )
+                    .append( " FROM programindicator" )
+                    .append( " JOIN program ON program.programid = programindicator.programid" )
+                    .append( " WHERE" )
+                    .append(
+                        " (programindicator.translations = '[]' OR programindicator.translations IS NULL) AND programindicator.name ILIKE :"
+                            + DISPLAY_NAME )
+                    .append(
+                        " GROUP BY programindicator.\"name\", programindicator.uid, program.uid, programindicator.code, programindicator.translations" );
+
+                if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER ) )
+                {
+                    isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME_ORDER ),
+                        DISPLAY_NAME_ORDER + " cannot be null and must be a String." );
+                    hasText( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ),
+                        DISPLAY_NAME_ORDER + " cannot be null/blank." );
+
+                    final StringBuilder ordering = new StringBuilder();
+
+                    if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    {
+                        // 8, 9 means p_i18n_name and tea_i18n_name respectively
+                        ordering.append( " ORDER BY 1 ASC" );
+                    }
+                    else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    {
+                        // 8, 9 means p_i18n_name and tea_i18n_name respectively
+                        ordering.append( " ORDER BY 1 DESC" );
+                    }
+                }
+            }
+            else
+            {
+                // No locale, so we default the comparison to the raw name.
+                // In normal conditions this should never happen as every
+                // user/request should have a default locale.
+                return " AND (program.\"name\" ILIKE :" + NAME + " OR programindicator.\"name\" ILIKE :" + NAME
+                    + ")";
+            }
+        }
+        else
+        {
+            sql.append(
+                " GROUP BY program.\"name\", program.uid, programindicator.\"name\", programindicator.uid, programindicator.code, programindicator.translations, p_displayname.value, pi_displayname.value" );
+        }
 
         sql.append( maxLimit( paramsMap ) );
 

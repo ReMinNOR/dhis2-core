@@ -28,13 +28,13 @@
 package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.SetUtils.hashSet;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
-import static org.hisp.dhis.common.JsonbConverter.fromJsonb;
 import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.dataitem.query.shared.CommonStatement.maxLimit;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipNumberValueType;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayNameAndLocaleFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
+import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
@@ -44,8 +44,6 @@ import java.util.List;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.translation.Translation;
-import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -82,7 +80,7 @@ public class IndicatorQuery implements DataItemQuery
         // When the value type filter does not have a NUMBER type, we should not
         // execute this query.
         // It returns an empty instead.
-        if ( skipNumberValueType( paramsMap ) )
+        if ( skipValueType( NUMBER, paramsMap ) )
         {
             return dataItems;
         }
@@ -92,10 +90,7 @@ public class IndicatorQuery implements DataItemQuery
         while ( rowSet.next() )
         {
             final DataItem viewItem = new DataItem();
-            final Translation[] translations = fromJsonb( (PGobject) rowSet.getObject( "translations" ),
-                Translation[].class );
 
-            viewItem.setTranslations( hashSet( translations ) );
             viewItem.setName( rowSet.getString( "name" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
             viewItem.setCode( rowSet.getString( "code" ) );
@@ -120,19 +115,47 @@ public class IndicatorQuery implements DataItemQuery
         // When the value type filter does not have a NUMBER type, we should not
         // execute this query.
         // It returns ZERO instead.
-        if ( skipNumberValueType( paramsMap ) )
+        if ( skipValueType( NUMBER, paramsMap ) )
         {
             return 0;
         }
 
-        final StringBuilder sql = new StringBuilder(
-            "SELECT COUNT(DISTINCT i.uid)"
-                + " FROM indicator i"
-                + " WHERE ("
-                + sharingConditions( "i", paramsMap )
-                + ")" );
+        final StringBuilder sql = new StringBuilder();
 
-        sql.append( commonFiltering( "i", paramsMap ) );
+        sql.append( "SELECT COUNT(*) FROM (" )
+            .append(
+                "SELECT null, null, indicator.uid, indicator.\"name\", null, indicator.code, indicator.translations" );
+
+        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        {
+            sql.append( ", displayname.value AS i18n_name" );
+        }
+
+        sql.append( " FROM indicator " );
+
+        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        {
+            sql.append(
+                ", jsonb_to_recordset(indicator.translations) as displayname(value TEXT, locale TEXT, property TEXT)" );
+        }
+
+        sql.append( " WHERE (" )
+            .append( sharingConditions( "indicator", paramsMap ) )
+            .append( ")" );
+
+        sql.append( nameFiltering( "indicator", paramsMap ) );
+
+        sql.append( displayNameAndLocaleFiltering( "indicator", paramsMap ) );
+
+        sql.append( ") t" );
+        // final StringBuilder sql = new StringBuilder(
+        // "SELECT COUNT(DISTINCT i.uid)"
+        // + " FROM indicator i"
+        // + " WHERE ("
+        // + sharingConditions( "i", paramsMap )
+        // + ")" );
+        //
+        // sql.append( commonFiltering( "i", paramsMap ) );
 
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
     }
@@ -145,18 +168,47 @@ public class IndicatorQuery implements DataItemQuery
 
     private String getIndicatorQuery( final MapSqlParameterSource paramsMap )
     {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT i.\"name\", i.uid, i.code, i.translations"
-                + " FROM indicator i"
-                + " WHERE ("
-                + sharingConditions( "i", paramsMap )
-                + ")" );
+        final StringBuilder sql = new StringBuilder();
 
-        sql.append( commonFiltering( "i", paramsMap ) );
+        sql.append(
+            "SELECT null, null, indicator.uid, indicator.\"name\", null, indicator.code, indicator.translations" );
 
-        sql.append( commonOrdering( "i", paramsMap ) );
+        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        {
+            sql.append( ", displayname.value AS i18n_name" );
+        }
+
+        sql.append( " FROM indicator " );
+
+        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        {
+            sql.append(
+                ", jsonb_to_recordset(indicator.translations) as displayname(value TEXT, locale TEXT, property TEXT)" );
+        }
+
+        sql.append( " WHERE (" )
+            .append( sharingConditions( "indicator", paramsMap ) )
+            .append( ")" );
+
+        sql.append( nameFiltering( "indicator", paramsMap ) );
+
+        sql.append( displayNameAndLocaleFiltering( "indicator", paramsMap ) );
+
+        sql.append( commonOrdering( "indicator", paramsMap ) );
 
         sql.append( maxLimit( paramsMap ) );
+        // final StringBuilder sql = new StringBuilder(
+        // "SELECT i.\"name\", i.uid, i.code, i.translations"
+        // + " FROM indicator i"
+        // + " WHERE ("
+        // + sharingConditions( "i", paramsMap )
+        // + ")" );
+        //
+        // sql.append( commonFiltering( "i", paramsMap ) );
+        //
+        // sql.append( commonOrdering( "i", paramsMap ) );
+        //
+        // sql.append( maxLimit( paramsMap ) );
 
         return sql.toString();
     }

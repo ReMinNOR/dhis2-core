@@ -333,6 +333,13 @@ public class FilteringHelper
     public static void setFiltering( final Set<String> filters, final MapSqlParameterSource paramsMap,
         final User currentUser )
     {
+        final Locale currentLocale = getUserSetting( DB_LOCALE );
+
+        if ( currentLocale != null && isNotBlank( currentLocale.getLanguage() ) )
+        {
+            paramsMap.addValue( LOCALE, trimToEmpty( currentLocale.getLanguage() ) );
+        }
+
         final String ilikeName = extractValueFromIlikeNameFilter( filters );
 
         if ( isNotBlank( ilikeName ) )
@@ -344,14 +351,7 @@ public class FilteringHelper
 
         if ( isNotBlank( ilikeDisplayName ) )
         {
-            final Locale currentLocale = getUserSetting( DB_LOCALE );
-
             paramsMap.addValue( DISPLAY_NAME, wrap( trimToEmpty( ilikeDisplayName ), "%" ) );
-
-            if ( currentLocale != null && isNotBlank( currentLocale.getLanguage() ) )
-            {
-                paramsMap.addValue( LOCALE, trimToEmpty( currentLocale.getLanguage() ) );
-            }
         }
 
         if ( containsFilterWithOneOfPrefixes( filters, VALUE_TYPE_EQUAL.getCombination(),

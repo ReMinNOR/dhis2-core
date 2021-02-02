@@ -115,6 +115,7 @@ public class DataItemServiceFacade
 
                 setMaxResultsWhenPaging( options, paramsMap );
 
+                // TODO: Maikel: Use Cache2K and load everything in memory? Or limit the minimum ilike:chars to 3?
                 dataItems.addAll( queryExecutor.find( entity, paramsMap ) );
             }
 
@@ -122,6 +123,7 @@ public class DataItemServiceFacade
             dataItems = slice( options, dataItems );
 
             // In memory sorting.
+            // TODO: MAIKEL: This will not work as expected
             sort( dataItems, orderParams );
         }
 

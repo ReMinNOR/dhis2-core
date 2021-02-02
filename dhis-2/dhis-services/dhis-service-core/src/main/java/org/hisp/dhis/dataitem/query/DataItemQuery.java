@@ -62,6 +62,8 @@ public interface DataItemQuery
 
     String NAME_ORDER = "nameOrder";
 
+    String DISPLAY_NAME_ORDER = "displayNameOrder";
+
     /**
      * Responsible for building the respective query statement and executing it
      * in order to find the list of items based on the given parameter map.

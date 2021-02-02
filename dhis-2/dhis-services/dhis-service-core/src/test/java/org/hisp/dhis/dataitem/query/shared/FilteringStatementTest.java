@@ -33,10 +33,11 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.NAME;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.VALUE_TYPES;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipNumberValueType;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.junit.Assert.assertThrows;
 
@@ -60,7 +61,7 @@ public class FilteringStatementTest
         final String expectedStatement = " AND (" + aTableAlias + ".\"name\" ILIKE :" + NAME + ")";
 
         // When
-        final String resultStatement = commonFiltering( aTableAlias, theParameterSource );
+        final String resultStatement = nameFiltering( aTableAlias, theParameterSource );
 
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
@@ -75,7 +76,7 @@ public class FilteringStatementTest
         final String expectedStatement = EMPTY;
 
         // When
-        final String resultStatement = commonFiltering( aTableAlias, noFiltersParameterSource );
+        final String resultStatement = nameFiltering( aTableAlias, noFiltersParameterSource );
 
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
@@ -92,7 +93,7 @@ public class FilteringStatementTest
         // When throws
         final IllegalArgumentException thrown = assertThrows(
             IllegalArgumentException.class,
-            () -> commonFiltering( aTableAlias, theParameterSource ) );
+            () -> nameFiltering( aTableAlias, theParameterSource ) );
 
         assertThat( thrown.getMessage(), containsString( NAME + " cannot be null and must be a String." ) );
     }
@@ -108,7 +109,7 @@ public class FilteringStatementTest
         // When throws
         final IllegalArgumentException thrown = assertThrows(
             IllegalArgumentException.class,
-            () -> commonFiltering( aTableAlias, theParameterSource ) );
+            () -> nameFiltering( aTableAlias, theParameterSource ) );
 
         assertThat( thrown.getMessage(), containsString( NAME + " cannot be null/blank." ) );
     }
@@ -125,7 +126,7 @@ public class FilteringStatementTest
             + tableAlias2 + ".\"name\" ILIKE :" + NAME + ")";
 
         // When
-        final String resultStatement = commonFiltering( tableAlias1, tableAlias2, theParameterSource );
+        final String resultStatement = FilteringStatement.nameFiltering( tableAlias1, tableAlias2, theParameterSource );
 
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
@@ -141,7 +142,8 @@ public class FilteringStatementTest
         final String expectedStatement = EMPTY;
 
         // When
-        final String resultStatement = commonFiltering( tableAlias1, tableAlias2, noFiltersParameterSource );
+        final String resultStatement = FilteringStatement.nameFiltering( tableAlias1, tableAlias2,
+            noFiltersParameterSource );
 
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
@@ -237,7 +239,7 @@ public class FilteringStatementTest
         final boolean expectedResult = false;
 
         // When
-        final boolean actualResult = skipNumberValueType( theParameterSource );
+        final boolean actualResult = skipValueType( NUMBER, theParameterSource );
 
         // Then
         assertThat( actualResult, is( expectedResult ) );
@@ -252,7 +254,7 @@ public class FilteringStatementTest
         final boolean expectedResult = true;
 
         // When
-        final boolean actualResult = skipNumberValueType( theParameterSource );
+        final boolean actualResult = skipValueType( NUMBER, theParameterSource );
 
         // Then
         assertThat( actualResult, is( expectedResult ) );

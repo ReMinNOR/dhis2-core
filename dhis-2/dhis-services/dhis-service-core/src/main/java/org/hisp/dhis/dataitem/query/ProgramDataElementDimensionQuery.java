@@ -28,15 +28,16 @@
 package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.SetUtils.hashSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.JsonbConverter.fromJsonb;
-import static org.hisp.dhis.dataitem.query.shared.CommonStatement.maxLimit;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.commonFiltering;
+import static org.hisp.dhis.common.ValueType.fromString;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
-import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
+import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 import static org.springframework.util.Assert.hasText;
 import static org.springframework.util.Assert.isInstanceOf;
@@ -86,17 +87,18 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
         while ( rowSet.next() )
         {
             final DataItem viewItem = new DataItem();
-            final ValueType valueType = ValueType.fromString( rowSet.getString( "valuetype" ) );
+            final ValueType valueType = fromString( rowSet.getString( "valuetype" ) );
             final Translation[] translations = fromJsonb( (PGobject) rowSet.getObject( "translations" ),
                 Translation[].class );
 
-            viewItem.setTranslations( hashSet( translations ) );
-            viewItem.setName( rowSet.getString( "program_name" ) + SPACE + rowSet.getString( "name" ) );
+            viewItem.setName( rowSet.getString( "program_name" ) + SPACE + " # " + rowSet.getString( "name" ) );
+            viewItem.setDisplayName( defaultIfBlank( rowSet.getString( "p_i18n_name" ),
+                rowSet.getString( "program_name" ) ) + SPACE + " # "
+                + defaultIfBlank( rowSet.getString( "de_i18n_name" ), rowSet.getString( "name" ) ) );
             viewItem.setValueType( valueType.name() );
             viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
-            viewItem.setCombinedId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );
-            viewItem.setId( rowSet.getString( "uid" ) );
+            viewItem.setId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
             viewItem.setCode( rowSet.getString( "code" ) );
             viewItem.setDimensionItemType( PROGRAM_DATA_ELEMENT.name() );
 
@@ -109,24 +111,11 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
     @Override
     public int count( final MapSqlParameterSource paramsMap )
     {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT COUNT(DISTINCT (p.uid, de.uid))"
-                + " FROM dataelement de"
-                + " JOIN programstagedataelement psde ON psde.dataelementid = de.dataelementid"
-                + " JOIN programstage ps ON psde.programstageid = ps.programstageid"
-                + " JOIN program p ON p.programid = ps.programid"
-                + " WHERE ("
-                + sharingConditions( "p", "de", paramsMap )
-                + ")" );
+        final StringBuilder sql = new StringBuilder();
 
-        sql.append( commonFiltering( "p", "de", paramsMap ) );
-
-        sql.append( specificFiltering( paramsMap ) );
-
-        if ( paramsMap.hasValue( VALUE_TYPES ) && paramsMap.getValue( VALUE_TYPES ) != null )
-        {
-            sql.append( " AND (de.valuetype IN (:" + VALUE_TYPES + "))" );
-        }
+        sql.append( "SELECT COUNT(*) FROM (" )
+            .append( getProgramDataElementQueryWith( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
+            .append( ") t" );
 
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
     }
@@ -139,26 +128,153 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
 
     private String getProgramDataElementQueryWith( final MapSqlParameterSource paramsMap )
     {
-        final StringBuilder sql = new StringBuilder(
-            "SELECT p.\"name\" AS program_name, p.uid AS program_uid,"
-                + " de.\"name\", de.uid, de.valuetype, de.code, de.translations"
-                + " FROM dataelement de"
-                + " JOIN programstagedataelement psde ON psde.dataelementid = de.dataelementid"
-                + " JOIN programstage ps ON psde.programstageid = ps.programstageid"
-                + " JOIN program p ON p.programid = ps.programid"
-                + " WHERE ("
-                + sharingConditions( "p", "de", paramsMap )
-                + ")" );
+        final StringBuilder sql = new StringBuilder();
 
-        sql.append( commonFiltering( "p", "de", paramsMap ) );
+        sql.append(
+            "SELECT program.\"name\" AS program_name, program.uid AS program_uid, dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.translations" );
 
-        sql.append( valueTypeFiltering( "de", paramsMap ) );
+        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        {
+            sql.append( ", p_displayname.value AS p_i18n_name" )
+                .append( ", de_displayname.value AS de_i18n_name" );
+        }
+
+        sql.append( " FROM dataelement" )
+            .append(
+                " JOIN programstagedataelement ON programstagedataelement.dataelementid = dataelement.dataelementid" )
+            .append( " JOIN programstage ON programstagedataelement.programstageid = programstage.programstageid" )
+            .append( " JOIN program ON program.programid = programstage.programid" );
+
+        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        {
+            sql.append(
+                " LEFT JOIN jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
+                    + LOCALE + " AND p_displayname.property = 'NAME'" );
+            sql.append(
+                " LEFT JOIN jsonb_to_recordset(dataelement.translations) as de_displayname(value TEXT, locale TEXT, property TEXT) ON de_displayname.locale = :"
+                    + LOCALE + " AND de_displayname.property = 'NAME'" );
+        }
+
+        sql.append( " WHERE (" )
+            .append( sharingConditions( "program", "dataelement", paramsMap ) )
+            .append( ")" );
+
+        sql.append( nameFiltering( "program", "dataelement", paramsMap ) );
+
+        sql.append( valueTypeFiltering( "dataelement", paramsMap ) );
 
         sql.append( specificFiltering( paramsMap ) );
 
-        sql.append( " GROUP BY p.\"name\", p.uid, de.\"name\", de.uid, de.valuetype, de.code, de.translations" );
+        if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME )
+            && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME ) ) )
+        {
+            isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME ),
+                DISPLAY_NAME + " cannot be null and must be a String." );
+            hasText( (String) paramsMap.getValue( DISPLAY_NAME ), DISPLAY_NAME + " cannot be null/blank." );
 
-        sql.append( commonOrdering( "p", paramsMap ) );
+            if ( paramsMap.hasValue( LOCALE ) && paramsMap.hasValue( LOCALE )
+                && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+            {
+                isInstanceOf( String.class, paramsMap.getValue( LOCALE ),
+                    LOCALE + " cannot be null and must be a String." );
+                hasText( (String) paramsMap.getValue( LOCALE ), LOCALE + " cannot be null/blank." );
+
+                sql.append( " AND (de_displayname.value ILIKE :" + DISPLAY_NAME + " OR p_displayname.value ILIKE  :"
+                    + DISPLAY_NAME + ")" );
+
+                sql.append( " UNION " )
+                    .append(
+                        " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
+                    .append( " dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code," )
+                    .append(
+                        " dataelement.translations, program.\"name\" AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" )
+                    .append( " FROM dataelement" )
+                    .append(
+                        " JOIN programstagedataelement ON programstagedataelement.dataelementid = dataelement.dataelementid" )
+                    .append(
+                        " JOIN programstage ON programstagedataelement.programstageid = programstage.programstageid" )
+                    .append( " JOIN program ON program.programid = programstage.programid" )
+                    .append(
+                        " LEFT JOIN jsonb_to_recordset(program.translations) as de_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                    .append(
+                        " LEFT JOIN jsonb_to_recordset(dataelement.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                    .append( " WHERE " )
+                    .append( " dataelement.uid NOT IN (" )
+                    .append( " SELECT dataelement.uid" )
+                    .append( " FROM dataelement" )
+                    .append(
+                        " JOIN programstagedataelement ON programstagedataelement.dataelementid = dataelement.dataelementid" )
+                    .append(
+                        " JOIN programstage ON programstagedataelement.programstageid = programstage.programstageid" )
+                    .append( " JOIN program ON program.programid = programstage.programid" )
+                    .append(
+                        " LEFT JOIN jsonb_to_recordset(program.translations) as de_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                    .append(
+                        " LEFT JOIN jsonb_to_recordset(dataelement.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                    .append( "  WHERE" )
+                    .append( " (de_displayname.locale = :" + LOCALE + ")" )
+                    .append( " OR" )
+                    .append( " (p_displayname.locale = :" + LOCALE + ")" )
+                    .append( " )" )
+                    .append( " AND (dataelement.name ILIKE :" + DISPLAY_NAME + " OR program.name ILIKE :" + DISPLAY_NAME
+                        + ")" )
+                    .append( " UNION " )
+                    .append(
+                        " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
+                    .append( " dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code," )
+                    .append(
+                        " dataelement.translations, program.\"name\" AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" )
+                    .append( " FROM dataelement" )
+                    .append(
+                        " JOIN programstagedataelement ON programstagedataelement.dataelementid = dataelement.dataelementid" )
+                    .append(
+                        " JOIN programstage ON programstagedataelement.programstageid = programstage.programstageid" )
+                    .append( " JOIN program ON program.programid = programstage.programid" )
+                    .append( " WHERE" )
+                    .append(
+                        " (dataelement.translations = '[]' OR dataelement.translations IS NULL) AND dataelement.name ILIKE :"
+                            + DISPLAY_NAME )
+                    .append( " AND" )
+                    .append(
+                        " (program.translations = '[]' OR program.translations IS NULL) AND program.name ILIKE :"
+                            + DISPLAY_NAME )
+                    .append(
+                        " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code, dataelement.translations" );
+
+                if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER ) )
+                {
+                    isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME_ORDER ),
+                        DISPLAY_NAME_ORDER + " cannot be null and must be a String." );
+                    hasText( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ),
+                        DISPLAY_NAME_ORDER + " cannot be null/blank." );
+
+                    final StringBuilder ordering = new StringBuilder();
+
+                    if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    {
+                        // 8, 9 means p_i18n_name and de_i18n_name respectively
+                        ordering.append( " ORDER BY 8, 9 ASC" );
+                    }
+                    else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    {
+                        // 8, 9 means p_i18n_name and de_i18n_name respectively
+                        ordering.append( " ORDER BY 8, 9 DESC" );
+                    }
+                }
+            }
+            else
+            {
+                // No locale, so we default the comparison to the raw name.
+                // In normal conditions this should never happen as every
+                // user/request should have a default locale.
+                return " AND (program.\"name\" ILIKE :" + NAME + " OR dataelement.\"name\" ILIKE :" + NAME + ")";
+            }
+        }
+        else
+        {
+            sql.append(
+                " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code, dataelement.translations, p_displayname.value, de_displayname.value" );
+        }
 
         sql.append( maxLimit( paramsMap ) );
 
@@ -173,7 +289,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                 PROGRAM_ID + " cannot be null and must be a String." );
             hasText( (String) paramsMap.getValue( PROGRAM_ID ), PROGRAM_ID + " cannot be null/blank." );
 
-            return " AND p.uid = :" + PROGRAM_ID;
+            return " AND program.uid = :" + PROGRAM_ID;
         }
 
         return EMPTY;

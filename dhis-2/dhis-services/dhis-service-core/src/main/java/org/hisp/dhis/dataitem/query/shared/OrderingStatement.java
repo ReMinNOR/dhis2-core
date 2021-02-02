@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static org.hisp.dhis.dataitem.query.DataItemQuery.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.NAME_ORDER;
 import static org.springframework.util.Assert.hasText;
 import static org.springframework.util.Assert.isInstanceOf;
@@ -44,7 +45,7 @@ public class OrderingStatement
     {
     }
 
-    public static String commonOrdering( final String tableAlias, final MapSqlParameterSource paramsMap )
+    public static String commonOrdering( final String tableName, final MapSqlParameterSource paramsMap )
     {
         final StringBuilder ordering = new StringBuilder();
 
@@ -56,12 +57,22 @@ public class OrderingStatement
 
             if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( NAME_ORDER ) ) )
             {
-                ordering.append( " ORDER BY " + tableAlias + ".\"name\" ASC" );
+                ordering.append( " ORDER BY " + tableName + ".\"name\" ASC" );
             }
             else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( NAME_ORDER ) ) )
             {
-                ordering.append( " ORDER BY " + tableAlias + ".\"name\" DESC" );
+                ordering.append( " ORDER BY " + tableName + ".\"name\" DESC" );
             }
+        }
+
+        if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME ) )
+        {
+            isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME ),
+                DISPLAY_NAME + " cannot be null and must be a String." );
+            hasText( (String) paramsMap.getValue( DISPLAY_NAME ), DISPLAY_NAME + " cannot be null/blank." );
+
+            // This is ordering the i18n_name column.
+            ordering.append( " ORDER BY 6" );
         }
 
         return ordering.toString();

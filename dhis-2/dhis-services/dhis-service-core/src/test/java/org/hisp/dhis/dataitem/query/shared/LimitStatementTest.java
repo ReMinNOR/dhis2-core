@@ -32,7 +32,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.MAX_LIMIT;
-import static org.hisp.dhis.dataitem.query.shared.CommonStatement.maxLimit;
+import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.junit.Assert.assertThrows;
 
 import org.junit.Test;
@@ -43,7 +43,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
-public class CommonStatementTest
+public class LimitStatementTest
 {
     @Test
     public void testMaxLimitWhenItIsPresentInParameters()

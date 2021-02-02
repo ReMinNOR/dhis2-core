@@ -29,11 +29,8 @@ package org.hisp.dhis.dataitem;
 
 import static lombok.AccessLevel.NONE;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-import static org.hisp.dhis.translation.TranslationProperty.NAME;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -42,10 +39,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import org.hisp.dhis.common.cache.TranslationPropertyCache;
-import org.hisp.dhis.translation.Translation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -61,8 +56,6 @@ public class DataItem implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @Getter( value = NONE )
-    @Setter( value = NONE )
     private String displayName;
 
     @JsonProperty
@@ -83,47 +76,13 @@ public class DataItem implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String combinedId;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
     private String valueType;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     private String simplifiedValueType;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    @Getter( value = NONE )
-    @Setter( value = NONE )
-    private Set<Translation> translations;
-
     @Getter( value = NONE )
     @Setter( value = NONE )
     private transient final TranslationPropertyCache translationPropertyCache = new TranslationPropertyCache();
-
-    public String getDisplayName()
-    {
-        return translationPropertyCache.getOrDefault( NAME, getName() );
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "translations", namespace = DXF_2_0 )
-    @JacksonXmlProperty( localName = "translation", namespace = DXF_2_0 )
-    public Set<Translation> getTranslations()
-    {
-        translations = translations != null ? translations : new HashSet<>();
-        return translations;
-    }
-
-    /**
-     * Clears out cache when setting translations.
-     */
-    public void setTranslations( final Set<Translation> translations )
-    {
-        translationPropertyCache.clear();
-        this.translations = translations;
-        translationPropertyCache.loadIfEmpty( translations );
-    }
 }
