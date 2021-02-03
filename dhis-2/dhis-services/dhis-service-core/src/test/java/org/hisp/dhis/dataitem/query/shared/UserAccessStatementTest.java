@@ -232,7 +232,7 @@ public class UserAccessStatementTest
             () -> ownerAccessCondition( nullTableAlias ) );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( "The argument tableAlias cannot be null/blank." ) );
+        assertThat( thrown.getMessage(), containsString( "The argument tableName cannot be null/blank." ) );
     }
 
     @Test
@@ -263,7 +263,7 @@ public class UserAccessStatementTest
             () -> publicAccessCondition( nullTableAlias ) );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( "The argument tableAlias cannot be null/blank." ) );
+        assertThat( thrown.getMessage(), containsString( "The argument tableName cannot be null/blank." ) );
     }
 
     @Test
@@ -293,7 +293,7 @@ public class UserAccessStatementTest
             () -> userAccessCondition( nullTableAlias ) );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( "The argument tableAlias cannot be null/blank." ) );
+        assertThat( thrown.getMessage(), containsString( "The argument tableName cannot be null/blank." ) );
     }
 
     @Test
@@ -324,6 +324,6 @@ public class UserAccessStatementTest
             () -> userGroupAccessCondition( nullTableAlias ) );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( "The argument tableAlias cannot be null/blank." ) );
+        assertThat( thrown.getMessage(), containsString( "The argument tableName cannot be null/blank." ) );
     }
 }
