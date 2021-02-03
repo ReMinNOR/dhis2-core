@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
-import static org.hisp.dhis.dataitem.query.DataItemQuery.DISPLAY_NAME;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.NAME_ORDER;
 import static org.springframework.util.Assert.hasText;
 import static org.springframework.util.Assert.isInstanceOf;
@@ -45,7 +45,7 @@ public class OrderingStatement
     {
     }
 
-    public static String commonOrdering( final String tableName, final MapSqlParameterSource paramsMap )
+    public static String nameOrdering( final String tableName, final MapSqlParameterSource paramsMap )
     {
         final StringBuilder ordering = new StringBuilder();
 
@@ -65,14 +65,27 @@ public class OrderingStatement
             }
         }
 
-        if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME ) )
-        {
-            isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME ),
-                DISPLAY_NAME + " cannot be null and must be a String." );
-            hasText( (String) paramsMap.getValue( DISPLAY_NAME ), DISPLAY_NAME + " cannot be null/blank." );
+        return ordering.toString();
+    }
 
-            // This is ordering the i18n_name column.
-            ordering.append( " ORDER BY 6" );
+    public static String displayColumnOrdering( final int columnNumber, final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder ordering = new StringBuilder();
+
+        if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER ) )
+        {
+            isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME_ORDER ),
+                DISPLAY_NAME_ORDER + " cannot be null and must be a String." );
+            hasText( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ), DISPLAY_NAME_ORDER + " cannot be null/blank." );
+
+            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+            {
+                ordering.append( " ORDER BY " + columnNumber + " ASC" );
+            }
+            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+            {
+                ordering.append( " ORDER BY " + columnNumber + " DESC" );
+            }
         }
 
         return ordering.toString();

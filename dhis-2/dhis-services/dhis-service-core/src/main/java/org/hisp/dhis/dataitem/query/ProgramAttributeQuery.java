@@ -86,9 +86,9 @@ public class ProgramAttributeQuery implements DataItemQuery
             final DataItem viewItem = new DataItem();
             final ValueType valueType = fromString( rowSet.getString( "valuetype" ) );
 
-            viewItem.setName( rowSet.getString( "program_name" ) + SPACE + " # " + rowSet.getString( "name" ) );
+            viewItem.setName( rowSet.getString( "program_name" ) + SPACE + rowSet.getString( "name" ) );
             viewItem.setDisplayName( defaultIfBlank( rowSet.getString( "p_i18n_name" ),
-                rowSet.getString( "program_name" ) ) + SPACE + " # "
+                rowSet.getString( "program_name" ) ) + SPACE
                 + defaultIfBlank( rowSet.getString( "tea_i18n_name" ), rowSet.getString( "name" ) ) );
             viewItem.setValueType( valueType.name() );
             viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
@@ -127,8 +127,7 @@ public class ProgramAttributeQuery implements DataItemQuery
 
         sql.append(
             "SELECT program.\"name\" AS program_name, program.uid AS program_uid, trackedentityattribute.\"name\", trackedentityattribute.uid," )
-            .append(
-                " trackedentityattribute.valuetype, trackedentityattribute.code, trackedentityattribute.translations" );
+            .append( " trackedentityattribute.valuetype, trackedentityattribute.code" );
 
         if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
         {
@@ -184,15 +183,15 @@ public class ProgramAttributeQuery implements DataItemQuery
                     .append(
                         " trackedentityattribute.name, trackedentityattribute.\"uid\", trackedentityattribute.valuetype, trackedentityattribute.code," )
                     .append(
-                        " trackedentityattribute.translations, program.\"name\" AS p_i18n_name, trackedentityattribute.\"name\" AS tea_i18n_name" )
+                        " program.\"name\" AS p_i18n_name, trackedentityattribute.\"name\" AS tea_i18n_name" )
                     .append( " FROM trackedentityattribute" )
                     .append(
                         " JOIN program_attributes ON program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid" )
                     .append( " JOIN program ON program_attributes.programid = program.programid" )
                     .append(
-                        " LEFT JOIN jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                        " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
                     .append(
-                        " LEFT JOIN jsonb_to_recordset(trackedentityattribute.translations) as tea_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                        " LEFT JOIN jsonb_to_recordset(trackedentityattribute.translations) AS tea_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
                     .append( " WHERE " )
                     .append( " trackedentityattribute.uid NOT IN (" )
                     .append( " SELECT trackedentityattribute.uid" )
@@ -201,9 +200,9 @@ public class ProgramAttributeQuery implements DataItemQuery
                         " JOIN program_attributes ON program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid" )
                     .append( " JOIN program ON program_attributes.programid = program.programid" )
                     .append(
-                        " LEFT JOIN jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                        " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
                     .append(
-                        " LEFT JOIN jsonb_to_recordset(trackedentityattribute.translations) as tea_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                        " LEFT JOIN jsonb_to_recordset(trackedentityattribute.translations) AS tea_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
                     .append( "  WHERE" )
                     .append( " (tea_displayname.locale = :" + LOCALE + ")" )
                     .append( " OR" )
@@ -213,12 +212,11 @@ public class ProgramAttributeQuery implements DataItemQuery
                         + DISPLAY_NAME
                         + ")" )
                     .append( " UNION " )
-                    .append(
-                        " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
+                    .append( " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
                     .append(
                         " trackedentityattribute.name, trackedentityattribute.\"uid\", trackedentityattribute.valuetype, trackedentityattribute.code," )
                     .append(
-                        " trackedentityattribute.translations, program.\"name\" AS p_i18n_name, trackedentityattribute.\"name\" AS tea_i18n_name" )
+                        " program.\"name\" AS p_i18n_name, trackedentityattribute.\"name\" AS tea_i18n_name" )
                     .append( " FROM trackedentityattribute" )
                     .append(
                         " JOIN program_attributes ON program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid" )
@@ -232,36 +230,63 @@ public class ProgramAttributeQuery implements DataItemQuery
                         " (program.translations = '[]' OR program.translations IS NULL) AND program.name ILIKE :"
                             + DISPLAY_NAME )
                     .append(
-                        " GROUP BY program.\"name\", program.uid, trackedentityattribute.\"name\", trackedentityattribute.uid, trackedentityattribute.valuetype, trackedentityattribute.code, trackedentityattribute.translations" );
+                        " GROUP BY program.\"name\", program.uid, trackedentityattribute.\"name\", trackedentityattribute.uid, trackedentityattribute.valuetype, trackedentityattribute.code" );
 
-                if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER ) )
+                if ( paramsMap.hasValue( LOCALE ) && paramsMap.hasValue( LOCALE )
+                    && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
                 {
-                    isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME_ORDER ),
-                        DISPLAY_NAME_ORDER + " cannot be null and must be a String." );
-                    hasText( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ),
-                        DISPLAY_NAME_ORDER + " cannot be null/blank." );
-
-                    final StringBuilder ordering = new StringBuilder();
-
-                    if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER )
+                        && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
                     {
-                        // 8, 9 means p_i18n_name and tea_i18n_name respectively
-                        ordering.append( " ORDER BY 8, 9 ASC" );
-                    }
-                    else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-                    {
-                        // 8, 9 means p_i18n_name and tea_i18n_name respectively
-                        ordering.append( " ORDER BY 8, 9 DESC" );
+                        final StringBuilder ordering = new StringBuilder();
+
+                        if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                        {
+                            // 7, 8 means p_i18n_name and tea_i18n_name
+                            // respectively
+                            ordering.append( " ORDER BY 7, 8 ASC" );
+                        }
+                        else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                        {
+                            // 7, 8 means p_i18n_name and tea_i18n_name
+                            // respectively
+                            ordering.append( " ORDER BY 7, 8 DESC" );
+                        }
+
+                        sql.append( ordering.toString() );
                     }
                 }
             }
             else
             {
-                // No locale, so we default the comparison to the raw name.
-                // In normal conditions this should never happen as every
-                // user/request should have a default locale.
-                return " AND (program.\"name\" ILIKE :" + NAME + " OR trackedentityattribute.\"name\" ILIKE :" + NAME
-                    + ")";
+                if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER )
+                    && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                {
+                    final StringBuilder ordering = new StringBuilder();
+
+                    if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    {
+                        // 1, 3 means program."name" and
+                        // trackedentityattribute."name"
+                        // respectively
+                        ordering.append( " ORDER BY 1, 3 ASC" );
+                    }
+                    else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    {
+                        // 1, 3 means program."name" and
+                        // trackedentityattribute."name"
+                        // respectively
+                        ordering.append( " ORDER BY 1, 3 DESC" );
+                    }
+                    // No locale, so we default the comparison to the raw name.
+                    // In normal conditions this should never happen as every
+                    // user/request should have a default locale.
+                    sql.append(
+                        " AND (program.\"name\" ILIKE :" + NAME + " OR trackedentityattribute.\"name\" ILIKE :" + NAME
+                            + ")" );
+
+                    sql.append( ordering.toString() );
+                }
             }
         }
         else
@@ -271,13 +296,6 @@ public class ProgramAttributeQuery implements DataItemQuery
         }
 
         sql.append( maxLimit( paramsMap ) );
-
-        // sql.append( " GROUP BY p.\"name\", p.uid, t.\"name\", t.uid,
-        // t.valuetype, t.code, t.translations" );
-        //
-        // sql.append( commonOrdering( "p", paramsMap ) );
-        //
-        // sql.append( maxLimit( paramsMap ) );
 
         return sql.toString();
     }

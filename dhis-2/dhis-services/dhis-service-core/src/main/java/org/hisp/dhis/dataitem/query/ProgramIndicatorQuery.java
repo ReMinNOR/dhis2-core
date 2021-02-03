@@ -96,7 +96,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
             viewItem.setName( rowSet.getString( "name" ) );
             viewItem.setDisplayName( defaultIfBlank( rowSet.getString( "pi_i18n_name" ), rowSet.getString( "name" ) ) );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );
-            viewItem.setId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
+            viewItem.setId( rowSet.getString( "uid" ) );
             viewItem.setCode( rowSet.getString( "code" ) );
             viewItem.setDimensionItemType( PROGRAM_INDICATOR.name() );
 
@@ -131,20 +131,6 @@ public class ProgramIndicatorQuery implements DataItemQuery
             .append( getProgramIndicatorQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
-        // final StringBuilder sql = new StringBuilder(
-        // "SELECT COUNT(DISTINCT pi.uid)"
-        // + " FROM programindicator pi"
-        // + " JOIN program p ON p.programid = pi.programid"
-        // + " WHERE ("
-        // + sharingConditions( "pi", paramsMap )
-        // + ")" );
-        //
-        // sql.append( nameFiltering( "pi", paramsMap ) );
-        //
-        // sql.append( displayNameAndLocaleFiltering( "pi", paramsMap ) );
-        //
-        // sql.append( specificFiltering( paramsMap ) );
-
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
     }
 
@@ -156,19 +142,10 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
     private String getProgramIndicatorQuery( final MapSqlParameterSource paramsMap )
     {
-        // final StringBuilder sql = new StringBuilder(
-        // "SELECT pi.\"name\", pi.uid, pi.code, p.uid AS program_uid,
-        // pi.translations"
-        // + " FROM programindicator pi"
-        // + " JOIN program p ON p.programid = pi.programid"
-        // + " WHERE ("
-        // + sharingConditions( "pi", paramsMap )
-        // + ")" );
-
         final StringBuilder sql = new StringBuilder();
 
         sql.append(
-            "SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.translations" );
+            "SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid" );
 
         if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
         {
@@ -214,29 +191,29 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
                 sql.append( " UNION " )
                     .append(
-                        "SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.translations, programindicator.\"name\" AS pi_i18n_name" )
+                        " SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.\"name\" AS pi_i18n_name" )
                     .append( " FROM programindicator" )
                     .append( " JOIN program ON program.programid = programindicator.programid" )
                     .append(
-                        " LEFT JOIN jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                        " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
                     .append(
-                        " LEFT JOIN jsonb_to_recordset(programindicator.translations) as pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                        " LEFT JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
                     .append( " WHERE " )
                     .append( " programindicator.uid NOT IN (" )
                     .append( " SELECT programindicator.uid" )
                     .append( " FROM programindicator" )
                     .append( " JOIN program ON program.programid = programindicator.programid" )
                     .append(
-                        " LEFT JOIN jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                        " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
                     .append(
-                        " LEFT JOIN jsonb_to_recordset(programindicator.translations) as pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                        " LEFT JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
                     .append( "  WHERE" )
                     .append( " (pi_displayname.locale = :" + LOCALE + ")" )
                     .append( " )" )
                     .append( " AND (programindicator.name ILIKE :" + DISPLAY_NAME + ")" )
                     .append( " UNION " )
                     .append(
-                        "SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.translations, programindicator.\"name\" as pi_i18n_name" )
+                        " SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.\"name\" as pi_i18n_name" )
                     .append( " FROM programindicator" )
                     .append( " JOIN program ON program.programid = programindicator.programid" )
                     .append( " WHERE" )
@@ -244,36 +221,57 @@ public class ProgramIndicatorQuery implements DataItemQuery
                         " (programindicator.translations = '[]' OR programindicator.translations IS NULL) AND programindicator.name ILIKE :"
                             + DISPLAY_NAME )
                     .append(
-                        " GROUP BY programindicator.\"name\", programindicator.uid, program.uid, programindicator.code, programindicator.translations" );
+                        " GROUP BY programindicator.\"name\", programindicator.uid, program.uid, programindicator.code" );
 
-                if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER ) )
+                if ( paramsMap.hasValue( LOCALE ) && paramsMap.hasValue( LOCALE )
+                    && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
                 {
-                    isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME_ORDER ),
-                        DISPLAY_NAME_ORDER + " cannot be null and must be a String." );
-                    hasText( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ),
-                        DISPLAY_NAME_ORDER + " cannot be null/blank." );
-
-                    final StringBuilder ordering = new StringBuilder();
-
-                    if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER )
+                        && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
                     {
-                        // 8, 9 means p_i18n_name and tea_i18n_name respectively
-                        ordering.append( " ORDER BY 1 ASC" );
-                    }
-                    else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-                    {
-                        // 8, 9 means p_i18n_name and tea_i18n_name respectively
-                        ordering.append( " ORDER BY 1 DESC" );
+                        final StringBuilder ordering = new StringBuilder();
+
+                        if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                        {
+                            // 5 means pi_i18n_name
+                            ordering.append( " ORDER BY 5 ASC" );
+                        }
+                        else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                        {
+                            // 5 means pi_i18n_name
+                            ordering.append( " ORDER BY 5 DESC" );
+                        }
+
+                        sql.append( ordering.toString() );
                     }
                 }
             }
             else
             {
-                // No locale, so we default the comparison to the raw name.
-                // In normal conditions this should never happen as every
-                // user/request should have a default locale.
-                return " AND (program.\"name\" ILIKE :" + NAME + " OR programindicator.\"name\" ILIKE :" + NAME
-                    + ")";
+                if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER )
+                    && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                {
+                    final StringBuilder ordering = new StringBuilder();
+
+                    if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    {
+                        // 1 means programindicator."name"
+                        ordering.append( " ORDER BY 1 ASC" );
+                    }
+                    else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    {
+                        // 1 means programindicator."name"
+                        ordering.append( " ORDER BY 1 DESC" );
+                    }
+                    // No locale, so we default the comparison to the raw name.
+                    // In normal conditions this should never happen as every
+                    // user/request should have a default locale.
+                    sql.append(
+                        " AND (program.\"name\" ILIKE :" + NAME + " OR programindicator.\"name\" ILIKE :" + NAME
+                            + ")" );
+
+                    sql.append( ordering.toString() );
+                }
             }
         }
         else

@@ -23,6 +23,10 @@ import org.hisp.dhis.webapi.controller.dataitem.Filter;
  */
 public class FilterValidator
 {
+    public static final byte FILTER_ATTRIBUTE_NAME = 0;
+
+    public static final byte FILTER_OPERATOR = 1;
+
     private FilterValidator()
     {
     }
@@ -35,27 +39,25 @@ public class FilterValidator
      * @throws IllegalQueryException if the set contains a non-supported name or
      *         operator, or and invalid syntax.
      */
-    public static void validateNamesAndOperators( final Set<String> filters )
+    public static void checkNamesAndOperators( final Set<String> filters )
     {
-        final byte FILTER_NAME = 0;
-        final byte FILTER_OPERATOR = 1;
-
         if ( isNotEmpty( filters ) )
         {
             for ( final String filter : filters )
             {
                 {
-                    final String[] array = filter.split( ":" );
-                    final boolean filterHasCorrectForm = array.length == 3;
+                    final String[] filterAttributeValuePair = filter.split( ":" );
+                    final boolean filterHasCorrectForm = filterAttributeValuePair.length == 3;
 
                     if ( filterHasCorrectForm )
                     {
-                        final String filterName = trimToEmpty( array[FILTER_NAME] );
-                        final String operator = trimToEmpty( array[FILTER_OPERATOR] );
+                        final String filterAttributeName = trimToEmpty(
+                            filterAttributeValuePair[FILTER_ATTRIBUTE_NAME] );
+                        final String operator = trimToEmpty( filterAttributeValuePair[FILTER_OPERATOR] );
 
-                        if ( !getNames().contains( filterName ) )
+                        if ( !getNames().contains( filterAttributeName ) )
                         {
-                            throw new IllegalQueryException( new ErrorMessage( E2034, filterName ) );
+                            throw new IllegalQueryException( new ErrorMessage( E2034, filterAttributeName ) );
                         }
 
                         if ( !getAbbreviations().contains( operator ) )

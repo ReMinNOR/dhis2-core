@@ -6,8 +6,9 @@ import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.feedback.ErrorCode.E3012;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
-import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.validateNamesAndOperators;
-import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.checkNamesAndOperators;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.checkOrderParams;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.checkOrderParamsAndFiltersAllowance;
 import static org.springframework.http.HttpStatus.FOUND;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -119,8 +120,9 @@ public class DataItemQueryController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        validateNamesAndOperators( filters );
-        validateOrderParams( orderParams.getOrders() );
+        checkNamesAndOperators( filters );
+        checkOrderParams( orderParams.getOrders() );
+        checkOrderParamsAndFiltersAllowance( orderParams.getOrders(), filters );
 
         // Extracting the target entities to be queried.
         final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = dataItemServiceFacade

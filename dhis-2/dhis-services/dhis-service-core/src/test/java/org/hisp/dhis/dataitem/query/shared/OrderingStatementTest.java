@@ -32,7 +32,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.NAME_ORDER;
-import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.commonOrdering;
+import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
 import static org.junit.Assert.assertThrows;
 
 import org.junit.Test;
@@ -55,7 +55,7 @@ public class OrderingStatementTest
         final String expectedStatement = " ORDER BY " + tableAlias + ".\"name\" ASC";
 
         // When
-        final String actualStatement = commonOrdering( tableAlias, theParameterSource );
+        final String actualStatement = nameOrdering( tableAlias, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -71,7 +71,7 @@ public class OrderingStatementTest
         final String expectedStatement = " ORDER BY " + tableAlias + ".\"name\" DESC";
 
         // When
-        final String actualStatement = commonOrdering( tableAlias, theParameterSource );
+        final String actualStatement = nameOrdering( tableAlias, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -86,7 +86,7 @@ public class OrderingStatementTest
         final String expectedStatement = EMPTY;
 
         // When
-        final String actualStatement = commonOrdering( tableAlias, noParameterSource );
+        final String actualStatement = nameOrdering( tableAlias, noParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -101,7 +101,7 @@ public class OrderingStatementTest
         final String expectedStatement = EMPTY;
 
         // When
-        final String actualStatement = commonOrdering( tableAlias, nullParameterSource );
+        final String actualStatement = nameOrdering( tableAlias, nullParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -118,7 +118,7 @@ public class OrderingStatementTest
         // When throws
         final IllegalArgumentException thrown = assertThrows(
             IllegalArgumentException.class,
-            () -> commonOrdering( aTableAlias, theParameterSource ) );
+            () -> nameOrdering( aTableAlias, theParameterSource ) );
 
         assertThat( thrown.getMessage(), containsString( NAME_ORDER + " cannot be null and must be a String." ) );
     }
@@ -134,7 +134,7 @@ public class OrderingStatementTest
         // When throws
         final IllegalArgumentException thrown = assertThrows(
             IllegalArgumentException.class,
-            () -> commonOrdering( aTableAlias, theParameterSource ) );
+            () -> nameOrdering( aTableAlias, theParameterSource ) );
 
         assertThat( thrown.getMessage(), containsString( NAME_ORDER + " cannot be null/blank." ) );
     }

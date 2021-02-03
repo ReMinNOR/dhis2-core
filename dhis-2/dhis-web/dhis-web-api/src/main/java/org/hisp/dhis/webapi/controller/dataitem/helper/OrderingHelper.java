@@ -4,7 +4,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.feedback.ErrorCode.E2015;
-import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.DESC;
+import static org.hisp.dhis.webapi.controller.dataitem.Order.Nature.DESC;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.ORDERING_ATTRIBUTE_NAME;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.ORDERING_VALUE;
 
@@ -106,7 +106,7 @@ public class OrderingHelper
             final BeanComparator<DataItem> comparator = new BeanComparator(
                 trimToEmpty( orderingAttributes[ORDERING_ATTRIBUTE_NAME] ), new NullComparator<>( true ) );
 
-            if ( DESC.equals( trimToEmpty( orderingAttributes[ORDERING_VALUE] ) ) )
+            if ( DESC.getValue().equals( trimToEmpty( orderingAttributes[ORDERING_VALUE] ) ) )
             {
                 return comparator.reversed();
             }

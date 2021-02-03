@@ -33,7 +33,6 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
-import static org.hisp.dhis.common.JsonbConverter.fromJsonb;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
@@ -49,8 +48,6 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.translation.Translation;
-import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -88,12 +85,10 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
         {
             final DataItem viewItem = new DataItem();
             final ValueType valueType = fromString( rowSet.getString( "valuetype" ) );
-            final Translation[] translations = fromJsonb( (PGobject) rowSet.getObject( "translations" ),
-                Translation[].class );
 
-            viewItem.setName( rowSet.getString( "program_name" ) + SPACE + " # " + rowSet.getString( "name" ) );
+            viewItem.setName( rowSet.getString( "program_name" ) + SPACE + rowSet.getString( "name" ) );
             viewItem.setDisplayName( defaultIfBlank( rowSet.getString( "p_i18n_name" ),
-                rowSet.getString( "program_name" ) ) + SPACE + " # "
+                rowSet.getString( "program_name" ) ) + SPACE
                 + defaultIfBlank( rowSet.getString( "de_i18n_name" ), rowSet.getString( "name" ) ) );
             viewItem.setValueType( valueType.name() );
             viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
@@ -131,7 +126,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         sql.append(
-            "SELECT program.\"name\" AS program_name, program.uid AS program_uid, dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.translations" );
+            "SELECT program.\"name\" AS program_name, program.uid AS program_uid, dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code" );
 
         if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
         {
@@ -186,8 +181,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                     .append(
                         " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
                     .append( " dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code," )
-                    .append(
-                        " dataelement.translations, program.\"name\" AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" )
+                    .append( " program.\"name\" AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" )
                     .append( " FROM dataelement" )
                     .append(
                         " JOIN programstagedataelement ON programstagedataelement.dataelementid = dataelement.dataelementid" )
@@ -195,9 +189,9 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                         " JOIN programstage ON programstagedataelement.programstageid = programstage.programstageid" )
                     .append( " JOIN program ON program.programid = programstage.programid" )
                     .append(
-                        " LEFT JOIN jsonb_to_recordset(program.translations) as de_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                        " LEFT JOIN jsonb_to_recordset(program.translations) AS de_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
                     .append(
-                        " LEFT JOIN jsonb_to_recordset(dataelement.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                        " LEFT JOIN jsonb_to_recordset(dataelement.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
                     .append( " WHERE " )
                     .append( " dataelement.uid NOT IN (" )
                     .append( " SELECT dataelement.uid" )
@@ -208,9 +202,9 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                         " JOIN programstage ON programstagedataelement.programstageid = programstage.programstageid" )
                     .append( " JOIN program ON program.programid = programstage.programid" )
                     .append(
-                        " LEFT JOIN jsonb_to_recordset(program.translations) as de_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                        " LEFT JOIN jsonb_to_recordset(program.translations) AS de_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
                     .append(
-                        " LEFT JOIN jsonb_to_recordset(dataelement.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                        " LEFT JOIN jsonb_to_recordset(dataelement.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
                     .append( "  WHERE" )
                     .append( " (de_displayname.locale = :" + LOCALE + ")" )
                     .append( " OR" )
@@ -222,8 +216,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                     .append(
                         " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
                     .append( " dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code," )
-                    .append(
-                        " dataelement.translations, program.\"name\" AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" )
+                    .append( " program.\"name\" AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" )
                     .append( " FROM dataelement" )
                     .append(
                         " JOIN programstagedataelement ON programstagedataelement.dataelementid = dataelement.dataelementid" )
@@ -239,35 +232,60 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                         " (program.translations = '[]' OR program.translations IS NULL) AND program.name ILIKE :"
                             + DISPLAY_NAME )
                     .append(
-                        " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code, dataelement.translations" );
+                        " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code" );
 
-                if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER ) )
+                if ( paramsMap.hasValue( LOCALE ) && paramsMap.hasValue( LOCALE )
+                    && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
                 {
-                    isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME_ORDER ),
-                        DISPLAY_NAME_ORDER + " cannot be null and must be a String." );
-                    hasText( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ),
-                        DISPLAY_NAME_ORDER + " cannot be null/blank." );
-
-                    final StringBuilder ordering = new StringBuilder();
-
-                    if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER )
+                        && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
                     {
-                        // 8, 9 means p_i18n_name and de_i18n_name respectively
-                        ordering.append( " ORDER BY 8, 9 ASC" );
-                    }
-                    else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-                    {
-                        // 8, 9 means p_i18n_name and de_i18n_name respectively
-                        ordering.append( " ORDER BY 8, 9 DESC" );
+                        final StringBuilder ordering = new StringBuilder();
+
+                        if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                        {
+                            // 7, 8 means p_i18n_name and de_i18n_name
+                            // respectively
+                            ordering.append( " ORDER BY 7, 8 ASC" );
+                        }
+                        else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                        {
+                            // 7, 8 means p_i18n_name and de_i18n_name
+                            // respectively
+                            ordering.append( " ORDER BY 7, 8 DESC" );
+                        }
+
+                        sql.append( ordering.toString() );
                     }
                 }
             }
             else
             {
-                // No locale, so we default the comparison to the raw name.
-                // In normal conditions this should never happen as every
-                // user/request should have a default locale.
-                return " AND (program.\"name\" ILIKE :" + NAME + " OR dataelement.\"name\" ILIKE :" + NAME + ")";
+                if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER )
+                    && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                {
+                    final StringBuilder ordering = new StringBuilder();
+
+                    if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    {
+                        // 1, 4 means program."name" and dataelement."name"
+                        // respectively
+                        ordering.append( " ORDER BY 1, 4 ASC" );
+                    }
+                    else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    {
+                        // 1, 4 means program."name" and dataelement."name"
+                        // respectively
+                        ordering.append( " ORDER BY 1, 4 DESC" );
+                    }
+                    // No locale, so we default the comparison to the raw name.
+                    // In normal conditions this should never happen as every
+                    // user/request should have a default locale.
+                    sql.append(
+                        " AND (program.\"name\" ILIKE :" + NAME + " OR dataelement.\"name\" ILIKE :" + NAME + ")" );
+
+                    sql.append( ordering.toString() );
+                }
             }
         }
         else
