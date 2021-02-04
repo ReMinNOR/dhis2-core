@@ -34,6 +34,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
@@ -211,6 +212,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
                     .append( " (pi_displayname.locale = :" + LOCALE + ")" )
                     .append( " )" )
                     .append( " AND (programindicator.name ILIKE :" + DISPLAY_NAME + ")" )
+                    .append( programIdFiltering( paramsMap ) )
                     .append( " UNION " )
                     .append(
                         " SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.\"name\" as pi_i18n_name" )
@@ -220,6 +222,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
                     .append(
                         " (programindicator.translations = '[]' OR programindicator.translations IS NULL) AND programindicator.name ILIKE :"
                             + DISPLAY_NAME )
+                    .append( programIdFiltering( paramsMap ) )
                     .append(
                         " GROUP BY programindicator.\"name\", programindicator.uid, program.uid, programindicator.code" );
 
@@ -283,19 +286,5 @@ public class ProgramIndicatorQuery implements DataItemQuery
         sql.append( maxLimit( paramsMap ) );
 
         return sql.toString();
-    }
-
-    private String programIdFiltering( final MapSqlParameterSource paramsMap )
-    {
-        if ( paramsMap != null && paramsMap.hasValue( PROGRAM_ID ) )
-        {
-            isInstanceOf( String.class, paramsMap.getValue( PROGRAM_ID ),
-                PROGRAM_ID + " cannot be null and must be a String." );
-            hasText( (String) paramsMap.getValue( PROGRAM_ID ), PROGRAM_ID + " cannot be null/blank." );
-
-            return " AND program.uid = :" + PROGRAM_ID;
-        }
-
-        return EMPTY;
     }
 }

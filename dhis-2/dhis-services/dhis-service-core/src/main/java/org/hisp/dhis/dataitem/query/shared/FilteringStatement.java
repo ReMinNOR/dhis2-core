@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.NAME;
+import static org.hisp.dhis.dataitem.query.DataItemQuery.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.DataItemQuery.VALUE_TYPES;
 import static org.springframework.util.Assert.hasText;
 import static org.springframework.util.Assert.isInstanceOf;
@@ -117,5 +119,19 @@ public class FilteringStatement
         }
 
         return false;
+    }
+
+    public static String programIdFiltering( final MapSqlParameterSource paramsMap )
+    {
+        if ( paramsMap != null && paramsMap.hasValue( PROGRAM_ID ) )
+        {
+            isInstanceOf( String.class, paramsMap.getValue( PROGRAM_ID ),
+                PROGRAM_ID + " cannot be null and must be a String." );
+            hasText( (String) paramsMap.getValue( PROGRAM_ID ), PROGRAM_ID + " cannot be null/blank." );
+
+            return " AND program.uid = :" + PROGRAM_ID;
+        }
+
+        return EMPTY;
     }
 }

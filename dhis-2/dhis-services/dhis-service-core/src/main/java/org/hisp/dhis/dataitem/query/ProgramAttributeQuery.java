@@ -35,6 +35,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
@@ -302,19 +303,5 @@ public class ProgramAttributeQuery implements DataItemQuery
         sql.append( maxLimit( paramsMap ) );
 
         return sql.toString();
-    }
-
-    private String programIdFiltering( final MapSqlParameterSource paramsMap )
-    {
-        if ( paramsMap != null && paramsMap.hasValue( PROGRAM_ID ) )
-        {
-            isInstanceOf( String.class, paramsMap.getValue( PROGRAM_ID ),
-                PROGRAM_ID + " cannot be null and must be a String." );
-            hasText( (String) paramsMap.getValue( PROGRAM_ID ), PROGRAM_ID + " cannot be null/blank." );
-
-            return " AND program.uid = :" + PROGRAM_ID;
-        }
-
-        return EMPTY;
     }
 }
