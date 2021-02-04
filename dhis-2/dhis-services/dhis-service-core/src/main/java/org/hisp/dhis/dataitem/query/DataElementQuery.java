@@ -164,6 +164,7 @@ public class DataElementQuery implements DataItemQuery
                     .append( " AND displayname.locale = :" + LOCALE )
                     .append( " AND displayname.property = 'NAME' AND displayname.value ILIKE :" + DISPLAY_NAME )
                     .append( valueTypeFiltering( "dataelement", paramsMap ) )
+                    .append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" )
                     .append( " UNION " )
                     .append(
                         " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
@@ -185,7 +186,8 @@ public class DataElementQuery implements DataItemQuery
                     .append( " FROM dataelement" )
                     .append( " WHERE (dataelement.translations = '[]' OR dataelement.translations IS NULL)" )
                     .append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME )
-                    .append( valueTypeFiltering( "dataelement", paramsMap ) );
+                    .append( valueTypeFiltering( "dataelement", paramsMap ) )
+                    .append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" );
 
                 sql.append( displayNameQuery.toString() );
             }

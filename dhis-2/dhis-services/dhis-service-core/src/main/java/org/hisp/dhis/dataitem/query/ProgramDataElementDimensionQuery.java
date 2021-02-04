@@ -215,6 +215,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                         + ")" )
                     .append( valueTypeFiltering( "dataelement", paramsMap ) )
                     .append( programIdFiltering( paramsMap ) )
+                    .append( " AND (" + sharingConditions( "program", "dataelement", paramsMap ) + ")" )
                     .append( " UNION " )
                     .append(
                         " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
@@ -236,6 +237,8 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                             + DISPLAY_NAME )
                     .append( valueTypeFiltering( "dataelement", paramsMap ) )
                     .append( programIdFiltering( paramsMap ) )
+                    .append( " AND (" + sharingConditions( "program", "dataelement", paramsMap ) + ")" )
+
                     .append(
                         " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code" );
 

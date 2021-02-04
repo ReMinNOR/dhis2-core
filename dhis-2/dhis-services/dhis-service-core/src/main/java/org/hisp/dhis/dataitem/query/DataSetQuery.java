@@ -171,12 +171,14 @@ public class DataSetQuery implements DataItemQuery
                     .append( ")" )
                     .append( " AND displayname.property = 'NAME'" )
                     .append( " AND dataset.\"name\" ILIKE :" + DISPLAY_NAME )
+                    .append( " AND (" + sharingConditions( "dataset", paramsMap ) + ")" )
                     .append( " UNION " )
                     .append(
                         " SELECT dataset.uid, dataset.\"name\", dataset.code, dataset.\"name\" AS i18n_name" )
                     .append( " FROM dataset" )
                     .append( " WHERE (dataset.translations = '[]' OR dataset.translations IS NULL)" )
-                    .append( " AND dataset.\"name\" ILIKE :" + DISPLAY_NAME );
+                    .append( " AND dataset.\"name\" ILIKE :" + DISPLAY_NAME )
+                    .append( " AND (" + sharingConditions( "dataset", paramsMap ) + ")" );
 
                 sql.append( displayNameQuery.toString() );
             }

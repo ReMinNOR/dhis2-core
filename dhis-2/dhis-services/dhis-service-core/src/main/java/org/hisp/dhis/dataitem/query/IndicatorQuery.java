@@ -197,12 +197,14 @@ public class IndicatorQuery implements DataItemQuery
                     .append( ")" )
                     .append( " AND displayname.property = 'NAME'" )
                     .append( " AND indicator.\"name\" ILIKE :" + DISPLAY_NAME )
+                    .append( " AND (" + sharingConditions( "indicator", paramsMap ) + ")" )
                     .append( " UNION " )
                     .append(
                         " SELECT indicator.uid, indicator.\"name\", indicator.code, indicator.\"name\" AS i18n_name" )
                     .append( " FROM indicator" )
                     .append( " WHERE (indicator.translations = '[]' OR indicator.translations IS NULL)" )
-                    .append( " AND indicator.\"name\" ILIKE :" + DISPLAY_NAME );
+                    .append( " AND indicator.\"name\" ILIKE :" + DISPLAY_NAME )
+                    .append( " AND (" + sharingConditions( "indicator", paramsMap ) + ")" );
 
                 sql.append( displayNameQuery.toString() );
             }

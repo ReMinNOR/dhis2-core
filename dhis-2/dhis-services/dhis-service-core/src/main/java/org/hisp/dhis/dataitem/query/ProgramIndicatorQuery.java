@@ -213,6 +213,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
                     .append( " )" )
                     .append( " AND (programindicator.name ILIKE :" + DISPLAY_NAME + ")" )
                     .append( programIdFiltering( paramsMap ) )
+                    .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
                     .append( " UNION " )
                     .append(
                         " SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.\"name\" as pi_i18n_name" )
@@ -223,6 +224,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
                         " (programindicator.translations = '[]' OR programindicator.translations IS NULL) AND programindicator.name ILIKE :"
                             + DISPLAY_NAME )
                     .append( programIdFiltering( paramsMap ) )
+                    .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
                     .append(
                         " GROUP BY programindicator.\"name\", programindicator.uid, program.uid, programindicator.code" );
 

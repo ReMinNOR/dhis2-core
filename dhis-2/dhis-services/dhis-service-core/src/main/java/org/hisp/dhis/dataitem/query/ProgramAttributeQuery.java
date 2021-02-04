@@ -214,6 +214,7 @@ public class ProgramAttributeQuery implements DataItemQuery
                         + ")" )
                     .append( valueTypeFiltering( "trackedentityattribute", paramsMap ) )
                     .append( programIdFiltering( paramsMap ) )
+                    .append( " AND (" + sharingConditions( "program", "trackedentityattribute", paramsMap ) + ")" )
                     .append( " UNION " )
                     .append( " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
                     .append(
@@ -234,6 +235,7 @@ public class ProgramAttributeQuery implements DataItemQuery
                             + DISPLAY_NAME )
                     .append( valueTypeFiltering( "trackedentityattribute", paramsMap ) )
                     .append( programIdFiltering( paramsMap ) )
+                    .append( " AND (" + sharingConditions( "program", "trackedentityattribute", paramsMap ) + ")" )
                     .append(
                         " GROUP BY program.\"name\", program.uid, trackedentityattribute.\"name\", trackedentityattribute.uid, trackedentityattribute.valuetype, trackedentityattribute.code" );
 
