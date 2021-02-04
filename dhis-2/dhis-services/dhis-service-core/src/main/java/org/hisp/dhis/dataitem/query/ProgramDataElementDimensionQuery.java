@@ -158,7 +158,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
 
         sql.append( valueTypeFiltering( "dataelement", paramsMap ) );
 
-        sql.append( specificFiltering( paramsMap ) );
+        sql.append( programIdFiltering( paramsMap ) );
 
         if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME )
             && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME ) ) )
@@ -212,6 +212,8 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                     .append( " )" )
                     .append( " AND (dataelement.name ILIKE :" + DISPLAY_NAME + " OR program.name ILIKE :" + DISPLAY_NAME
                         + ")" )
+                    .append( valueTypeFiltering( "dataelement", paramsMap ) )
+                    .append( programIdFiltering( paramsMap ) )
                     .append( " UNION " )
                     .append(
                         " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
@@ -231,6 +233,8 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                     .append(
                         " (program.translations = '[]' OR program.translations IS NULL) AND program.name ILIKE :"
                             + DISPLAY_NAME )
+                    .append( valueTypeFiltering( "dataelement", paramsMap ) )
+                    .append( programIdFiltering( paramsMap ) )
                     .append(
                         " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code" );
 
@@ -299,7 +303,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
         return sql.toString();
     }
 
-    private String specificFiltering( final MapSqlParameterSource paramsMap )
+    private String programIdFiltering( final MapSqlParameterSource paramsMap )
     {
         if ( paramsMap != null && paramsMap.hasValue( PROGRAM_ID ) )
         {

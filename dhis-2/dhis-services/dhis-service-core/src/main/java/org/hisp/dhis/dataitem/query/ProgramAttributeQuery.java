@@ -158,7 +158,7 @@ public class ProgramAttributeQuery implements DataItemQuery
 
         sql.append( valueTypeFiltering( "trackedentityattribute", paramsMap ) );
 
-        sql.append( specificFiltering( paramsMap ) );
+        sql.append( programIdFiltering( paramsMap ) );
 
         if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME )
             && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME ) ) )
@@ -211,6 +211,8 @@ public class ProgramAttributeQuery implements DataItemQuery
                     .append( " AND (trackedentityattribute.name ILIKE :" + DISPLAY_NAME + " OR program.name ILIKE :"
                         + DISPLAY_NAME
                         + ")" )
+                    .append( valueTypeFiltering( "trackedentityattribute", paramsMap ) )
+                    .append( programIdFiltering( paramsMap ) )
                     .append( " UNION " )
                     .append( " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
                     .append(
@@ -229,6 +231,8 @@ public class ProgramAttributeQuery implements DataItemQuery
                     .append(
                         " (program.translations = '[]' OR program.translations IS NULL) AND program.name ILIKE :"
                             + DISPLAY_NAME )
+                    .append( valueTypeFiltering( "trackedentityattribute", paramsMap ) )
+                    .append( programIdFiltering( paramsMap ) )
                     .append(
                         " GROUP BY program.\"name\", program.uid, trackedentityattribute.\"name\", trackedentityattribute.uid, trackedentityattribute.valuetype, trackedentityattribute.code" );
 
@@ -300,7 +304,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         return sql.toString();
     }
 
-    private String specificFiltering( final MapSqlParameterSource paramsMap )
+    private String programIdFiltering( final MapSqlParameterSource paramsMap )
     {
         if ( paramsMap != null && paramsMap.hasValue( PROGRAM_ID ) )
         {
@@ -308,7 +312,7 @@ public class ProgramAttributeQuery implements DataItemQuery
                 PROGRAM_ID + " cannot be null and must be a String." );
             hasText( (String) paramsMap.getValue( PROGRAM_ID ), PROGRAM_ID + " cannot be null/blank." );
 
-            return " AND p.uid = :" + PROGRAM_ID;
+            return " AND program.uid = :" + PROGRAM_ID;
         }
 
         return EMPTY;

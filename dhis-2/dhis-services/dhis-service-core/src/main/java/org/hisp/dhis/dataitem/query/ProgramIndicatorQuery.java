@@ -171,7 +171,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
         sql.append( nameFiltering( "programindicator", paramsMap ) );
 
-        sql.append( specificFiltering( paramsMap ) );
+        sql.append( programIdFiltering( paramsMap ) );
 
         if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME )
             && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME ) ) )
@@ -285,7 +285,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         return sql.toString();
     }
 
-    private String specificFiltering( final MapSqlParameterSource paramsMap )
+    private String programIdFiltering( final MapSqlParameterSource paramsMap )
     {
         if ( paramsMap != null && paramsMap.hasValue( PROGRAM_ID ) )
         {
@@ -293,7 +293,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
                 PROGRAM_ID + " cannot be null and must be a String." );
             hasText( (String) paramsMap.getValue( PROGRAM_ID ), PROGRAM_ID + " cannot be null/blank." );
 
-            return " AND p.uid = :" + PROGRAM_ID;
+            return " AND program.uid = :" + PROGRAM_ID;
         }
 
         return EMPTY;

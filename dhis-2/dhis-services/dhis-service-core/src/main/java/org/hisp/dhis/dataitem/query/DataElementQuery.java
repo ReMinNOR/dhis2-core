@@ -146,8 +146,6 @@ public class DataElementQuery implements DataItemQuery
 
         sql.append( nameFiltering( "dataelement", paramsMap ) );
 
-        sql.append( valueTypeFiltering( "dataelement", paramsMap ) );
-
         if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME ) )
         {
             isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME ),
@@ -165,6 +163,7 @@ public class DataElementQuery implements DataItemQuery
                 displayNameQuery
                     .append( " AND displayname.locale = :" + LOCALE )
                     .append( " AND displayname.property = 'NAME' AND displayname.value ILIKE :" + DISPLAY_NAME )
+                    .append( valueTypeFiltering( "dataelement", paramsMap ) )
                     .append( " UNION " )
                     .append(
                         " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
@@ -179,12 +178,14 @@ public class DataElementQuery implements DataItemQuery
                     .append( ")" )
                     .append( " AND displayname.property = 'NAME'" )
                     .append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME )
+                    .append( valueTypeFiltering( "dataelement", paramsMap ) )
                     .append( " UNION " )
                     .append(
                         " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
                     .append( " FROM dataelement" )
                     .append( " WHERE (dataelement.translations = '[]' OR dataelement.translations IS NULL)" )
-                    .append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME );
+                    .append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME )
+                    .append( valueTypeFiltering( "dataelement", paramsMap ) );
 
                 sql.append( displayNameQuery.toString() );
             }
@@ -194,6 +195,8 @@ public class DataElementQuery implements DataItemQuery
                 sql.append( " AND (dataelement.\"name\" ILIKE :" + NAME + ")" );
             }
         }
+
+        sql.append( valueTypeFiltering( "dataelement", paramsMap ) );
 
         sql.append(
             " GROUP BY dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code" );

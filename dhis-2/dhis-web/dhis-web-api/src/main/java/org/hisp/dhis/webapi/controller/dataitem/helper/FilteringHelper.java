@@ -47,6 +47,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.dataitem.Filter;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -71,7 +72,7 @@ public class FilteringHelper
      *        {@link org.hisp.dhis.common.DataDimensionItemType}
      * @return the respective classes associated with the given IN filter
      * @throws IllegalQueryException if the filter points to a non supported
-     *         class/entity.
+     *         class/entity
      */
     public static Set<Class<? extends BaseDimensionalItemObject>> extractEntitiesFromInFilter( final String filter )
     {
@@ -108,7 +109,7 @@ public class FilteringHelper
      *        {@link org.hisp.dhis.common.DataDimensionItemType}
      * @return the respective class associated with the given filter
      * @throws IllegalQueryException if the filter points to a non supported
-     *         class/entity.
+     *         class/entity
      */
     public static Class<? extends BaseDimensionalItemObject> extractEntityFromEqualFilter( final String filter )
     {
@@ -143,7 +144,7 @@ public class FilteringHelper
      *        {@link ValueType}
      * @return the respective classes associated with the given IN filter
      * @throws IllegalQueryException if the filter points to a non supported
-     *         value type.
+     *         value type
      */
     public static Set<String> extractValueTypesFromInFilter( final String filter )
     {
@@ -179,7 +180,7 @@ public class FilteringHelper
      *        by {@link ValueType}
      * @return the respective value type associated with the given filter
      * @throws IllegalQueryException if the filter points to a non supported
-     *         value type.
+     *         value type
      */
     public static String extractValueTypeFromEqualFilter( final String filter )
     {
@@ -211,7 +212,7 @@ public class FilteringHelper
      * @param filters coming from the URL params/filters
      * @return all respective value type's associated with the given filter
      * @throws IllegalQueryException if the filter points to a non supported
-     *         value type.
+     *         value type
      */
     public static Set<String> extractAllValueTypesFromFilters( final Set<String> filters )
     {
@@ -239,78 +240,28 @@ public class FilteringHelper
         return valueTypes;
     }
 
-    public static String extractValueFromIlikeNameFilter( final Set<String> filters )
+    /**
+     * 
+     * @param filters
+     * @param filterCombination
+     * @return the value extracted from the respective filter combination
+     */
+    public static String extractValueFromFilter( final Set<String> filters, final Filter.Combination filterCombination )
     {
-        final byte ILIKE_VALUE = 2;
+        final byte FILTER_VALUE = 2;
 
         if ( CollectionUtils.isNotEmpty( filters ) )
         {
             for ( final String filter : filters )
             {
-                if ( filterHasPrefix( filter, NAME_ILIKE.getCombination() ) )
+                if ( filterHasPrefix( filter, filterCombination.getCombination() ) )
                 {
                     final String[] array = filter.split( ":" );
-                    final boolean hasIlikeValue = array.length == 3;
+                    final boolean hasValue = array.length == 3;
 
-                    if ( hasIlikeValue )
+                    if ( hasValue )
                     {
-                        return trimToEmpty( array[ILIKE_VALUE] );
-                    }
-                    else
-                    {
-                        throw new IllegalQueryException( new ErrorMessage( E2014, filter ) );
-                    }
-                }
-            }
-        }
-
-        return EMPTY;
-    }
-
-    public static String extractValueFromIlikeDisplayNameFilter( final Set<String> filters )
-    {
-        final byte ILIKE_VALUE = 2;
-
-        if ( CollectionUtils.isNotEmpty( filters ) )
-        {
-            for ( final String filter : filters )
-            {
-                if ( filterHasPrefix( filter, DISPLAY_NAME_ILIKE.getCombination() ) )
-                {
-                    final String[] array = filter.split( ":" );
-                    final boolean hasIlikeValue = array.length == 3;
-
-                    if ( hasIlikeValue )
-                    {
-                        return trimToEmpty( array[ILIKE_VALUE] );
-                    }
-                    else
-                    {
-                        throw new IllegalQueryException( new ErrorMessage( E2014, filter ) );
-                    }
-                }
-            }
-        }
-
-        return EMPTY;
-    }
-
-    public static String extractValueFromEqProgramIdFilter( final Set<String> filters )
-    {
-        final byte EQ_PROGRAM_ID_VALUE = 2;
-
-        if ( CollectionUtils.isNotEmpty( filters ) )
-        {
-            for ( final String filter : filters )
-            {
-                if ( filterHasPrefix( filter, PROGRAM_ID_EQUAL.getCombination() ) )
-                {
-                    final String[] array = filter.split( ":" );
-                    final boolean hasProgramIdValue = array.length == 3;
-
-                    if ( hasProgramIdValue )
-                    {
-                        return trimToEmpty( array[EQ_PROGRAM_ID_VALUE] );
+                        return trimToEmpty( array[FILTER_VALUE] );
                     }
                     else
                     {
@@ -340,14 +291,14 @@ public class FilteringHelper
             paramsMap.addValue( LOCALE, trimToEmpty( currentLocale.getLanguage() ) );
         }
 
-        final String ilikeName = extractValueFromIlikeNameFilter( filters );
+        final String ilikeName = extractValueFromFilter( filters, NAME_ILIKE );
 
         if ( isNotBlank( ilikeName ) )
         {
             paramsMap.addValue( NAME, wrap( ilikeName, "%" ) );
         }
 
-        final String ilikeDisplayName = extractValueFromIlikeDisplayNameFilter( filters );
+        final String ilikeDisplayName = extractValueFromFilter( filters, DISPLAY_NAME_ILIKE );
 
         if ( isNotBlank( ilikeDisplayName ) )
         {
@@ -369,7 +320,7 @@ public class FilteringHelper
                 getAggregatables().stream().map( type -> type.name() ).collect( toSet() ) );
         }
 
-        final String programId = extractValueFromEqProgramIdFilter( filters );
+        final String programId = extractValueFromFilter( filters, PROGRAM_ID_EQUAL );
 
         // Add program id filtering id, if present.
         if ( isNotBlank( programId ) )
@@ -394,7 +345,7 @@ public class FilteringHelper
      *
      * @param valueTypeNames
      * @throws IllegalQueryException if the given Set<String> contains
-     *         non-aggregatable value types.
+     *         non-aggregatable value types
      */
     public static void assertThatValueTypeFilterHasOnlyAggregatableTypes( final Set<String> valueTypeNames,
         final Set<String> filters )
