@@ -28,12 +28,10 @@
 package org.hisp.dhis.dataitem.query.shared;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.MAX_LIMIT;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
-import static org.junit.Assert.assertThrows;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.MAX_LIMIT;
 
 import org.junit.Test;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -65,13 +63,12 @@ public class LimitStatementTest
     {
         // Given
         final MapSqlParameterSource noParameterSource = new MapSqlParameterSource();
-        final String expectedStatement = EMPTY;
 
         // When
         final String actualStatement = maxLimit( noParameterSource );
 
         // Then
-        assertThat( actualStatement, is( expectedStatement ) );
+        assertThat( actualStatement, is( EMPTY ) );
     }
 
     @Test
@@ -79,13 +76,12 @@ public class LimitStatementTest
     {
         // Given
         final MapSqlParameterSource nullParameterSource = new MapSqlParameterSource();
-        final String expectedStatement = EMPTY;
 
         // When
         final String actualStatement = maxLimit( nullParameterSource );
 
         // Then
-        assertThat( actualStatement, is( expectedStatement ) );
+        assertThat( actualStatement, is( EMPTY ) );
     }
 
     @Test
@@ -95,13 +91,11 @@ public class LimitStatementTest
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( MAX_LIMIT, null );
 
-        // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> maxLimit( theParameterSource ) );
+        // When
+        final String actualStatement = maxLimit( theParameterSource );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( MAX_LIMIT + " cannot be null." ) );
+        assertThat( actualStatement, is( EMPTY ) );
     }
 
     @Test
@@ -111,12 +105,10 @@ public class LimitStatementTest
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( MAX_LIMIT, "" );
 
-        // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> maxLimit( theParameterSource ) );
+        // When
+        final String actualStatement = maxLimit( theParameterSource );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( MAX_LIMIT + " must be an Integer." ) );
+        assertThat( actualStatement, is( EMPTY ) );
     }
 }

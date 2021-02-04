@@ -31,8 +31,8 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_GROUP_UIDS;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_UID;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_GROUP_UIDS;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_UID;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.ownerAccessCondition;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.publicAccessCondition;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
@@ -78,13 +78,14 @@ public class UserAccessStatementTest
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( USER_GROUP_UIDS, null );
 
-        // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> sharingConditions( tableAlias, theParameterSource ) );
+        // When
+        final String actualStatement = sharingConditions( tableAlias, theParameterSource );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( USER_GROUP_UIDS + " must be a String." ) );
+        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( tableAlias ) ) );
+        assertThat( actualStatement, not( containsString( userGroupAccessCondition( tableAlias ) ) ) );
     }
 
     @Test
@@ -95,13 +96,14 @@ public class UserAccessStatementTest
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( USER_GROUP_UIDS, "" );
 
-        // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> sharingConditions( tableAlias, theParameterSource ) );
+        // When
+        final String actualStatement = sharingConditions( tableAlias, theParameterSource );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( USER_GROUP_UIDS + " cannot be null/blank." ) );
+        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( tableAlias ) ) );
+        assertThat( actualStatement, not( containsString( userGroupAccessCondition( tableAlias ) ) ) );
     }
 
     @Test
@@ -154,13 +156,19 @@ public class UserAccessStatementTest
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( USER_GROUP_UIDS, null );
 
-        // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> sharingConditions( tableAlias1, tableAlias2, theParameterSource ) );
+        // When
+        final String actualStatement = sharingConditions( tableAlias1, tableAlias2, theParameterSource );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( USER_GROUP_UIDS + " must be a String." ) );
+        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias1 ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias1 ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( tableAlias1 ) ) );
+        assertThat( actualStatement, not( containsString( userGroupAccessCondition( tableAlias1 ) ) ) );
+
+        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias2 ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias2 ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( tableAlias2 ) ) );
+        assertThat( actualStatement, not( containsString( userGroupAccessCondition( tableAlias2 ) ) ) );
     }
 
     @Test
@@ -172,13 +180,19 @@ public class UserAccessStatementTest
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( USER_GROUP_UIDS, "" );
 
-        // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> sharingConditions( tableAlias1, tableAlias2, theParameterSource ) );
+        // When
+        final String actualStatement = sharingConditions( tableAlias1, tableAlias2, theParameterSource );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( USER_GROUP_UIDS + " cannot be null/blank." ) );
+        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias1 ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias1 ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( tableAlias1 ) ) );
+        assertThat( actualStatement, not( containsString( userGroupAccessCondition( tableAlias1 ) ) ) );
+
+        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias2 ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias2 ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( tableAlias2 ) ) );
+        assertThat( actualStatement, not( containsString( userGroupAccessCondition( tableAlias2 ) ) ) );
     }
 
     @Test

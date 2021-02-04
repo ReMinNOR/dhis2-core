@@ -30,15 +30,18 @@ package org.hisp.dhis.dataitem.query;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.displayColumnOrdering;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
-import static org.springframework.util.Assert.hasText;
-import static org.springframework.util.Assert.isInstanceOf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -121,14 +124,14 @@ public class DataSetQuery implements DataItemQuery
         sql.append(
             "SELECT dataset.uid, dataset.\"name\", dataset.code" );
 
-        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        if ( hasValidStringPresence( paramsMap, LOCALE ) )
         {
             sql.append( ", displayname.value AS i18n_name" );
         }
 
         sql.append( " FROM dataset " );
 
-        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        if ( hasValidStringPresence( paramsMap, LOCALE ) )
         {
             sql.append(
                 ", jsonb_to_recordset(dataset.translations) as displayname(value TEXT, locale TEXT, property TEXT)" );
@@ -140,18 +143,10 @@ public class DataSetQuery implements DataItemQuery
 
         sql.append( nameFiltering( "dataset", paramsMap ) );
 
-        if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME ) )
+        if ( hasValidStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME ),
-                DISPLAY_NAME + " cannot be null and must be a String." );
-            hasText( (String) paramsMap.getValue( DISPLAY_NAME ), DISPLAY_NAME + " cannot be null/blank." );
-
-            if ( paramsMap.hasValue( LOCALE ) )
+            if ( hasValidStringPresence( paramsMap, LOCALE ) )
             {
-                isInstanceOf( String.class, paramsMap.getValue( LOCALE ),
-                    LOCALE + " cannot be null and must be a String." );
-                hasText( (String) paramsMap.getValue( LOCALE ), LOCALE + " cannot be null/blank." );
-
                 final StringBuilder displayNameQuery = new StringBuilder();
 
                 displayNameQuery
@@ -191,21 +186,18 @@ public class DataSetQuery implements DataItemQuery
 
         sql.append( " GROUP BY dataset.uid, dataset.\"name\", dataset.code" );
 
-        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        if ( hasValidStringPresence( paramsMap, LOCALE ) )
         {
             sql.append( ", i18n_name" );
         }
 
-        if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER )
-            && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+        if ( hasValidStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
         {
             // 4 means i18n_name
             sql.append( displayColumnOrdering( 4, paramsMap ) );
         }
-        else if ( paramsMap != null && paramsMap.hasValue( NAME_ORDER )
-            && isNotBlank( (String) paramsMap.getValue( NAME_ORDER ) ) )
+        else if ( hasValidStringPresence( paramsMap, NAME_ORDER ) )
         {
-
             sql.append( nameOrdering( "dataset", paramsMap ) );
         }
 

@@ -28,13 +28,11 @@
 package org.hisp.dhis.dataitem.query.shared;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.NAME;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.PROGRAM_ID;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.VALUE_TYPES;
-import static org.springframework.util.Assert.hasText;
-import static org.springframework.util.Assert.isInstanceOf;
-import static org.springframework.util.Assert.notEmpty;
-import static org.springframework.util.Assert.notNull;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidSetPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
 
 import java.util.Set;
 
@@ -56,12 +54,8 @@ public class FilteringStatement
     {
         final StringBuilder filtering = new StringBuilder();
 
-        if ( paramsMap != null && paramsMap.hasValue( NAME ) )
+        if ( hasValidStringPresence( paramsMap, NAME ) )
         {
-            isInstanceOf( String.class, paramsMap.getValue( NAME ),
-                NAME + " cannot be null and must be a String." );
-            hasText( (String) paramsMap.getValue( NAME ), NAME + " cannot be null/blank." );
-
             filtering.append( " AND (" + tableName + ".\"name\" ILIKE :" + NAME + ")" );
         }
 
@@ -73,12 +67,8 @@ public class FilteringStatement
     {
         final StringBuilder filtering = new StringBuilder();
 
-        if ( paramsMap != null && paramsMap.hasValue( NAME ) )
+        if ( hasValidStringPresence( paramsMap, NAME ) )
         {
-            isInstanceOf( String.class, paramsMap.getValue( NAME ),
-                NAME + " cannot be null and must be a String." );
-            hasText( (String) paramsMap.getValue( NAME ), NAME + " cannot be null/blank." );
-
             filtering.append( " AND (" + tableOne + ".\"name\" ILIKE :" + NAME + " OR " + tableTwo
                 + ".\"name\" ILIKE :" + NAME + ")" );
         }
@@ -90,11 +80,8 @@ public class FilteringStatement
     {
         final StringBuilder filtering = new StringBuilder();
 
-        if ( paramsMap != null && paramsMap.hasValue( VALUE_TYPES ) )
+        if ( hasValidSetPresence( paramsMap, VALUE_TYPES ) )
         {
-            isInstanceOf( Set.class, paramsMap.getValue( VALUE_TYPES ),
-                VALUE_TYPES + " cannot be null and must be a Set." );
-            notEmpty( (Set) paramsMap.getValue( VALUE_TYPES ), VALUE_TYPES + " cannot be empty." );
 
             filtering.append( " AND (" + tableName + ".valuetype IN (:" + VALUE_TYPES + "))" );
         }
@@ -104,12 +91,8 @@ public class FilteringStatement
 
     public static boolean skipValueType( final ValueType valueTypeToSkip, final MapSqlParameterSource paramsMap )
     {
-        if ( paramsMap != null && paramsMap.hasValue( VALUE_TYPES ) )
+        if ( hasValidSetPresence( paramsMap, VALUE_TYPES ) )
         {
-            isInstanceOf( Set.class, paramsMap.getValue( VALUE_TYPES ), VALUE_TYPES + " must be a Set." );
-            notNull( paramsMap.getValue( VALUE_TYPES ), VALUE_TYPES + " cannot be null." );
-            notEmpty( (Set) paramsMap.getValue( VALUE_TYPES ), VALUE_TYPES + " cannot be empty." );
-
             final Set<String> valueTypeNames = (Set<String>) paramsMap.getValue( VALUE_TYPES );
 
             // Skip WHEN the value type list does NOT contain the given type.
@@ -123,12 +106,8 @@ public class FilteringStatement
 
     public static String programIdFiltering( final MapSqlParameterSource paramsMap )
     {
-        if ( paramsMap != null && paramsMap.hasValue( PROGRAM_ID ) )
+        if ( hasValidStringPresence( paramsMap, PROGRAM_ID ) )
         {
-            isInstanceOf( String.class, paramsMap.getValue( PROGRAM_ID ),
-                PROGRAM_ID + " cannot be null and must be a String." );
-            hasText( (String) paramsMap.getValue( PROGRAM_ID ), PROGRAM_ID + " cannot be null/blank." );
-
             return " AND program.uid = :" + PROGRAM_ID;
         }
 

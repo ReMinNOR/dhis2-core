@@ -31,16 +31,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
-import static org.springframework.util.Assert.hasText;
-import static org.springframework.util.Assert.isInstanceOf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -129,7 +131,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
         sql.append(
             "SELECT program.\"name\" AS program_name, program.uid AS program_uid, dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code" );
 
-        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        if ( hasValidStringPresence( paramsMap, LOCALE ) )
         {
             sql.append( ", p_displayname.value AS p_i18n_name" )
                 .append( ", de_displayname.value AS de_i18n_name" );
@@ -141,7 +143,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
             .append( " JOIN programstage ON programstagedataelement.programstageid = programstage.programstageid" )
             .append( " JOIN program ON program.programid = programstage.programid" );
 
-        if ( paramsMap != null && paramsMap.hasValue( LOCALE ) && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+        if ( hasValidStringPresence( paramsMap, LOCALE ) )
         {
             sql.append(
                 " LEFT JOIN jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
@@ -161,20 +163,10 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
 
         sql.append( programIdFiltering( paramsMap ) );
 
-        if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME )
-            && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME ) ) )
+        if ( hasValidStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME ),
-                DISPLAY_NAME + " cannot be null and must be a String." );
-            hasText( (String) paramsMap.getValue( DISPLAY_NAME ), DISPLAY_NAME + " cannot be null/blank." );
-
-            if ( paramsMap.hasValue( LOCALE ) && paramsMap.hasValue( LOCALE )
-                && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+            if ( hasValidStringPresence( paramsMap, LOCALE ) )
             {
-                isInstanceOf( String.class, paramsMap.getValue( LOCALE ),
-                    LOCALE + " cannot be null and must be a String." );
-                hasText( (String) paramsMap.getValue( LOCALE ), LOCALE + " cannot be null/blank." );
-
                 sql.append( " AND (de_displayname.value ILIKE :" + DISPLAY_NAME + " OR p_displayname.value ILIKE  :"
                     + DISPLAY_NAME + ")" );
 
@@ -242,11 +234,9 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                     .append(
                         " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code" );
 
-                if ( paramsMap.hasValue( LOCALE ) && paramsMap.hasValue( LOCALE )
-                    && isNotBlank( (String) paramsMap.getValue( LOCALE ) ) )
+                if ( hasValidStringPresence( paramsMap, LOCALE ) )
                 {
-                    if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER )
-                        && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    if ( hasValidStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
                     {
                         final StringBuilder ordering = new StringBuilder();
 
@@ -269,8 +259,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
             }
             else
             {
-                if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER )
-                    && isNotBlank( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                if ( hasValidStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
                 {
                     final StringBuilder ordering = new StringBuilder();
 

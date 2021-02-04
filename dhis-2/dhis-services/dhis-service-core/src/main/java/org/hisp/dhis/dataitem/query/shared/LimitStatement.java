@@ -28,9 +28,8 @@
 package org.hisp.dhis.dataitem.query.shared;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.MAX_LIMIT;
-import static org.springframework.util.Assert.isInstanceOf;
-import static org.springframework.util.Assert.notNull;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidIntegerPresence;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.MAX_LIMIT;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
@@ -48,11 +47,8 @@ public class LimitStatement
 
     public static String maxLimit( final MapSqlParameterSource paramsMap )
     {
-        if ( paramsMap != null && paramsMap.hasValue( MAX_LIMIT ) )
+        if ( hasValidIntegerPresence( paramsMap, MAX_LIMIT ) )
         {
-            notNull( paramsMap.getValue( MAX_LIMIT ), MAX_LIMIT + " cannot be null." );
-            isInstanceOf( Integer.class, paramsMap.getValue( MAX_LIMIT ), MAX_LIMIT + " must be an Integer." );
-
             return " LIMIT :" + MAX_LIMIT;
         }
 

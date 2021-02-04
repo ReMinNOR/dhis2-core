@@ -28,12 +28,10 @@
 package org.hisp.dhis.dataitem.query.shared;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
-import static org.junit.Assert.assertThrows;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
 
 import org.junit.Test;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -83,13 +81,12 @@ public class OrderingStatementTest
         // Given
         final String tableAlias = "t";
         final MapSqlParameterSource noParameterSource = new MapSqlParameterSource();
-        final String expectedStatement = EMPTY;
 
         // When
         final String actualStatement = nameOrdering( tableAlias, noParameterSource );
 
         // Then
-        assertThat( actualStatement, is( expectedStatement ) );
+        assertThat( actualStatement, is( EMPTY ) );
     }
 
     @Test
@@ -98,44 +95,41 @@ public class OrderingStatementTest
         // Given
         final String tableAlias = "t";
         final MapSqlParameterSource nullParameterSource = null;
-        final String expectedStatement = EMPTY;
 
         // When
         final String actualStatement = nameOrdering( tableAlias, nullParameterSource );
 
         // Then
-        assertThat( actualStatement, is( expectedStatement ) );
+        assertThat( actualStatement, is( EMPTY ) );
     }
 
     @Test
     public void testCommonOrderingWhenOrderFilterIsSetToNull()
     {
         // Given
-        final String aTableAlias = "de";
+        final String tableAlias = "de";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, null );
 
-        // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> nameOrdering( aTableAlias, theParameterSource ) );
+        // When
+        final String actualStatement = nameOrdering( tableAlias, theParameterSource );
 
-        assertThat( thrown.getMessage(), containsString( NAME_ORDER + " cannot be null and must be a String." ) );
+        // Then
+        assertThat( actualStatement, is( EMPTY ) );
     }
 
     @Test
     public void testCommonOrderingWhenOrderFilterIsSetToEmpty()
     {
         // Given
-        final String aTableAlias = "de";
+        final String tableAlias = "de";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, EMPTY );
 
-        // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> nameOrdering( aTableAlias, theParameterSource ) );
+        // When
+        final String actualStatement = nameOrdering( tableAlias, theParameterSource );
 
-        assertThat( thrown.getMessage(), containsString( NAME_ORDER + " cannot be null/blank." ) );
+        // Then
+        assertThat( actualStatement, is( EMPTY ) );
     }
 }

@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
-import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_GROUP_UIDS;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.USER_UID;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_GROUP_UIDS;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_UID;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_GROUPS_ACCESS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_IDS;
 import static org.springframework.util.Assert.hasText;
-import static org.springframework.util.Assert.isInstanceOf;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
@@ -58,12 +58,8 @@ public class UserAccessStatement
             .append( " OR " )
             .append( userAccessCondition( tableName ) );
 
-        if ( paramsMap != null && paramsMap.hasValue( USER_GROUP_UIDS ) )
+        if ( hasValidStringPresence( paramsMap, USER_GROUP_UIDS ) )
         {
-            isInstanceOf( String.class, paramsMap.getValue( USER_GROUP_UIDS ),
-                USER_GROUP_UIDS + " must be a String." );
-            hasText( (String) paramsMap.getValue( USER_GROUP_UIDS ), USER_GROUP_UIDS + " cannot be null/blank." );
-
             conditions.append( " OR (" + userGroupAccessCondition( tableName ) + ")" );
         }
 
@@ -91,12 +87,8 @@ public class UserAccessStatement
             .append( userAccessCondition( tableTwo ) )
             .append( ")" ); // Table 2 conditions end
 
-        if ( paramsMap != null && paramsMap.hasValue( USER_GROUP_UIDS ) )
+        if ( hasValidStringPresence( paramsMap, USER_GROUP_UIDS ) )
         {
-            isInstanceOf( String.class, paramsMap.getValue( USER_GROUP_UIDS ),
-                USER_GROUP_UIDS + " must be a String." );
-            hasText( (String) paramsMap.getValue( USER_GROUP_UIDS ), USER_GROUP_UIDS + " cannot be null/blank." );
-
             conditions.append( " OR (" );
 
             // Program group access checks

@@ -30,16 +30,14 @@ package org.hisp.dhis.dataitem.query.shared;
 import static java.util.Collections.emptySet;
 import static org.apache.commons.collections4.SetUtils.unmodifiableSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.NAME;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.VALUE_TYPES;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
-import static org.junit.Assert.assertThrows;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
 
 import org.junit.Test;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -73,13 +71,12 @@ public class FilteringStatementTest
         // Given
         final String aTableAlias = "de";
         final MapSqlParameterSource noFiltersParameterSource = new MapSqlParameterSource();
-        final String expectedStatement = EMPTY;
 
         // When
         final String resultStatement = nameFiltering( aTableAlias, noFiltersParameterSource );
 
         // Then
-        assertThat( resultStatement, is( expectedStatement ) );
+        assertThat( resultStatement, is( EMPTY ) );
     }
 
     @Test
@@ -87,15 +84,14 @@ public class FilteringStatementTest
     {
         // Given
         final String aTableAlias = "de";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( NAME, null );
 
-        // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> nameFiltering( aTableAlias, theParameterSource ) );
+        // When
+        final String actualResult = valueTypeFiltering( aTableAlias, filtersParameterSource );
 
-        assertThat( thrown.getMessage(), containsString( NAME + " cannot be null and must be a String." ) );
+        // Then
+        assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
@@ -103,15 +99,14 @@ public class FilteringStatementTest
     {
         // Given
         final String aTableAlias = "de";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( NAME, EMPTY );
 
-        // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> nameFiltering( aTableAlias, theParameterSource ) );
+        // When
+        final String actualResult = valueTypeFiltering( aTableAlias, filtersParameterSource );
 
-        assertThat( thrown.getMessage(), containsString( NAME + " cannot be null/blank." ) );
+        // Then
+        assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
@@ -120,13 +115,13 @@ public class FilteringStatementTest
         // Given
         final String tableAlias1 = "de";
         final String tableAlias2 = "p";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( NAME, "abc" );
         final String expectedStatement = " AND (" + tableAlias1 + ".\"name\" ILIKE :" + NAME + " OR "
             + tableAlias2 + ".\"name\" ILIKE :" + NAME + ")";
 
         // When
-        final String resultStatement = FilteringStatement.nameFiltering( tableAlias1, tableAlias2, theParameterSource );
+        final String resultStatement = nameFiltering( tableAlias1, tableAlias2, filtersParameterSource );
 
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
@@ -142,7 +137,7 @@ public class FilteringStatementTest
         final String expectedStatement = EMPTY;
 
         // When
-        final String resultStatement = FilteringStatement.nameFiltering( tableAlias1, tableAlias2,
+        final String resultStatement = nameFiltering( tableAlias1, tableAlias2,
             noFiltersParameterSource );
 
         // Then
@@ -188,12 +183,11 @@ public class FilteringStatementTest
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( VALUE_TYPES, emptySet() );
 
-        // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> valueTypeFiltering( aTableAlias, filtersParameterSource ) );
+        // When
+        final String actualResult = valueTypeFiltering( aTableAlias, filtersParameterSource );
 
-        assertThat( thrown.getMessage(), containsString( VALUE_TYPES + " cannot be empty." ) );
+        // Then
+        assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
@@ -204,13 +198,11 @@ public class FilteringStatementTest
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( VALUE_TYPES, null );
 
-        // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> valueTypeFiltering( aTableAlias, filtersParameterSource ) );
+        // When
+        final String actualResult = valueTypeFiltering( aTableAlias, filtersParameterSource );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( VALUE_TYPES + " cannot be null and must be a Set." ) );
+        assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
@@ -221,13 +213,11 @@ public class FilteringStatementTest
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( VALUE_TYPES, "String" );
 
-        // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
-            () -> valueTypeFiltering( aTableAlias, filtersParameterSource ) );
+        // When
+        final String actualResult = valueTypeFiltering( aTableAlias, filtersParameterSource );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( "valueTypes cannot be null and must be a Set." ) );
+        assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
@@ -236,13 +226,12 @@ public class FilteringStatementTest
         // Given
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( VALUE_TYPES, unmodifiableSet( "NUMBER", "INTEGER" ) );
-        final boolean expectedResult = false;
 
         // When
         final boolean actualResult = skipValueType( NUMBER, theParameterSource );
 
         // Then
-        assertThat( actualResult, is( expectedResult ) );
+        assertThat( actualResult, is( false ) );
     }
 
     @Test

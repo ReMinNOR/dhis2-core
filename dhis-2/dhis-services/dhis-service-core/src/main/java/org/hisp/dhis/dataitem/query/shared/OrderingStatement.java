@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
-import static org.hisp.dhis.dataitem.query.DataItemQuery.DISPLAY_NAME_ORDER;
-import static org.hisp.dhis.dataitem.query.DataItemQuery.NAME_ORDER;
-import static org.springframework.util.Assert.hasText;
-import static org.springframework.util.Assert.isInstanceOf;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
@@ -49,12 +48,8 @@ public class OrderingStatement
     {
         final StringBuilder ordering = new StringBuilder();
 
-        if ( paramsMap != null && paramsMap.hasValue( NAME_ORDER ) )
+        if ( hasValidStringPresence( paramsMap, NAME_ORDER ) )
         {
-            isInstanceOf( String.class, paramsMap.getValue( NAME_ORDER ),
-                NAME_ORDER + " cannot be null and must be a String." );
-            hasText( (String) paramsMap.getValue( NAME_ORDER ), NAME_ORDER + " cannot be null/blank." );
-
             if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( NAME_ORDER ) ) )
             {
                 ordering.append( " ORDER BY " + tableName + ".\"name\" ASC" );
@@ -72,12 +67,8 @@ public class OrderingStatement
     {
         final StringBuilder ordering = new StringBuilder();
 
-        if ( paramsMap != null && paramsMap.hasValue( DISPLAY_NAME_ORDER ) )
+        if ( hasValidStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
         {
-            isInstanceOf( String.class, paramsMap.getValue( DISPLAY_NAME_ORDER ),
-                DISPLAY_NAME_ORDER + " cannot be null and must be a String." );
-            hasText( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ), DISPLAY_NAME_ORDER + " cannot be null/blank." );
-
             if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
             {
                 ordering.append( " ORDER BY " + columnNumber + " ASC" );

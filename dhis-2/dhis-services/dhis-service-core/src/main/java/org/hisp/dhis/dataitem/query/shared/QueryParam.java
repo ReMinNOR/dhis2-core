@@ -25,46 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataitem.query;
-
-import java.util.List;
-
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.dataitem.DataItem;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+package org.hisp.dhis.dataitem.query.shared;
 
 /**
- * Interface responsible for providing the basic and necessary methods regarding
- * general data item queries.
+ * This class keeps the list of possible query params.
  *
  * @author maikel arabori
  */
-public interface DataItemQuery
+public class QueryParam
 {
+    private QueryParam()
+    {
+    }
 
-    /**
-     * Responsible for building the respective query statement and executing it
-     * in order to find the list of items based on the given parameter map.
-     *
-     * @param paramsMap
-     * @return the data items found
-     */
-    List<DataItem> find( MapSqlParameterSource paramsMap );
+    public static final String NAME = "name";
 
-    /**
-     * Responsible for building the respective count statement and executing it
-     * in order to find the total of data items for the given parameter map.
-     *
-     * @param paramsMap
-     * @return the items found
-     */
-    int count( MapSqlParameterSource paramsMap );
+    public static final String DISPLAY_NAME = "displayName";
 
-    /**
-     * Simply returns the entity associated with the respective interface
-     * implementation.
-     *
-     * @return the entity associated to the interface implementation
-     */
-    Class<? extends BaseDimensionalItemObject> getAssociatedEntity();
+    public static final String LOCALE = "locale";
+
+    public static final String VALUE_TYPES = "valueTypes";
+
+    public static final String USER_GROUP_UIDS = "userGroupUids";
+
+    public static final String USER_UID = "userUid";
+
+    public static final String PROGRAM_ID = "programId";
+
+    public static final String MAX_LIMIT = "maxLimit";
+
+    public static final String NAME_ORDER = "nameOrder";
+
+    public static final String DISPLAY_NAME_ORDER = "displayNameOrder";
 }
