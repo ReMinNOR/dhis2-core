@@ -133,8 +133,7 @@ public class DataItemServiceFacade
 
     /**
      * This method returns a set of BaseDimensionalItemObject's based on the
-     * provided filters. It will also remove, from the filters, the objects
-     * found.
+     * provided filters.
      *
      * @param filters
      * @return the data items classes to be queried
@@ -179,8 +178,7 @@ public class DataItemServiceFacade
                 {
                     targetedEntities.addAll( entities );
                 }
-
-                iterator.remove();
+                // iterator.remove();
             }
         }
     }

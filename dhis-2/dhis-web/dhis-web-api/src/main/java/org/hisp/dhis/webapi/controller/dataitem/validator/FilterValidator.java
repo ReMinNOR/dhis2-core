@@ -5,6 +5,7 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2034;
 import static org.hisp.dhis.feedback.ErrorCode.E2035;
+import static org.hisp.dhis.feedback.ErrorCode.E2038;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Attribute.getNames;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.getCombinations;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Operation.getAbbreviations;
@@ -26,6 +27,10 @@ public class FilterValidator
     public static final byte FILTER_ATTRIBUTE_NAME = 0;
 
     public static final byte FILTER_OPERATOR = 1;
+
+    public static final byte FILTER_ATTRIBUTE_VALUE = 2;
+
+    public static final byte MIN_TEXT_SEARCH_LENGTH = 2;
 
     private FilterValidator()
     {
@@ -51,13 +56,21 @@ public class FilterValidator
 
                     if ( filterHasCorrectForm )
                     {
-                        final String filterAttributeName = trimToEmpty(
+                        final String attributeName = trimToEmpty(
                             filterAttributeValuePair[FILTER_ATTRIBUTE_NAME] );
+
                         final String operator = trimToEmpty( filterAttributeValuePair[FILTER_OPERATOR] );
 
-                        if ( !getNames().contains( filterAttributeName ) )
+                        final String attributeValue = trimToEmpty( filterAttributeValuePair[FILTER_ATTRIBUTE_VALUE] );
+
+                        if ( trimToEmpty( attributeValue ).length() < MIN_TEXT_SEARCH_LENGTH )
                         {
-                            throw new IllegalQueryException( new ErrorMessage( E2034, filterAttributeName ) );
+                            throw new IllegalQueryException( new ErrorMessage( E2038, MIN_TEXT_SEARCH_LENGTH, filter ) );
+                        }
+
+                        if ( !getNames().contains( attributeName ) )
+                        {
+                            throw new IllegalQueryException( new ErrorMessage( E2034, attributeName ) );
                         }
 
                         if ( !getAbbreviations().contains( operator ) )
@@ -86,7 +99,7 @@ public class FilterValidator
      *
      * @param filters
      * @param withPrefix
-     * @return true if a dimension type filter is found, false otherwise.
+     * @return true if a filter prefix is found, false otherwise.
      */
     public static boolean containsFilterWithPrefix( final Set<String> filters, final String withPrefix )
     {
@@ -105,13 +118,13 @@ public class FilterValidator
     }
 
     /**
-     * Simply checks if the given set of filters contains the given filter
-     * prefix.
+     * Simply checks if the given set of filters contains any one of the given
+     * filter prefixes.
      *
      * @param filters
      * @param withPrefixOne
      * @param withPrefixTwo
-     * @return true if a dimension type filter is found, false otherwise.
+     * @return true anyone of the prefixes is found, false otherwise.
      */
     public static boolean containsFilterWithOneOfPrefixes( final Set<String> filters, final String withPrefixOne,
         final String withPrefixTwo )
