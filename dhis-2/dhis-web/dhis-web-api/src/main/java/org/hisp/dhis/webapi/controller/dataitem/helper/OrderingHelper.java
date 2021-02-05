@@ -114,8 +114,11 @@ public class OrderingHelper
                 return instance.compare( s1, s2 );
             };
 
-            final BeanComparator<DataItem> comparator = new BeanComparator(
+            final BeanComparator<DataItem> dataItemComparator = new BeanComparator(
                 trimToEmpty( orderingAttributes[ORDERING_ATTRIBUTE_NAME] ), attributeComparator );
+
+            // Always compare by id, in case of duplicated values.
+            final Comparator comparator = dataItemComparator.thenComparing( dataItem -> dataItem.getId() );
 
             if ( DESC.getValue().equals( trimToEmpty( orderingAttributes[ORDERING_VALUE] ) ) )
             {

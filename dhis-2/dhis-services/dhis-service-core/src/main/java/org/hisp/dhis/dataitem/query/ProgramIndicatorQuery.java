@@ -231,13 +231,15 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
                         if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
                         {
-                            // 5 means pi_i18n_name
-                            ordering.append( " ORDER BY 5 ASC" );
+                            // 5, 2 means pi_i18n_name and programindicator.uid
+                            // respectively
+                            ordering.append( " ORDER BY 5, 2 ASC" );
                         }
                         else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
                         {
-                            // 5 means pi_i18n_name
-                            ordering.append( " ORDER BY 5 DESC" );
+                            // 5, 2 means pi_i18n_name and programindicator.uid
+                            // respectively
+                            ordering.append( " ORDER BY 5, 2 DESC" );
                         }
 
                         sql.append( ordering.toString() );
@@ -252,13 +254,15 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
                     if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
                     {
-                        // 1 means programindicator."name"
-                        ordering.append( " ORDER BY 1 ASC" );
+                        // 1, 2 means programindicator."name" and
+                        // programindicator.uid respectively
+                        ordering.append( " ORDER BY 1, 2 ASC" );
                     }
                     else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
                     {
-                        // 1 means programindicator."name"
-                        ordering.append( " ORDER BY 1 DESC" );
+                        // 1, 2 means programindicator."name" and
+                        // programindicator.uid respectively
+                        ordering.append( " ORDER BY 1, 2 DESC" );
                     }
                     // No locale, so we default the comparison to the raw name.
                     // In normal conditions this should never happen as every

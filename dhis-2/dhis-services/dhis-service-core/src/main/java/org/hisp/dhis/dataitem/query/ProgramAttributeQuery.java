@@ -248,15 +248,17 @@ public class ProgramAttributeQuery implements DataItemQuery
 
                         if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
                         {
-                            // 7, 8 means p_i18n_name and tea_i18n_name
+                            // 7, 8, 4 means p_i18n_name, tea_i18n_name and
+                            // trackedentityattribute.uid
                             // respectively
-                            ordering.append( " ORDER BY 7, 8 ASC" );
+                            ordering.append( " ORDER BY 7, 8, 4 ASC" );
                         }
                         else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
                         {
-                            // 7, 8 means p_i18n_name and tea_i18n_name
+                            // 7, 8, 4 means p_i18n_name, tea_i18n_name and
+                            // trackedentityattribute.uid
                             // respectively
-                            ordering.append( " ORDER BY 7, 8 DESC" );
+                            ordering.append( " ORDER BY 7, 8, 4 DESC" );
                         }
 
                         sql.append( ordering.toString() );
@@ -271,17 +273,19 @@ public class ProgramAttributeQuery implements DataItemQuery
 
                     if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
                     {
-                        // 1, 3 means program."name" and
-                        // trackedentityattribute."name"
+                        // 1, 3, 4 means program."name",
+                        // trackedentityattribute."name" and
+                        // trackedentityattribute.uid
                         // respectively
-                        ordering.append( " ORDER BY 1, 3 ASC" );
+                        ordering.append( " ORDER BY 1, 3, 4 ASC" );
                     }
                     else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
                     {
-                        // 1, 3 means program."name" and
-                        // trackedentityattribute."name"
+                        // 1, 3, 4 means program."name",
+                        // trackedentityattribute."name" and
+                        // trackedentityattribute.uid
                         // respectively
-                        ordering.append( " ORDER BY 1, 3 DESC" );
+                        ordering.append( " ORDER BY 1, 3, 4 DESC" );
                     }
                     // No locale, so we default the comparison to the raw name.
                     // In normal conditions this should never happen as every

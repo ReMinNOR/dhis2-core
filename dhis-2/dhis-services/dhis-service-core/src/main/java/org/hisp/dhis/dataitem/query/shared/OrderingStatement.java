@@ -52,11 +52,11 @@ public class OrderingStatement
         {
             if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( NAME_ORDER ) ) )
             {
-                ordering.append( " ORDER BY " + tableName + ".\"name\" ASC" );
+                ordering.append( " ORDER BY " + tableName + ".\"name\", uid ASC" );
             }
             else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( NAME_ORDER ) ) )
             {
-                ordering.append( " ORDER BY " + tableName + ".\"name\" DESC" );
+                ordering.append( " ORDER BY " + tableName + ".\"name\", uid DESC" );
             }
         }
 
@@ -71,11 +71,11 @@ public class OrderingStatement
         {
             if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
             {
-                ordering.append( " ORDER BY " + columnNumber + " ASC" );
+                ordering.append( " ORDER BY " + columnNumber + ", uid ASC" );
             }
             else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
             {
-                ordering.append( " ORDER BY " + columnNumber + " DESC" );
+                ordering.append( " ORDER BY " + columnNumber + ", uid DESC" );
             }
         }
 
