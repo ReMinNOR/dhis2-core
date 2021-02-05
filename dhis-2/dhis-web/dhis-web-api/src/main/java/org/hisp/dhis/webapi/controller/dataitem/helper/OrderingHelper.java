@@ -1,5 +1,6 @@
 package org.hisp.dhis.webapi.controller.dataitem.helper;
 
+import static java.text.Collator.NO_DECOMPOSITION;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
@@ -8,13 +9,13 @@ import static org.hisp.dhis.webapi.controller.dataitem.Order.Nature.DESC;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.ORDERING_ATTRIBUTE_NAME;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.ORDERING_VALUE;
 
+import java.text.Collator;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.beanutils.BeanComparator;
 import org.apache.commons.collections4.comparators.ComparatorChain;
-import org.apache.commons.collections4.comparators.NullComparator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -92,7 +93,7 @@ public class OrderingHelper
      * 
      * @param ordering accepts "asc" or "desc". A valid format could be:
      *        "name:asc"
-     * @return the correct Comparator definition based on the orderingparam
+     * @return the correct Comparator definition based on the ordering param
      * @throws IllegalQueryException if the given ordering is not syntax valid
      */
     @SuppressWarnings( { "unchecked", "rawtypes" } )
@@ -103,8 +104,18 @@ public class OrderingHelper
 
         if ( hasValidOrderingAttributes )
         {
+            final Comparator<String> attributeComparator = ( s1, s2 ) -> {
+                final Collator instance = Collator.getInstance();
+
+                // Used to ignore accents. Otherwise words containing accents
+                // will be put later in the ordering by default.
+                instance.setStrength( NO_DECOMPOSITION );
+
+                return instance.compare( s1, s2 );
+            };
+
             final BeanComparator<DataItem> comparator = new BeanComparator(
-                trimToEmpty( orderingAttributes[ORDERING_ATTRIBUTE_NAME] ), new NullComparator<>( true ) );
+                trimToEmpty( orderingAttributes[ORDERING_ATTRIBUTE_NAME] ), attributeComparator );
 
             if ( DESC.getValue().equals( trimToEmpty( orderingAttributes[ORDERING_VALUE] ) ) )
             {

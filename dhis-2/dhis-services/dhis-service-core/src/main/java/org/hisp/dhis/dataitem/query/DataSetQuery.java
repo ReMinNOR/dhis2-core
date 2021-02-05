@@ -30,6 +30,7 @@ package org.hisp.dhis.dataitem.query;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
@@ -86,9 +87,11 @@ public class DataSetQuery implements DataItemQuery
         while ( rowSet.next() )
         {
             final DataItem viewItem = new DataItem();
+            final String name = trimToNull( rowSet.getString( "name" ) );
+            final String displayName = defaultIfBlank( trimToNull( rowSet.getString( "i18n_name" ) ), name );
 
-            viewItem.setName( rowSet.getString( "name" ) );
-            viewItem.setDisplayName( defaultIfBlank( rowSet.getString( "i18n_name" ), rowSet.getString( "name" ) ) );
+            viewItem.setName( name );
+            viewItem.setDisplayName( displayName );
             viewItem.setId( rowSet.getString( "uid" ) );
             viewItem.setCode( rowSet.getString( "code" ) );
             viewItem.setDimensionItemType( REPORTING_RATE.name() );

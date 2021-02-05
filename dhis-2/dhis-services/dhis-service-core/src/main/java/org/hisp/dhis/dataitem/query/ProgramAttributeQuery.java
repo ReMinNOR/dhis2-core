@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
@@ -88,6 +89,14 @@ public class ProgramAttributeQuery implements DataItemQuery
         {
             final DataItem viewItem = new DataItem();
             final ValueType valueType = fromString( rowSet.getString( "valuetype" ) );
+            final String name = trimToEmpty(
+                rowSet.getString( "program_name" ) + SPACE + trimToEmpty( rowSet.getString( "name" ) ) );
+            final String displayName = defaultIfBlank( rowSet.getString( "p_i18n_name" ),
+                name ) + SPACE
+                + defaultIfBlank( rowSet.getString( "tea_i18n_name" ), trimToEmpty( rowSet.getString( "name" ) ) );
+
+            viewItem.setName( name );
+            viewItem.setDisplayName( displayName );
 
             viewItem.setName( rowSet.getString( "program_name" ) + SPACE + rowSet.getString( "name" ) );
             viewItem.setDisplayName( defaultIfBlank( rowSet.getString( "p_i18n_name" ),
