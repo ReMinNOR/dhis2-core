@@ -28,10 +28,12 @@
 package org.hisp.dhis.dataitem.query.shared;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidSetPresence;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasSetPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.UID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
 
 import java.util.Set;
@@ -50,11 +52,23 @@ public class FilteringStatement
     {
     }
 
+    public static String uidFiltering( final String tableName, final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder filtering = new StringBuilder();
+
+        if ( hasStringPresence( paramsMap, UID ) )
+        {
+            filtering.append( getRootJunction( paramsMap ) + " (" + tableName + ".\"uid\" ILIKE :" + UID + ")" );
+        }
+
+        return filtering.toString();
+    }
+
     public static String nameFiltering( final String tableName, final MapSqlParameterSource paramsMap )
     {
         final StringBuilder filtering = new StringBuilder();
 
-        if ( hasValidStringPresence( paramsMap, NAME ) )
+        if ( hasStringPresence( paramsMap, NAME ) )
         {
             filtering.append( " AND (" + tableName + ".\"name\" ILIKE :" + NAME + ")" );
         }
@@ -67,7 +81,7 @@ public class FilteringStatement
     {
         final StringBuilder filtering = new StringBuilder();
 
-        if ( hasValidStringPresence( paramsMap, NAME ) )
+        if ( hasStringPresence( paramsMap, NAME ) )
         {
             filtering.append( " AND (" + tableOne + ".\"name\" ILIKE :" + NAME + " OR " + tableTwo
                 + ".\"name\" ILIKE :" + NAME + ")" );
@@ -80,7 +94,7 @@ public class FilteringStatement
     {
         final StringBuilder filtering = new StringBuilder();
 
-        if ( hasValidSetPresence( paramsMap, VALUE_TYPES ) )
+        if ( hasSetPresence( paramsMap, VALUE_TYPES ) )
         {
 
             filtering.append( " AND (" + tableName + ".valuetype IN (:" + VALUE_TYPES + "))" );
@@ -91,7 +105,7 @@ public class FilteringStatement
 
     public static boolean skipValueType( final ValueType valueTypeToSkip, final MapSqlParameterSource paramsMap )
     {
-        if ( hasValidSetPresence( paramsMap, VALUE_TYPES ) )
+        if ( hasSetPresence( paramsMap, VALUE_TYPES ) )
         {
             final Set<String> valueTypeNames = (Set<String>) paramsMap.getValue( VALUE_TYPES );
 
@@ -106,11 +120,23 @@ public class FilteringStatement
 
     public static String programIdFiltering( final MapSqlParameterSource paramsMap )
     {
-        if ( hasValidStringPresence( paramsMap, PROGRAM_ID ) )
+        if ( hasStringPresence( paramsMap, PROGRAM_ID ) )
         {
             return " AND program.uid = :" + PROGRAM_ID;
         }
 
         return EMPTY;
+    }
+
+    private static String getRootJunction( final MapSqlParameterSource paramsMap )
+    {
+        final String defaultRootJunction = "AND";
+
+        if ( hasStringPresence( paramsMap, ROOT_JUNCTION ) )
+        {
+            return (String) paramsMap.getValue( ROOT_JUNCTION );
+        }
+
+        return defaultRootJunction;
     }
 }

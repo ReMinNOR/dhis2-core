@@ -55,7 +55,7 @@ public class ParamPresenceChecker
      *        paramsMap
      * @return true if the param is a String and is not blank, false otherwise
      */
-    public static boolean hasValidStringPresence( final MapSqlParameterSource paramsMap, final String param )
+    public static boolean hasStringPresence( final MapSqlParameterSource paramsMap, final String param )
     {
         return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof String
             && isNotBlank( (String) paramsMap.getValue( param ) );
@@ -71,7 +71,7 @@ public class ParamPresenceChecker
      * @return true if the param is an Integer greater than ZERO, false
      *         otherwise
      */
-    public static boolean hasValidIntegerPresence( final MapSqlParameterSource paramsMap, final String param )
+    public static boolean hasIntegerPresence( final MapSqlParameterSource paramsMap, final String param )
     {
         return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof Integer
             && ((Integer) paramsMap.getValue( param ) > 0);
@@ -86,7 +86,7 @@ public class ParamPresenceChecker
      *        paramsMap
      * @return true if the param is a Set and is not empty, false otherwise
      */
-    public static boolean hasValidSetPresence( final MapSqlParameterSource paramsMap, final String param )
+    public static boolean hasSetPresence( final MapSqlParameterSource paramsMap, final String param )
     {
         return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof Set
             && isNotEmpty( (Set) paramsMap.getValue( param ) );

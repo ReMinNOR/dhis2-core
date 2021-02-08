@@ -109,14 +109,12 @@ public class DataItemServiceFacade
                 final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userUid",
                     currentUser.getUid() );
 
-                setFiltering( filters, paramsMap, currentUser );
+                setFiltering( filters, options, paramsMap, currentUser );
 
                 setOrdering( orderParams, paramsMap );
 
                 setMaxResultsWhenPaging( options, paramsMap );
 
-                // TODO: Maikel: Use Cache2K and load everything in memory? Or
-                // limit the minimum ilike:chars to 3?
                 dataItems.addAll( queryExecutor.find( entity, paramsMap ) );
             }
 
@@ -125,7 +123,6 @@ public class DataItemServiceFacade
 
             // In memory pagination.
             dataItems = slice( options, dataItems );
-            // TODO: MAIKEL: This will not work as expected
         }
 
         return dataItems;

@@ -57,4 +57,10 @@ public class QueryParam
     public static final String NAME_ORDER = "nameOrder";
 
     public static final String DISPLAY_NAME_ORDER = "displayNameOrder";
+
+    public static final String EQ_UID = "uid";
+
+    public static final String UID = "uid";
+
+    public static final String ROOT_JUNCTION = "rootJunction";
 }

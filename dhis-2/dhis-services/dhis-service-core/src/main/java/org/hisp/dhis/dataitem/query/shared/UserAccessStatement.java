@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_GROUP_UIDS;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_UID;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_GROUPS_ACCESS;
@@ -58,7 +58,7 @@ public class UserAccessStatement
             .append( " OR " )
             .append( userAccessCondition( tableName ) );
 
-        if ( hasValidStringPresence( paramsMap, USER_GROUP_UIDS ) )
+        if ( hasStringPresence( paramsMap, USER_GROUP_UIDS ) )
         {
             conditions.append( " OR (" + userGroupAccessCondition( tableName ) + ")" );
         }
@@ -87,7 +87,7 @@ public class UserAccessStatement
             .append( userAccessCondition( tableTwo ) )
             .append( ")" ); // Table 2 conditions end
 
-        if ( hasValidStringPresence( paramsMap, USER_GROUP_UIDS ) )
+        if ( hasStringPresence( paramsMap, USER_GROUP_UIDS ) )
         {
             conditions.append( " OR (" );
 

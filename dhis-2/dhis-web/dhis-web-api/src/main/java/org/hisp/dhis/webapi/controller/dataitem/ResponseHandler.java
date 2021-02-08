@@ -126,7 +126,7 @@ class ResponseHandler
         final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( USER_UID,
             currentUser.getUid() );
 
-        setFiltering( filters, paramsMap, currentUser );
+        setFiltering( filters, options, paramsMap, currentUser );
 
         // Calculate pagination.
         if ( options.hasPaging() )

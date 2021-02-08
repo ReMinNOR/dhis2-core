@@ -34,11 +34,12 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.displayColumnOrdering;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
@@ -133,14 +134,14 @@ public class DataElementQuery implements DataItemQuery
         sql.append(
             "SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code" );
 
-        if ( hasValidStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             sql.append( ", displayname.value AS i18n_name" );
         }
 
         sql.append( " FROM dataelement " );
 
-        if ( hasValidStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             sql.append(
                 ", jsonb_to_recordset(dataelement.translations) as displayname(value TEXT, locale TEXT, property TEXT)" );
@@ -152,16 +153,15 @@ public class DataElementQuery implements DataItemQuery
 
         sql.append( nameFiltering( "dataelement", paramsMap ) );
 
-        if ( hasValidStringPresence( paramsMap, DISPLAY_NAME ) )
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            if ( hasValidStringPresence( paramsMap, LOCALE ) )
+            if ( hasStringPresence( paramsMap, LOCALE ) )
             {
                 final StringBuilder displayNameQuery = new StringBuilder();
 
                 displayNameQuery
                     .append( " AND displayname.locale = :" + LOCALE )
                     .append( " AND displayname.property = 'NAME' AND displayname.value ILIKE :" + DISPLAY_NAME )
-                    .append( valueTypeFiltering( "dataelement", paramsMap ) )
                     .append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" )
                     .append( " UNION " )
                     .append(
@@ -178,6 +178,7 @@ public class DataElementQuery implements DataItemQuery
                     .append( " AND displayname.property = 'NAME'" )
                     .append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME )
                     .append( valueTypeFiltering( "dataelement", paramsMap ) )
+                    .append( uidFiltering( "dataelement", paramsMap ) )
                     .append( " UNION " )
                     .append(
                         " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
@@ -185,6 +186,7 @@ public class DataElementQuery implements DataItemQuery
                     .append( " WHERE (dataelement.translations = '[]' OR dataelement.translations IS NULL)" )
                     .append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME )
                     .append( valueTypeFiltering( "dataelement", paramsMap ) )
+                    .append( uidFiltering( "dataelement", paramsMap ) )
                     .append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" );
 
                 sql.append( displayNameQuery.toString() );
@@ -197,21 +199,22 @@ public class DataElementQuery implements DataItemQuery
         }
 
         sql.append( valueTypeFiltering( "dataelement", paramsMap ) );
+        sql.append( uidFiltering( "dataelement", paramsMap ) );
 
         sql.append(
             " GROUP BY dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code" );
 
-        if ( hasValidStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             sql.append( ", i18n_name" );
         }
 
-        if ( hasValidStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
         {
             // 5 means i18n_name
             sql.append( displayColumnOrdering( 5, paramsMap ) );
         }
-        else if ( hasValidStringPresence( paramsMap, NAME_ORDER ) )
+        else if ( hasStringPresence( paramsMap, NAME_ORDER ) )
         {
             sql.append( nameOrdering( "dataelement", paramsMap ) );
         }

@@ -13,7 +13,8 @@ public class Filter
         VALUE_TYPE( "valueType" ),
         NAME( "name" ),
         DISPLAY_NAME( "displayName" ),
-        PROGRAM_ID( "programId" );
+        PROGRAM_ID( "programId" ),
+        ID( "id" );
 
         private String name;
 
@@ -65,7 +66,8 @@ public class Filter
         VALUE_TYPE_EQUAL( "valueType:eq:" ),
         NAME_ILIKE( "name:ilike:" ),
         DISPLAY_NAME_ILIKE( "displayName:ilike:" ),
-        PROGRAM_ID_EQUAL( "programId:eq:" );
+        PROGRAM_ID_EQUAL( "programId:eq:" ),
+        ID_ILIKE( "id:ilike:" );
 
         private String combination;
 

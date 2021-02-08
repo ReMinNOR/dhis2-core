@@ -35,10 +35,11 @@ import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.displayColumnOrdering;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
@@ -152,14 +153,14 @@ public class IndicatorQuery implements DataItemQuery
 
         sql.append( "SELECT indicator.uid, indicator.\"name\", indicator.code" );
 
-        if ( hasValidStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             sql.append( ", displayname.value AS i18n_name" );
         }
 
         sql.append( " FROM indicator " );
 
-        if ( hasValidStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             sql.append(
                 " LEFT JOIN jsonb_to_recordset(indicator.translations) as displayname(value TEXT, locale TEXT, property TEXT) ON displayname.locale = :"
@@ -171,10 +172,11 @@ public class IndicatorQuery implements DataItemQuery
             .append( ")" );
 
         sql.append( nameFiltering( "indicator", paramsMap ) );
+        sql.append( uidFiltering( "indicator", paramsMap ) );
 
-        if ( hasValidStringPresence( paramsMap, DISPLAY_NAME ) )
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            if ( hasValidStringPresence( paramsMap, LOCALE ) )
+            if ( hasStringPresence( paramsMap, LOCALE ) )
             {
                 final StringBuilder displayNameQuery = new StringBuilder();
 
@@ -196,13 +198,15 @@ public class IndicatorQuery implements DataItemQuery
                     .append( " AND displayname.property = 'NAME'" )
                     .append( " AND indicator.\"name\" ILIKE :" + DISPLAY_NAME )
                     .append( " AND (" + sharingConditions( "indicator", paramsMap ) + ")" )
+                    .append( uidFiltering( "indicator", paramsMap ) )
                     .append( " UNION " )
                     .append(
                         " SELECT indicator.uid, indicator.\"name\", indicator.code, indicator.\"name\" AS i18n_name" )
                     .append( " FROM indicator" )
                     .append( " WHERE (indicator.translations = '[]' OR indicator.translations IS NULL)" )
                     .append( " AND indicator.\"name\" ILIKE :" + DISPLAY_NAME )
-                    .append( " AND (" + sharingConditions( "indicator", paramsMap ) + ")" );
+                    .append( " AND (" + sharingConditions( "indicator", paramsMap ) + ")" )
+                    .append( uidFiltering( "indicator", paramsMap ) );
 
                 sql.append( displayNameQuery.toString() );
             }
@@ -215,17 +219,17 @@ public class IndicatorQuery implements DataItemQuery
 
         sql.append( " GROUP BY indicator.uid, indicator.\"name\", indicator.code" );
 
-        if ( hasValidStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             sql.append( ", i18n_name" );
         }
 
-        if ( hasValidStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
         {
             // 4 means i18n_name
             sql.append( displayColumnOrdering( 4, paramsMap ) );
         }
-        else if ( hasValidStringPresence( paramsMap, NAME_ORDER ) )
+        else if ( hasStringPresence( paramsMap, NAME_ORDER ) )
         {
             sql.append( nameOrdering( "indicator", paramsMap ) );
         }

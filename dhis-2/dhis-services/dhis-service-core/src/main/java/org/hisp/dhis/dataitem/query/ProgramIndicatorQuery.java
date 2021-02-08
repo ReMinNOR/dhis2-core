@@ -36,8 +36,9 @@ import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
@@ -153,7 +154,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         sql.append(
             "SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid" );
 
-        if ( hasValidStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             sql.append( ", pi_displayname.value AS pi_i18n_name" );
         }
@@ -161,7 +162,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         sql.append( " FROM programindicator" )
             .append( " JOIN program ON program.programid = programindicator.programid" );
 
-        if ( hasValidStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             sql.append(
                 " LEFT JOIN jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
@@ -179,9 +180,11 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
         sql.append( programIdFiltering( paramsMap ) );
 
-        if ( hasValidStringPresence( paramsMap, DISPLAY_NAME ) )
+        sql.append( uidFiltering( "programindicator", paramsMap ) );
+
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            if ( hasValidStringPresence( paramsMap, LOCALE ) )
+            if ( hasStringPresence( paramsMap, LOCALE ) )
             {
                 sql.append( " AND (pi_displayname.value ILIKE :" + DISPLAY_NAME + ")" );
 
@@ -208,6 +211,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
                     .append( " )" )
                     .append( " AND (programindicator.name ILIKE :" + DISPLAY_NAME + ")" )
                     .append( programIdFiltering( paramsMap ) )
+                    .append( uidFiltering( "programindicator", paramsMap ) )
                     .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
                     .append( " UNION " )
                     .append(
@@ -219,13 +223,14 @@ public class ProgramIndicatorQuery implements DataItemQuery
                         " (programindicator.translations = '[]' OR programindicator.translations IS NULL) AND programindicator.name ILIKE :"
                             + DISPLAY_NAME )
                     .append( programIdFiltering( paramsMap ) )
+                    .append( uidFiltering( "programindicator", paramsMap ) )
                     .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
                     .append(
                         " GROUP BY programindicator.\"name\", programindicator.uid, program.uid, programindicator.code" );
 
-                if ( hasValidStringPresence( paramsMap, LOCALE ) )
+                if ( hasStringPresence( paramsMap, LOCALE ) )
                 {
-                    if ( hasValidStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+                    if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
                     {
                         final StringBuilder ordering = new StringBuilder();
 
@@ -248,7 +253,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
             }
             else
             {
-                if ( hasValidStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+                if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
                 {
                     final StringBuilder ordering = new StringBuilder();
 

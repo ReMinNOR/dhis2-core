@@ -19,6 +19,8 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.UID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_GROUP_UIDS;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
@@ -28,6 +30,7 @@ import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DAT
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DISPLAY_NAME_ILIKE;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.ID_ILIKE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.NAME_ILIKE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.PROGRAM_ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_EQUAL;
@@ -48,6 +51,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.dataitem.Filter;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -281,8 +285,8 @@ public class FilteringHelper
      * @param paramsMap the map that will receive the filtering params
      * @param currentUser the current user logged
      */
-    public static void setFiltering( final Set<String> filters, final MapSqlParameterSource paramsMap,
-        final User currentUser )
+    public static void setFiltering( final Set<String> filters, final WebOptions options,
+        final MapSqlParameterSource paramsMap, final User currentUser )
     {
         final Locale currentLocale = getUserSetting( DB_LOCALE );
 
@@ -303,6 +307,20 @@ public class FilteringHelper
         if ( isNotBlank( ilikeDisplayName ) )
         {
             paramsMap.addValue( DISPLAY_NAME, wrap( trimToEmpty( ilikeDisplayName ), "%" ) );
+        }
+
+        final String ilikeId = extractValueFromFilter( filters, ID_ILIKE );
+
+        if ( isNotBlank( ilikeId ) )
+        {
+            paramsMap.addValue( UID, wrap( ilikeId, "%" ) );
+        }
+
+        final String rootJunction = options.getRootJunction().name();
+
+        if ( isNotBlank( rootJunction ) )
+        {
+            paramsMap.addValue( ROOT_JUNCTION, rootJunction );
         }
 
         if ( containsFilterWithOneOfPrefixes( filters, VALUE_TYPE_EQUAL.getCombination(),

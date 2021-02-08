@@ -33,10 +33,11 @@ import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.displayColumnOrdering;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
@@ -127,14 +128,14 @@ public class DataSetQuery implements DataItemQuery
         sql.append(
             "SELECT dataset.uid, dataset.\"name\", dataset.code" );
 
-        if ( hasValidStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             sql.append( ", displayname.value AS i18n_name" );
         }
 
         sql.append( " FROM dataset " );
 
-        if ( hasValidStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             sql.append(
                 ", jsonb_to_recordset(dataset.translations) as displayname(value TEXT, locale TEXT, property TEXT)" );
@@ -145,10 +146,11 @@ public class DataSetQuery implements DataItemQuery
             .append( ")" );
 
         sql.append( nameFiltering( "dataset", paramsMap ) );
+        sql.append( uidFiltering( "dataset", paramsMap ) );
 
-        if ( hasValidStringPresence( paramsMap, DISPLAY_NAME ) )
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            if ( hasValidStringPresence( paramsMap, LOCALE ) )
+            if ( hasStringPresence( paramsMap, LOCALE ) )
             {
                 final StringBuilder displayNameQuery = new StringBuilder();
 
@@ -170,13 +172,15 @@ public class DataSetQuery implements DataItemQuery
                     .append( " AND displayname.property = 'NAME'" )
                     .append( " AND dataset.\"name\" ILIKE :" + DISPLAY_NAME )
                     .append( " AND (" + sharingConditions( "dataset", paramsMap ) + ")" )
+                    .append( uidFiltering( "dataset", paramsMap ) )
                     .append( " UNION " )
                     .append(
                         " SELECT dataset.uid, dataset.\"name\", dataset.code, dataset.\"name\" AS i18n_name" )
                     .append( " FROM dataset" )
                     .append( " WHERE (dataset.translations = '[]' OR dataset.translations IS NULL)" )
                     .append( " AND dataset.\"name\" ILIKE :" + DISPLAY_NAME )
-                    .append( " AND (" + sharingConditions( "dataset", paramsMap ) + ")" );
+                    .append( " AND (" + sharingConditions( "dataset", paramsMap ) + ")" )
+                    .append( uidFiltering( "dataset", paramsMap ) );
 
                 sql.append( displayNameQuery.toString() );
             }
@@ -189,17 +193,17 @@ public class DataSetQuery implements DataItemQuery
 
         sql.append( " GROUP BY dataset.uid, dataset.\"name\", dataset.code" );
 
-        if ( hasValidStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             sql.append( ", i18n_name" );
         }
 
-        if ( hasValidStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
         {
             // 4 means i18n_name
             sql.append( displayColumnOrdering( 4, paramsMap ) );
         }
-        else if ( hasValidStringPresence( paramsMap, NAME_ORDER ) )
+        else if ( hasStringPresence( paramsMap, NAME_ORDER ) )
         {
             sql.append( nameOrdering( "dataset", paramsMap ) );
         }

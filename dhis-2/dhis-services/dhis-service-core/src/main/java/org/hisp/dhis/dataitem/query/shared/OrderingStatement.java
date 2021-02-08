@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
 
@@ -48,7 +48,7 @@ public class OrderingStatement
     {
         final StringBuilder ordering = new StringBuilder();
 
-        if ( hasValidStringPresence( paramsMap, NAME_ORDER ) )
+        if ( hasStringPresence( paramsMap, NAME_ORDER ) )
         {
             if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( NAME_ORDER ) ) )
             {
@@ -67,7 +67,7 @@ public class OrderingStatement
     {
         final StringBuilder ordering = new StringBuilder();
 
-        if ( hasValidStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
         {
             if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
             {

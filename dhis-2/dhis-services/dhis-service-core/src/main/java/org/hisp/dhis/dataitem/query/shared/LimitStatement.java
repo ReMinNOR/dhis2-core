@@ -28,7 +28,7 @@
 package org.hisp.dhis.dataitem.query.shared;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidIntegerPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasIntegerPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.MAX_LIMIT;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -47,7 +47,7 @@ public class LimitStatement
 
     public static String maxLimit( final MapSqlParameterSource paramsMap )
     {
-        if ( hasValidIntegerPresence( paramsMap, MAX_LIMIT ) )
+        if ( hasIntegerPresence( paramsMap, MAX_LIMIT ) )
         {
             return " LIMIT :" + MAX_LIMIT;
         }

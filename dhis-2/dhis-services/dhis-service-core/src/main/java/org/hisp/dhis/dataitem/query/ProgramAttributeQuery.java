@@ -36,9 +36,10 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValidStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
@@ -141,7 +142,7 @@ public class ProgramAttributeQuery implements DataItemQuery
             "SELECT program.\"name\" AS program_name, program.uid AS program_uid, trackedentityattribute.\"name\", trackedentityattribute.uid," )
             .append( " trackedentityattribute.valuetype, trackedentityattribute.code" );
 
-        if ( hasValidStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             sql.append( ", p_displayname.value AS p_i18n_name" )
                 .append( ", tea_displayname.value AS tea_i18n_name" );
@@ -152,7 +153,7 @@ public class ProgramAttributeQuery implements DataItemQuery
                 " JOIN program_attributes ON program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid" )
             .append( " JOIN program ON program_attributes.programid = program.programid" );
 
-        if ( hasValidStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             sql.append(
                 " LEFT JOIN jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
@@ -172,9 +173,11 @@ public class ProgramAttributeQuery implements DataItemQuery
 
         sql.append( programIdFiltering( paramsMap ) );
 
-        if ( hasValidStringPresence( paramsMap, DISPLAY_NAME ) )
+        sql.append( uidFiltering( "trackedentityattribute", paramsMap ) );
+
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            if ( hasValidStringPresence( paramsMap, LOCALE ) )
+            if ( hasStringPresence( paramsMap, LOCALE ) )
             {
                 sql.append( " AND (tea_displayname.value ILIKE :" + DISPLAY_NAME + " OR p_displayname.value ILIKE  :"
                     + DISPLAY_NAME + ")" );
@@ -214,6 +217,7 @@ public class ProgramAttributeQuery implements DataItemQuery
                         + DISPLAY_NAME
                         + ")" )
                     .append( valueTypeFiltering( "trackedentityattribute", paramsMap ) )
+                    .append( uidFiltering( "trackedentityattribute", paramsMap ) )
                     .append( programIdFiltering( paramsMap ) )
                     .append( " AND (" + sharingConditions( "program", "trackedentityattribute", paramsMap ) + ")" )
                     .append( " UNION " )
@@ -235,14 +239,15 @@ public class ProgramAttributeQuery implements DataItemQuery
                         " (program.translations = '[]' OR program.translations IS NULL) AND program.name ILIKE :"
                             + DISPLAY_NAME )
                     .append( valueTypeFiltering( "trackedentityattribute", paramsMap ) )
+                    .append( uidFiltering( "trackedentityattribute", paramsMap ) )
                     .append( programIdFiltering( paramsMap ) )
                     .append( " AND (" + sharingConditions( "program", "trackedentityattribute", paramsMap ) + ")" )
                     .append(
                         " GROUP BY program.\"name\", program.uid, trackedentityattribute.\"name\", trackedentityattribute.uid, trackedentityattribute.valuetype, trackedentityattribute.code" );
 
-                if ( hasValidStringPresence( paramsMap, LOCALE ) )
+                if ( hasStringPresence( paramsMap, LOCALE ) )
                 {
-                    if ( hasValidStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+                    if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
                     {
                         final StringBuilder ordering = new StringBuilder();
 
@@ -267,7 +272,7 @@ public class ProgramAttributeQuery implements DataItemQuery
             }
             else
             {
-                if ( hasValidStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+                if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
                 {
                     final StringBuilder ordering = new StringBuilder();
 
