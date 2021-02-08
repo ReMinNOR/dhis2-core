@@ -30,7 +30,7 @@ import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DAT
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DISPLAY_NAME_ILIKE;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.ID_ILIKE;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.NAME_ILIKE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.PROGRAM_ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_EQUAL;
@@ -309,11 +309,11 @@ public class FilteringHelper
             paramsMap.addValue( DISPLAY_NAME, wrap( trimToEmpty( ilikeDisplayName ), "%" ) );
         }
 
-        final String ilikeId = extractValueFromFilter( filters, ID_ILIKE );
+        final String ilikeId = extractValueFromFilter( filters, ID_EQUAL);
 
         if ( isNotBlank( ilikeId ) )
         {
-            paramsMap.addValue( UID, wrap( ilikeId, "%" ) );
+            paramsMap.addValue( UID, ilikeId );
         }
 
         final String rootJunction = options.getRootJunction().name();

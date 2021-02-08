@@ -58,7 +58,7 @@ public class FilteringStatement
 
         if ( hasStringPresence( paramsMap, UID ) )
         {
-            filtering.append( getRootJunction( paramsMap ) + " (" + tableName + ".\"uid\" ILIKE :" + UID + ")" );
+            filtering.append( getRootJunction( paramsMap ) + " (" + tableName + ".\"uid\" = :" + UID + ")" );
         }
 
         return filtering.toString();

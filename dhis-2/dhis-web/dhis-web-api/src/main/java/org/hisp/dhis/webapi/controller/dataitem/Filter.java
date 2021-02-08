@@ -67,7 +67,7 @@ public class Filter
         NAME_ILIKE( "name:ilike:" ),
         DISPLAY_NAME_ILIKE( "displayName:ilike:" ),
         PROGRAM_ID_EQUAL( "programId:eq:" ),
-        ID_ILIKE( "id:ilike:" );
+        ID_EQUAL( "id:eq:" );
 
         private String combination;
 
