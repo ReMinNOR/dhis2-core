@@ -25,52 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cache;
+package org.hisp.dhis.programrule.engine;
 
-import java.util.Map;
+import java.util.List;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.springframework.stereotype.Component;
 
-/**
- * Provides cache builder to build instances.
- *
- * @author Ameen Mohamed
- *
- */
-@Component( "cacheProvider" )
-public class DefaultCacheProvider implements CacheProvider
+@Component
+public class ServerSideImplementableRuleService
+    extends ImplementableRuleService
 {
-    private DhisConfigurationProvider configurationProvider;
-
-    private RedisTemplate<String, ?> redisTemplate;
-
-    @Override
-    public <V> ExtendedCacheBuilder<V> newCacheBuilder( Class<V> valueType )
+    public ServerSideImplementableRuleService( ProgramRuleService programRuleService )
     {
-        return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
+        super( programRuleService );
     }
 
     @Override
-    public <K, V> ExtendedCacheBuilder<Map<K, V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
+    public List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid )
     {
-        return new ExtendedCacheBuilder<Map<K, V>>( redisTemplate, configurationProvider );
+        return getProgramRulesByActionTypes( program, ProgramRuleActionType.SERVER_SUPPORTED_TYPES,
+            programStageUid );
     }
-
-    @Autowired
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
-    {
-        this.configurationProvider = configurationProvider;
-    }
-
-    @Autowired( required = false )
-    @Qualifier( "redisTemplate" )
-    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
-    {
-        this.redisTemplate = redisTemplate;
-    }
-
 }

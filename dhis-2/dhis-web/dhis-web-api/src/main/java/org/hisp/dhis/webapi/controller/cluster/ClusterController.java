@@ -25,52 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cache;
+package org.hisp.dhis.webapi.controller.cluster;
 
-import java.util.Map;
-
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.leader.election.LeaderManager;
+import org.hisp.dhis.leader.election.LeaderNodeInfo;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Provides cache builder to build instances.
- *
  * @author Ameen Mohamed
- *
  */
-@Component( "cacheProvider" )
-public class DefaultCacheProvider implements CacheProvider
+@RestController
+@RequestMapping( "/cluster" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class ClusterController
 {
-    private DhisConfigurationProvider configurationProvider;
-
-    private RedisTemplate<String, ?> redisTemplate;
-
-    @Override
-    public <V> ExtendedCacheBuilder<V> newCacheBuilder( Class<V> valueType )
-    {
-        return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
-    }
-
-    @Override
-    public <K, V> ExtendedCacheBuilder<Map<K, V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
-    {
-        return new ExtendedCacheBuilder<Map<K, V>>( redisTemplate, configurationProvider );
-    }
 
     @Autowired
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
-    {
-        this.configurationProvider = configurationProvider;
-    }
+    private LeaderManager leaderManager;
 
-    @Autowired( required = false )
-    @Qualifier( "redisTemplate" )
-    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
-    {
-        this.redisTemplate = redisTemplate;
-    }
+    @Autowired
+    private DhisConfigurationProvider dhisConfigurationProvider;
 
+    // -------------------------------------------------------------------------
+    // Resources
+    // -------------------------------------------------------------------------
+
+    @GetMapping( value = "/leader" )
+    public @ResponseBody LeaderNodeInfo getLeaderInfo()
+        throws WebMessageException
+    {
+        LeaderNodeInfo leaderInfo = new LeaderNodeInfo();
+
+        leaderInfo.setLeaderNodeId( leaderManager.getLeaderNodeId() );
+        leaderInfo.setLeaderNodeUuid( leaderManager.getLeaderNodeUuid() );
+        leaderInfo.setLeader( leaderManager.isLeader() );
+        leaderInfo.setCurrentNodeUuid( leaderManager.getCurrentNodeUuid() );
+        leaderInfo.setCurrentNodeId( dhisConfigurationProvider.getProperty( ConfigurationKey.NODE_ID ) );
+
+        return leaderInfo;
+    }
 }

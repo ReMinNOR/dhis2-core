@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cache;
+package org.hisp.dhis.leader.election;
 
-import java.util.Map;
+import lombok.Data;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * Provides cache builder to build instances.
- *
- * @author Ameen Mohamed
- *
- */
-@Component( "cacheProvider" )
-public class DefaultCacheProvider implements CacheProvider
+@Data
+public class LeaderNodeInfo
 {
-    private DhisConfigurationProvider configurationProvider;
+    @JsonProperty
+    private String leaderNodeId;
 
-    private RedisTemplate<String, ?> redisTemplate;
+    @JsonProperty
+    private String leaderNodeUuid;
 
-    @Override
-    public <V> ExtendedCacheBuilder<V> newCacheBuilder( Class<V> valueType )
-    {
-        return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
-    }
+    @JsonProperty
+    private String currentNodeId;
 
-    @Override
-    public <K, V> ExtendedCacheBuilder<Map<K, V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
-    {
-        return new ExtendedCacheBuilder<Map<K, V>>( redisTemplate, configurationProvider );
-    }
+    @JsonProperty
+    private String currentNodeUuid;
 
-    @Autowired
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
-    {
-        this.configurationProvider = configurationProvider;
-    }
-
-    @Autowired( required = false )
-    @Qualifier( "redisTemplate" )
-    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
-    {
-        this.redisTemplate = redisTemplate;
-    }
-
+    @JsonProperty
+    private boolean leader;
 }

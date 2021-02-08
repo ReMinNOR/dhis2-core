@@ -25,52 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cache;
+package org.hisp.dhis.system.leader;
 
-import java.util.Map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.leader.election.LeaderManager;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 
 /**
- * Provides cache builder to build instances.
- *
  * @author Ameen Mohamed
- *
  */
-@Component( "cacheProvider" )
-public class DefaultCacheProvider implements CacheProvider
+public class LeaderManagerTest extends DhisSpringTest
 {
-    private DhisConfigurationProvider configurationProvider;
-
-    private RedisTemplate<String, ?> redisTemplate;
-
-    @Override
-    public <V> ExtendedCacheBuilder<V> newCacheBuilder( Class<V> valueType )
-    {
-        return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
-    }
-
-    @Override
-    public <K, V> ExtendedCacheBuilder<Map<K, V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
-    {
-        return new ExtendedCacheBuilder<Map<K, V>>( redisTemplate, configurationProvider );
-    }
-
     @Autowired
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
-    {
-        this.configurationProvider = configurationProvider;
-    }
+    private LeaderManager leaderManager;
 
-    @Autowired( required = false )
-    @Qualifier( "redisTemplate" )
-    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
+    @Test
+    public void testNodeInfo()
     {
-        this.redisTemplate = redisTemplate;
+        assertNotNull( leaderManager.getCurrentNodeUuid() );
+        assertNotNull( leaderManager.getLeaderNodeUuid() );
+        assertEquals( leaderManager.getCurrentNodeUuid(), leaderManager.getLeaderNodeUuid() );
+        assertTrue( leaderManager.isLeader() );
     }
 
 }

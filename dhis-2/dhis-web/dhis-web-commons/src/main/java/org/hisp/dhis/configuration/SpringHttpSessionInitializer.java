@@ -25,43 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.configuration;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.webapi.filter.DefaultSessionConfiguration;
+import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer;
 
-import java.util.List;
-
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.springframework.stereotype.Component;
-
-@Component
-public class OldImplementableRuleService implements ImplementableRuleService
+/**
+ * This is used for adding springSessionRepositoryFilter into the filter chain.
+ * The actual filter bean used will be either backed by redis from the
+ * {@link RedisSpringSessionConfiguration} or a dummy filter from
+ * {@link DefaultSessionConfiguration}.
+ *
+ * @author Ameen Mohamed
+ *
+ */
+public class SpringHttpSessionInitializer extends AbstractHttpSessionApplicationInitializer
 {
-    private final ProgramRuleService programRuleService;
 
-    public OldImplementableRuleService( ProgramRuleService programRuleService )
-    {
-        checkNotNull( programRuleService );
-        this.programRuleService = programRuleService;
-    }
-
-    @Override
-    public List<ProgramRule> getImplementableRules( Program program )
-    {
-        List<ProgramRule> permittedRules;
-
-        permittedRules = programRuleService.getProgramRulesByActionTypes( program,
-            ProgramRuleActionType.NOTIFICATION_LINKED_TYPES );
-
-        if ( permittedRules.isEmpty() )
-        {
-            return permittedRules;
-        }
-
-        return programRuleService.getProgramRulesByActionTypes( program,
-            ProgramRuleActionType.IMPLEMENTED_ACTIONS );
-    }
 }

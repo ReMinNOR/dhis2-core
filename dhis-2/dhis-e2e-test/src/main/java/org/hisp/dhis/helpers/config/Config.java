@@ -30,4 +30,7 @@ public interface Config
 
     @Key( "user.admin.password" )
     String adminUserPassword();
+
+    @Key( "test.cleanup" )
+    Boolean shouldCleanUp();
 }
