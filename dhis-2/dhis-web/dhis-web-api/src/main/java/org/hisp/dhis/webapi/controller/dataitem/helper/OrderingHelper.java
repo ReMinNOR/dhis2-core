@@ -111,7 +111,7 @@ public class OrderingHelper
                 // will be put later in the ordering by default.
                 instance.setStrength( NO_DECOMPOSITION );
 
-                return instance.compare( s1, s2 );
+                return instance.compare( trimToEmpty( s1 ), trimToEmpty( s2 ) );
             };
 
             final BeanComparator<DataItem> dataItemComparator = new BeanComparator(

@@ -50,7 +50,7 @@ public class OrderingStatementTest
         final String tableAlias = "t";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, "asc" );
-        final String expectedStatement = " ORDER BY " + tableAlias + ".\"name\" ASC";
+        final String expectedStatement = " ORDER BY " + tableAlias + ".\"name\", uid ASC";
 
         // When
         final String actualStatement = nameOrdering( tableAlias, theParameterSource );
@@ -66,7 +66,7 @@ public class OrderingStatementTest
         final String tableAlias = "t";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, "desc" );
-        final String expectedStatement = " ORDER BY " + tableAlias + ".\"name\" DESC";
+        final String expectedStatement = " ORDER BY " + tableAlias + ".\"name\", uid DESC";
 
         // When
         final String actualStatement = nameOrdering( tableAlias, theParameterSource );
