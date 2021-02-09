@@ -8,8 +8,8 @@ import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.ex
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFiltering;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.OrderingHelper.setOrdering;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.OrderingHelper.sort;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.paginate;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.setMaxResultsWhenPaging;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.slice;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithOneOfPrefixes;
 
 import java.util.ArrayList;
@@ -91,38 +91,35 @@ public class DataItemServiceFacade
         final Set<Class<? extends BaseDimensionalItemObject>> targetEntities, final Set<String> filters,
         final WebOptions options, final OrderParams orderParams )
     {
-        List<DataItem> dataItems = new ArrayList<>();
+        final List<DataItem> dataItems = new ArrayList<>();
 
         final User currentUser = currentUserService.getCurrentUser();
 
         if ( isNotEmpty( targetEntities ) )
         {
+            // Defining the query params map, and setting the common params.
+            final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userUid",
+                currentUser.getUid() );
+
+            setFiltering( filters, options, paramsMap, currentUser );
+
+            setOrdering( orderParams, paramsMap );
+
+            setMaxResultsWhenPaging( options, paramsMap );
+
             // Retrieving all items for each entity type.
-            for ( final Class<? extends BaseDimensionalItemObject> entity : targetEntities )
-            {
-                if ( !aclService.canRead( currentUser, entity ) )
+            targetEntities.parallelStream().forEach( ( entity ) -> {
+                if ( aclService.canRead( currentUser, entity ) )
                 {
-                    continue;
+                    dataItems.addAll( queryExecutor.find( entity, paramsMap ) );
                 }
-
-                // Defining the query params map, and setting the common params.
-                final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userUid",
-                    currentUser.getUid() );
-
-                setFiltering( filters, options, paramsMap, currentUser );
-
-                setOrdering( orderParams, paramsMap );
-
-                setMaxResultsWhenPaging( options, paramsMap );
-
-                dataItems.addAll( queryExecutor.find( entity, paramsMap ) );
-            }
+            } );
 
             // In memory sorting.
             sort( dataItems, orderParams );
 
             // In memory pagination.
-            dataItems = slice( options, dataItems );
+            return paginate( options, dataItems );
         }
 
         return dataItems;

@@ -5,7 +5,7 @@ import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.slice;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.paginate;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
@@ -34,7 +34,7 @@ public class PaginationHelperTest
         final List<DataItem> anyDimensionalItems = mockDimensionalItems( totalOfItems );
 
         // When
-        final List<DataItem> resultingList = slice( theWebOptions,
+        final List<DataItem> resultingList = paginate( theWebOptions,
             anyDimensionalItems );
 
         // Then
@@ -53,7 +53,7 @@ public class PaginationHelperTest
         final List<DataItem> anyDimensionalItems = mockDimensionalItems( totalOfItems );
 
         // When
-        final List<DataItem> resultingList = slice( theWebOptions,
+        final List<DataItem> resultingList = paginate( theWebOptions,
             anyDimensionalItems );
 
         // Then
@@ -72,7 +72,7 @@ public class PaginationHelperTest
         final List<DataItem> anyDimensionalItems = mockDimensionalItems( totalOfItems );
 
         // When
-        final List<DataItem> resultingList = slice( theWebOptions,
+        final List<DataItem> resultingList = paginate( theWebOptions,
             anyDimensionalItems );
 
         // Then
@@ -92,7 +92,7 @@ public class PaginationHelperTest
 
         // When
         assertThrows( "Page size must be greater than zero.", IllegalStateException.class,
-            () -> slice( theWebOptions, anyDimensionalItems ) );
+            () -> paginate( theWebOptions, anyDimensionalItems ) );
     }
 
     @Test
@@ -106,7 +106,7 @@ public class PaginationHelperTest
         final List<DataItem> emptyDimensionalItems = emptyList();
 
         // When
-        final List<DataItem> resultingList = slice( theWebOptions, emptyDimensionalItems );
+        final List<DataItem> resultingList = paginate( theWebOptions, emptyDimensionalItems );
 
         // Then
         assertThat( resultingList, is( emptyDimensionalItems ) );
@@ -125,7 +125,7 @@ public class PaginationHelperTest
 
         // When
         assertThrows( "Current page must be greater than zero.", IllegalStateException.class,
-            () -> slice( theWebOptions, emptyDimensionalItems ) );
+            () -> paginate( theWebOptions, emptyDimensionalItems ) );
     }
 
     private WebOptions mockWebOptions( final int pageSize, final int pageNumber )

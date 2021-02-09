@@ -14,6 +14,7 @@ import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.se
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.PostConstruct;
 
@@ -101,17 +102,22 @@ class ResponseHandler
     {
         if ( options.hasPaging() && isNotEmpty( targetEntities ) )
         {
-            long count = 0;
+            // Defining query params map and setting common params.
+            final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( USER_UID,
+                currentUser.getUid() );
+
+            setFiltering( filters, options, paramsMap, currentUser );
+
+            final AtomicLong count = new AtomicLong();
 
             // Counting and summing up the results for each entity.
-            for ( final Class<? extends BaseDimensionalItemObject> entity : targetEntities )
-            {
-                count += PAGE_COUNTING_CACHE.get(
+            targetEntities.parallelStream().forEach( ( entity ) -> {
+                count.addAndGet( PAGE_COUNTING_CACHE.get(
                     createPageCountingCacheKey( currentUser, entity, filters, options ),
-                    p -> countEntityRowsTotal( entity, options, filters, currentUser ) ).orElse( 0 );
-            }
+                    p -> countEntityRowsTotal( entity, options, paramsMap ) ).orElse( 0 ) );
+            } );
 
-            final Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
+            final Pager pager = new Pager( options.getPage(), count.get(), options.getPageSize() );
 
             linkService.generatePagerLinks( pager, API_RESOURCE_PATH );
 
@@ -120,14 +126,8 @@ class ResponseHandler
     }
 
     private int countEntityRowsTotal( final Class<? extends BaseDimensionalItemObject> entity, final WebOptions options,
-        final Set<String> filters, final User currentUser )
+        final MapSqlParameterSource paramsMap )
     {
-        // Defining query params map and setting common params.
-        final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( USER_UID,
-            currentUser.getUid() );
-
-        setFiltering( filters, options, paramsMap, currentUser );
-
         // Calculate pagination.
         if ( options.hasPaging() )
         {

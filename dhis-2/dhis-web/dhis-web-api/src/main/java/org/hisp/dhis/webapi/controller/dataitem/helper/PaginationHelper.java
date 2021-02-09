@@ -23,14 +23,14 @@ public class PaginationHelper
     }
 
     /**
-     * This method will slice the given list based on the given options and
+     * This method will "paginate" the given list based on the given options and
      * return only the elements present in the pagination window.
      * 
      * @param options
      * @param itemViewObjects
-     * @return the list of "sliced" items
+     * @return the list of "paginated" items
      */
-    public static List<DataItem> slice( final WebOptions options,
+    public static List<DataItem> paginate( final WebOptions options,
         List<DataItem> itemViewObjects )
     {
         state( options.getPage() > 0, "Current page must be greater than zero." );

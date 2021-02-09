@@ -15,8 +15,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
-import static org.springframework.http.HttpStatus.FOUND;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,7 +88,7 @@ public class DataItemQueryControllerTest
 
         // Then
         assertThat( actualResponse, is( not( nullValue() ) ) );
-        assertThat( actualResponse.getStatusCode(), is( FOUND ) );
+        assertThat( actualResponse.getStatusCode(), is( OK ) );
         verify( responseHandler, times( 1 ) ).addResultsToNode( any( RootNode.class ), anyList(), anySet() );
         verify( responseHandler, times( 1 ) ).addPaginationToNode( any( RootNode.class ), anyList(), any(), any(),
             anySet() );
@@ -117,7 +116,7 @@ public class DataItemQueryControllerTest
 
         // Then
         assertThat( actualResponse, is( not( nullValue() ) ) );
-        assertThat( actualResponse.getStatusCode(), is( NOT_FOUND ) );
+        assertThat( actualResponse.getStatusCode(), is( OK ) );
         verify( responseHandler, times( 1 ) ).addResultsToNode( any(), anyList(), anySet() );
         verify( responseHandler, times( 1 ) ).addPaginationToNode( any(), anyList(), any(), any(), anySet() );
     }
