@@ -330,10 +330,10 @@ public class ProgramIndicatorQuery implements DataItemQuery
         }
         else
         {
-            // TODO: MAIKEL: Do we need it?
+            // No filter by display name is set and any locale is defined.
             sql.append(
                 " GROUP BY program.\"name\", program.uid, programindicator.\"name\", programindicator.uid,"
-                    + " programindicator.code, programindicator.translations, pi_i18n_name" );
+                    + " programindicator.code, pi_i18n_name" );
         }
 
         sql.append( maxLimit( paramsMap ) );

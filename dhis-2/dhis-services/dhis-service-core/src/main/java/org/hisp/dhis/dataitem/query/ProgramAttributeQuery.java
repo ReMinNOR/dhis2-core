@@ -281,7 +281,7 @@ public class ProgramAttributeQuery implements DataItemQuery
                 sql.append(
                     " GROUP BY program.\"name\", program.uid, trackedentityattribute.\"name\", trackedentityattribute.uid,"
                         + " trackedentityattribute.valuetype, trackedentityattribute.code,"
-                        + " trackedentityattribute.translations, p_i18n_name, tea_i18n_name" );
+                        + " p_i18n_name, tea_i18n_name" );
 
                 if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
                 {
@@ -384,11 +384,11 @@ public class ProgramAttributeQuery implements DataItemQuery
         }
         else
         {
-            // TODO: MAIKEL: We need it?
+            // No filter by display name is set and any locale is defined.
             sql.append(
                 " GROUP BY program.\"name\", program.uid, trackedentityattribute.\"name\", trackedentityattribute.uid,"
                     + " trackedentityattribute.valuetype, trackedentityattribute.code,"
-                    + " trackedentityattribute.translations, p_i18n_name, tea_i18n_name" );
+                    + " p_i18n_name, tea_i18n_name" );
         }
 
         sql.append( maxLimit( paramsMap ) );

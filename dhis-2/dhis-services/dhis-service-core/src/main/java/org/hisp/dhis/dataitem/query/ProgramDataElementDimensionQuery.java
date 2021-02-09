@@ -278,7 +278,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                     + " OR dataelement.\"name\" ILIKE :" + DISPLAY_NAME + ")" );
 
                 sql.append(
-                    " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code, dataelement.translations, p_i18n_name, de_i18n_name" );
+                    " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code, p_i18n_name, de_i18n_name" );
 
                 if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
                 {
@@ -380,9 +380,9 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
         }
         else
         {
-            // TODO: MAIKEL: We need it?
+            // No filter by display name is set and any locale is defined.
             sql.append(
-                " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code, dataelement.translations, p_i18n_name, de_i18n_name" );
+                " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code, p_i18n_name, de_i18n_name" );
         }
 
         sql.append( maxLimit( paramsMap ) );
