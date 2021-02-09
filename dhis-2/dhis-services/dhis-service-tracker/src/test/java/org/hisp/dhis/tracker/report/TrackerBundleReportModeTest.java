@@ -25,25 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.tracker.report;
 
-import org.springframework.context.ApplicationEvent;
+import static org.junit.Assert.assertNotNull;
+
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.junit.Test;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
- * @author Zubair Asghar
+ * @author Luca Cambi <luca@dhis2.org>
  */
-public class DataValueUpdatedEvent extends ApplicationEvent
+public class TrackerBundleReportModeTest
 {
-    private final String programStageInstance;
-
-    public DataValueUpdatedEvent( Object source, String programStageInstance )
+    @Test
+    public void shouldFindReportMode()
     {
-        super( source );
-        this.programStageInstance = programStageInstance;
+        assertNotNull( TrackerBundleReportMode.getTrackerBundleReportMode( TrackerBundleReportMode.ERRORS.name() ) );
     }
 
-    public String getProgramStageInstance()
+    @Test( expected = HttpClientErrorException.class )
+    public void shouldThrowWhenReportModeNotFound()
     {
-        return programStageInstance;
+        TrackerBundleReportMode.getTrackerBundleReportMode( "Not a valid Enum" );
     }
 }
