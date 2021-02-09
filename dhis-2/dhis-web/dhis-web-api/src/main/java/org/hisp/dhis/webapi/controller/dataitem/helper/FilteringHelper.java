@@ -26,6 +26,7 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2016;
 import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
+import static org.hisp.dhis.user.UserSettingKey.UI_LOCALE;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
@@ -45,6 +46,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
@@ -278,6 +280,10 @@ public class FilteringHelper
         return EMPTY;
     }
 
+    // TODO: MAIKEL: Review this flow. Allow filter and display name at the
+    // same time? I dont't think it will make sense. Should be
+    // blocked during the validation.
+
     /**
      * Sets the filtering defined by filters list into the paramsMap.
      *
@@ -288,7 +294,8 @@ public class FilteringHelper
     public static void setFiltering( final Set<String> filters, final WebOptions options,
         final MapSqlParameterSource paramsMap, final User currentUser )
     {
-        final Locale currentLocale = getUserSetting( DB_LOCALE );
+        final Locale currentLocale = ObjectUtils.defaultIfNull( getUserSetting( DB_LOCALE ),
+            getUserSetting( UI_LOCALE ) );
 
         if ( currentLocale != null && isNotBlank( currentLocale.getLanguage() ) )
         {
@@ -309,7 +316,7 @@ public class FilteringHelper
             paramsMap.addValue( DISPLAY_NAME, wrap( trimToEmpty( ilikeDisplayName ), "%" ) );
         }
 
-        final String ilikeId = extractValueFromFilter( filters, ID_EQUAL);
+        final String ilikeId = extractValueFromFilter( filters, ID_EQUAL );
 
         if ( isNotBlank( ilikeId ) )
         {

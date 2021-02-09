@@ -43,7 +43,6 @@ import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasString
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
@@ -93,7 +92,7 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
             final String name = trimToEmpty(
                 rowSet.getString( "program_name" ) + SPACE + trimToEmpty( rowSet.getString( "name" ) ) );
             final String displayName = defaultIfBlank( rowSet.getString( "p_i18n_name" ),
-                name ) + SPACE
+                rowSet.getString( "program_name" ) ) + SPACE
                 + defaultIfBlank( rowSet.getString( "de_i18n_name" ), trimToEmpty( rowSet.getString( "name" ) ) );
 
             viewItem.setName( name );
@@ -141,6 +140,12 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
             sql.append( ", p_displayname.value AS p_i18n_name" )
                 .append( ", de_displayname.value AS de_i18n_name" );
         }
+        else
+        {
+            sql.append( ", program.\"name\" AS p_i18n_name" )
+                .append( ", dataelement.\"name\" AS de_i18n_name" );
+
+        }
 
         sql.append( " FROM dataelement" )
             .append(
@@ -179,8 +184,8 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
 
                 sql.append( " UNION " )
                     .append(
-                        " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
-                    .append( " dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code," )
+                        " SELECT program.\"name\" AS program_name, program.uid AS program_uid, dataelement.uid,"
+                            + " dataelement.\"name\", dataelement.valuetype, dataelement.code," )
                     .append( " program.\"name\" AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" )
                     .append( " FROM dataelement" )
                     .append(
@@ -218,8 +223,8 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                     .append( " AND (" + sharingConditions( "program", "dataelement", paramsMap ) + ")" )
                     .append( " UNION " )
                     .append(
-                        " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
-                    .append( " dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code," )
+                        " SELECT program.\"name\" AS program_name, program.uid AS program_uid, dataelement.uid,"
+                            + " dataelement.\"name\", dataelement.valuetype, dataelement.code," )
                     .append( " program.\"name\" AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" )
                     .append( " FROM dataelement" )
                     .append(
@@ -243,33 +248,38 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                     .append(
                         " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code" );
 
-                if ( hasStringPresence( paramsMap, LOCALE ) )
+                if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
                 {
-                    if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+                    final StringBuilder ordering = new StringBuilder();
+
+                    if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
                     {
-                        final StringBuilder ordering = new StringBuilder();
-
-                        if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-                        {
-                            // 7, 8, 3 means p_i18n_name, de_i18n_name and
-                            // dataelement.uid
-                            // respectively
-                            ordering.append( " ORDER BY 7, 8, 3 ASC" );
-                        }
-                        else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-                        {
-                            // 7, 8, 3 means p_i18n_name, de_i18n_name and
-                            // dataelement.uid
-                            // respectively
-                            ordering.append( " ORDER BY 7, 8, 3 DESC" );
-                        }
-
-                        sql.append( ordering.toString() );
+                        // 7, 8, 3 means p_i18n_name, de_i18n_name and
+                        // dataelement.uid
+                        // respectively
+                        ordering.append( " ORDER BY 7, 8, 3 ASC" );
                     }
+                    else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    {
+                        // 7, 8, 3 means p_i18n_name, de_i18n_name and
+                        // dataelement.uid
+                        // respectively
+                        ordering.append( " ORDER BY 7, 8, 3 DESC" );
+                    }
+
+                    sql.append( ordering.toString() );
                 }
+
             }
             else
             {
+                // User does not have any locale set.
+                sql.append( " AND (program.\"name\" ILIKE :" + DISPLAY_NAME
+                    + " OR dataelement.\"name\" ILIKE :" + DISPLAY_NAME + ")" );
+
+                sql.append(
+                    " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code, dataelement.translations, p_i18n_name, de_i18n_name" );
+
                 if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
                 {
                     final StringBuilder ordering = new StringBuilder();
@@ -288,20 +298,89 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
                         // respectively
                         ordering.append( " ORDER BY 1, 4, 3 DESC" );
                     }
-                    // No locale, so we default the comparison to the raw name.
-                    // In normal conditions this should never happen as every
-                    // user/request should have a default locale.
-                    sql.append(
-                        " AND (program.\"name\" ILIKE :" + NAME + " OR dataelement.\"name\" ILIKE :" + NAME + ")" );
 
                     sql.append( ordering.toString() );
                 }
             }
         }
+        else if ( hasStringPresence( paramsMap, LOCALE ) )
+        {
+            // sql.append( " AND (de_displayname.value ILIKE :" + DISPLAY_NAME +
+            // " OR p_displayname.value ILIKE :"
+            // + DISPLAY_NAME + ")" );
+
+            sql.append( " UNION " )
+                .append(
+                    " SELECT program.\"name\" AS program_name, program.uid AS program_uid, dataelement.uid,"
+                        + " dataelement.\"name\", dataelement.valuetype, dataelement.code," )
+                .append( " program.\"name\" AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" )
+                .append( " FROM dataelement" )
+                .append(
+                    " JOIN programstagedataelement ON programstagedataelement.dataelementid = dataelement.dataelementid" )
+                .append(
+                    " JOIN programstage ON programstagedataelement.programstageid = programstage.programstageid" )
+                .append( " JOIN program ON program.programid = programstage.programid" )
+                .append(
+                    " LEFT JOIN jsonb_to_recordset(program.translations) AS de_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                .append(
+                    " LEFT JOIN jsonb_to_recordset(dataelement.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                .append( " WHERE " )
+                .append( " dataelement.uid NOT IN (" )
+                .append( " SELECT dataelement.uid" )
+                .append( " FROM dataelement" )
+                .append(
+                    " JOIN programstagedataelement ON programstagedataelement.dataelementid = dataelement.dataelementid" )
+                .append(
+                    " JOIN programstage ON programstagedataelement.programstageid = programstage.programstageid" )
+                .append( " JOIN program ON program.programid = programstage.programid" )
+                .append(
+                    " LEFT JOIN jsonb_to_recordset(program.translations) AS de_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                .append(
+                    " LEFT JOIN jsonb_to_recordset(dataelement.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                .append( "  WHERE" )
+                .append( " (de_displayname.locale = :" + LOCALE + ")" )
+                .append( " OR" )
+                .append( " (p_displayname.locale = :" + LOCALE + ")" )
+                .append( " )" )
+                // .append( " AND (dataelement.name ILIKE :" + DISPLAY_NAME + "
+                // OR program.name ILIKE :" + DISPLAY_NAME
+                // + ")" )
+                .append( valueTypeFiltering( "dataelement", paramsMap ) )
+                .append( uidFiltering( "dataelement", paramsMap ) )
+                .append( programIdFiltering( paramsMap ) )
+                .append( " AND (" + sharingConditions( "program", "dataelement", paramsMap ) + ")" )
+                .append( " UNION " )
+                .append(
+                    " SELECT program.\"name\" AS program_name, program.uid AS program_uid, dataelement.uid,"
+                        + " dataelement.\"name\", dataelement.valuetype, dataelement.code," )
+                .append( " program.\"name\" AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" )
+                .append( " FROM dataelement" )
+                .append(
+                    " JOIN programstagedataelement ON programstagedataelement.dataelementid = dataelement.dataelementid" )
+                .append(
+                    " JOIN programstage ON programstagedataelement.programstageid = programstage.programstageid" )
+                .append( " JOIN program ON program.programid = programstage.programid" )
+                .append( " WHERE" )
+                .append(
+                    " (dataelement.translations = '[]' OR dataelement.translations IS NULL)" )
+                // + " AND dataelement.name ILIKE :" + DISPLAY_NAME )
+                .append( " AND" )
+                .append(
+                    " (program.translations = '[]' OR program.translations IS NULL)" )
+                // + " AND program.name ILIKE :" + DISPLAY_NAME )
+                .append( valueTypeFiltering( "dataelement", paramsMap ) )
+                .append( uidFiltering( "dataelement", paramsMap ) )
+                .append( programIdFiltering( paramsMap ) )
+                .append( " AND (" + sharingConditions( "program", "dataelement", paramsMap ) + ")" )
+
+                .append(
+                    " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code" );
+        }
         else
         {
+            // TODO: MAIKEL: We need it?
             sql.append(
-                " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code, dataelement.translations, p_displayname.value, de_displayname.value" );
+                " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code, dataelement.translations, p_i18n_name, de_i18n_name" );
         }
 
         sql.append( maxLimit( paramsMap ) );

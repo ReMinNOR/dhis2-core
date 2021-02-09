@@ -42,7 +42,6 @@ import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasString
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
@@ -158,6 +157,10 @@ public class ProgramIndicatorQuery implements DataItemQuery
         {
             sql.append( ", pi_displayname.value AS pi_i18n_name" );
         }
+        else
+        {
+            sql.append( ", programindicator.\"name\" AS pi_i18n_name" );
+        }
 
         sql.append( " FROM programindicator" )
             .append( " JOIN program ON program.programid = programindicator.programid" );
@@ -228,31 +231,35 @@ public class ProgramIndicatorQuery implements DataItemQuery
                     .append(
                         " GROUP BY programindicator.\"name\", programindicator.uid, program.uid, programindicator.code" );
 
-                if ( hasStringPresence( paramsMap, LOCALE ) )
+                if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
                 {
-                    if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+                    final StringBuilder ordering = new StringBuilder();
+
+                    if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
                     {
-                        final StringBuilder ordering = new StringBuilder();
-
-                        if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-                        {
-                            // 5, 2 means pi_i18n_name and programindicator.uid
-                            // respectively
-                            ordering.append( " ORDER BY 5, 2 ASC" );
-                        }
-                        else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-                        {
-                            // 5, 2 means pi_i18n_name and programindicator.uid
-                            // respectively
-                            ordering.append( " ORDER BY 5, 2 DESC" );
-                        }
-
-                        sql.append( ordering.toString() );
+                        // 5, 2 means pi_i18n_name and programindicator.uid
+                        // respectively
+                        ordering.append( " ORDER BY 5, 2 ASC" );
                     }
+                    else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                    {
+                        // 5, 2 means pi_i18n_name and programindicator.uid
+                        // respectively
+                        ordering.append( " ORDER BY 5, 2 DESC" );
+                    }
+
+                    sql.append( ordering.toString() );
                 }
             }
             else
             {
+                // User does not have any locale set.
+                sql.append( " AND ( programindicator.\"name\" ILIKE :" + DISPLAY_NAME + ")" );
+
+                sql.append(
+                    " GROUP BY program.\"name\", program.uid, programindicator.\"name\", programindicator.uid,"
+                        + " programindicator.code, programindicator.translations, pi_i18n_name" );
+
                 if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
                 {
                     final StringBuilder ordering = new StringBuilder();
@@ -269,21 +276,63 @@ public class ProgramIndicatorQuery implements DataItemQuery
                         // programindicator.uid respectively
                         ordering.append( " ORDER BY 1, 2 DESC" );
                     }
-                    // No locale, so we default the comparison to the raw name.
-                    // In normal conditions this should never happen as every
-                    // user/request should have a default locale.
-                    sql.append(
-                        " AND (program.\"name\" ILIKE :" + NAME + " OR programindicator.\"name\" ILIKE :" + NAME
-                            + ")" );
 
                     sql.append( ordering.toString() );
                 }
             }
         }
+        else if ( hasStringPresence( paramsMap, LOCALE ) )
+        {
+            // sql.append( " AND (pi_displayname.value ILIKE :" + DISPLAY_NAME +
+            // ")" );
+
+            sql.append( " UNION " )
+                .append(
+                    " SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.\"name\" AS pi_i18n_name" )
+                .append( " FROM programindicator" )
+                .append( " JOIN program ON program.programid = programindicator.programid" )
+                .append(
+                    " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                .append(
+                    " LEFT JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                .append( " WHERE " )
+                .append( " programindicator.uid NOT IN (" )
+                .append( " SELECT programindicator.uid" )
+                .append( " FROM programindicator" )
+                .append( " JOIN program ON program.programid = programindicator.programid" )
+                .append(
+                    " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                .append(
+                    " LEFT JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+                .append( "  WHERE" )
+                .append( " (pi_displayname.locale = :" + LOCALE + ")" )
+                .append( " )" )
+                // .append( " AND (programindicator.name ILIKE :" + DISPLAY_NAME
+                // + ")" )
+                .append( programIdFiltering( paramsMap ) )
+                .append( uidFiltering( "programindicator", paramsMap ) )
+                .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
+                .append( " UNION " )
+                .append(
+                    " SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.\"name\" as pi_i18n_name" )
+                .append( " FROM programindicator" )
+                .append( " JOIN program ON program.programid = programindicator.programid" )
+                .append( " WHERE" )
+                .append(
+                    " (programindicator.translations = '[]' OR programindicator.translations IS NULL) " )
+                // + " AND programindicator.name ILIKE :" + DISPLAY_NAME )
+                .append( programIdFiltering( paramsMap ) )
+                .append( uidFiltering( "programindicator", paramsMap ) )
+                .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
+                .append(
+                    " GROUP BY programindicator.\"name\", programindicator.uid, program.uid, programindicator.code" );
+        }
         else
         {
+            // TODO: MAIKEL: Do we need it?
             sql.append(
-                " GROUP BY program.\"name\", program.uid, programindicator.\"name\", programindicator.uid, programindicator.code, programindicator.translations, p_displayname.value, pi_displayname.value" );
+                " GROUP BY program.\"name\", program.uid, programindicator.\"name\", programindicator.uid,"
+                    + " programindicator.code, programindicator.translations, pi_i18n_name" );
         }
 
         sql.append( maxLimit( paramsMap ) );

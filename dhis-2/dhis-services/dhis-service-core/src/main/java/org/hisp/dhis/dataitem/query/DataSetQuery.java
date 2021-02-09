@@ -41,7 +41,6 @@ import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasString
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
@@ -132,6 +131,10 @@ public class DataSetQuery implements DataItemQuery
         {
             sql.append( ", displayname.value AS i18n_name" );
         }
+        else
+        {
+            sql.append( ", dataset.\"name\" AS i18n_name" );
+        }
 
         sql.append( " FROM dataset " );
 
@@ -186,9 +189,44 @@ public class DataSetQuery implements DataItemQuery
             }
             else
             {
-                // No locale, so we default the comparison to the raw name.
-                sql.append( " AND (dataset.\"name\" ILIKE :" + NAME + ")" );
+                // User does not have any locale set.
+                sql.append( " AND ( dataset.\"name\" ILIKE :" + DISPLAY_NAME + ")" );
             }
+        }
+        else if ( hasStringPresence( paramsMap, LOCALE ) )
+        {
+            final StringBuilder displayNameQuery = new StringBuilder();
+
+            displayNameQuery
+                .append( " AND displayname.locale = :" + LOCALE )
+                .append( " AND displayname.property = 'NAME' " )
+                // " AND displayname.value ILIKE :" + DISPLAY_NAME )
+                .append( " UNION " )
+                .append(
+                    " SELECT dataset.uid, dataset.\"name\", dataset.code, dataset.\"name\" AS i18n_name" )
+                .append(
+                    " FROM dataset, jsonb_to_recordset(dataset.translations) AS displayname(locale TEXT, property TEXT)" )
+                .append( " WHERE dataset.uid" )
+                .append( " NOT IN (" )
+                .append( " SELECT dataset.uid FROM dataset," )
+                .append(
+                    " jsonb_to_recordset(dataset.translations) AS displayname(locale TEXT, property TEXT)" )
+                .append( " WHERE displayname.locale = :" + LOCALE )
+                .append( ")" )
+                .append( " AND displayname.property = 'NAME'" )
+                // .append( " AND dataset.\"name\" ILIKE :" + DISPLAY_NAME )
+                .append( " AND (" + sharingConditions( "dataset", paramsMap ) + ")" )
+                .append( uidFiltering( "dataset", paramsMap ) )
+                .append( " UNION " )
+                .append(
+                    " SELECT dataset.uid, dataset.\"name\", dataset.code, dataset.\"name\" AS i18n_name" )
+                .append( " FROM dataset" )
+                .append( " WHERE (dataset.translations = '[]' OR dataset.translations IS NULL)" )
+                // .append( " AND dataset.\"name\" ILIKE :" + DISPLAY_NAME )
+                .append( " AND (" + sharingConditions( "dataset", paramsMap ) + ")" )
+                .append( uidFiltering( "dataset", paramsMap ) );
+
+            sql.append( displayNameQuery.toString() );
         }
 
         sql.append( " GROUP BY dataset.uid, dataset.\"name\", dataset.code" );
@@ -200,8 +238,16 @@ public class DataSetQuery implements DataItemQuery
 
         if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
         {
-            // 4 means i18n_name
-            sql.append( displayColumnOrdering( 4, paramsMap ) );
+            if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
+            {
+                // 4 means i18n_name
+                sql.append( displayColumnOrdering( 4, paramsMap ) );
+            }
+            else
+            {
+                // 2 means name
+                sql.append( displayColumnOrdering( 2, paramsMap ) );
+            }
         }
         else if ( hasStringPresence( paramsMap, NAME_ORDER ) )
         {

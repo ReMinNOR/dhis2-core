@@ -266,7 +266,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         FieldMap fieldMap = new FieldMap();
 
         // If fields not specified OR set as "*", bring all fields.
-        if ( StringUtils.isNotBlank( fields )
+        if ( StringUtils.isBlank( fields )
             || "*".equals( StringUtils.trimToEmpty( fields ) ) )
         {
             for ( final Field property : klass.getDeclaredFields() )

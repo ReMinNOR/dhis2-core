@@ -66,7 +66,6 @@ public class DataItemServiceFacadeTest
     }
 
     @Test
-    @Ignore // TODO: MAIKEL: Fix it! Check why we have a NPE in such cases
     public void testRetrieveDataItemEntities()
     {
         // Given

@@ -9,8 +9,7 @@ import static org.hisp.dhis.node.NodeUtils.createMetadata;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.checkNamesAndOperators;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.checkOrderParams;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.checkOrderParamsAndFiltersAllowance;
-import static org.springframework.http.HttpStatus.FOUND;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
@@ -142,12 +141,7 @@ public class DataItemQueryController
         responseHandler.addPaginationToNode( rootNode, new ArrayList<>( targetEntities ), currentUser, options,
             filters );
 
-        if ( isNotEmpty( dimensionalItems ) )
-        {
-            return new ResponseEntity<>( rootNode, FOUND );
-        }
-
-        return new ResponseEntity<>( rootNode, NOT_FOUND );
+        return new ResponseEntity<>( rootNode, OK );
     }
 
     private void checkAuthorization( final User currentUser,

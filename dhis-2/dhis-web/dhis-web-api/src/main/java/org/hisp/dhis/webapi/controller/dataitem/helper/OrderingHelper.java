@@ -118,7 +118,8 @@ public class OrderingHelper
                 trimToEmpty( orderingAttributes[ORDERING_ATTRIBUTE_NAME] ), attributeComparator );
 
             // Always compare by id, in case of duplicated values.
-            final Comparator comparator = dataItemComparator.thenComparing( dataItem -> dataItem.getId() );
+            final Comparator comparator = dataItemComparator
+                .thenComparing( dataItem -> trimToEmpty( dataItem.getId() ) );
 
             if ( DESC.getValue().equals( trimToEmpty( orderingAttributes[ORDERING_VALUE] ) ) )
             {

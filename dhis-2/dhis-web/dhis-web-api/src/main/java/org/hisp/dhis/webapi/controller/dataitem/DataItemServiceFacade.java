@@ -175,7 +175,6 @@ public class DataItemServiceFacade
                 {
                     targetedEntities.addAll( entities );
                 }
-                // iterator.remove();
             }
         }
     }

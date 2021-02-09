@@ -31,9 +31,7 @@ import org.junit.jupiter.api.Test;
  */
 public class DataItemQueryTests extends ApiTest
 {
-    private static final int FOUND = 302;
-
-    private static final int NOT_FOUND = 404;
+    private static final int OK = 200;
 
     private static final int CONFLICT = 409;
 
@@ -54,7 +52,7 @@ public class DataItemQueryTests extends ApiTest
         final ApiResponse response = dataItemActions.get();
 
         // Then
-        response.validate().statusCode( is( FOUND ) );
+        response.validate().statusCode( is(OK) );
         response.validate().body( "pager", isA( Object.class ) );
         response.validate().body( "dataItems", is( not( empty() ) ) );
         response.validate().body( "dataItems.dimensionItemType",
@@ -71,7 +69,7 @@ public class DataItemQueryTests extends ApiTest
         final ApiResponse response = dataItemActions.get( noPagination );
 
         // Then
-        response.validate().statusCode( is( FOUND ) );
+        response.validate().statusCode( is(OK) );
         response.validate().body( "pager", is( nullValue() ) );
         response.validate().body( "dataItems", is( not( empty() ) ) );
         response.validate().body( "dataItems.dimensionItemType", hasItem( "PROGRAM_INDICATOR" ) );
@@ -85,7 +83,7 @@ public class DataItemQueryTests extends ApiTest
         final ApiResponse response = dataItemActions.get( "?order=name:asc" );
 
         // Then
-        response.validate().statusCode( is( FOUND ) );
+        response.validate().statusCode( is(OK) );
         response.validate().body( "pager", isA( Object.class ) );
         response.validate().body( "dataItems", is( not( empty() ) ) );
         response.validate().body( "dataItems.code", hasItem( "AAAAAAA-1234" ) );
@@ -102,7 +100,7 @@ public class DataItemQueryTests extends ApiTest
         final ApiResponse response = dataItemActions.get( format( theUrlParams, theDimensionType ) );
 
         // Then
-        response.validate().statusCode( is( FOUND ) );
+        response.validate().statusCode( is(OK) );
         response.validate().body( "pager", isA( Object.class ) );
         response.validate().body( "dataItems", is( not( empty() ) ) );
         response.validate().body( "dataItems.dimensionItemType", everyItem( is( theDimensionType ) ) );
@@ -144,7 +142,7 @@ public class DataItemQueryTests extends ApiTest
             .get( format( theUrlParams, theDimensionType, aNonExistingName ) );
 
         // Then
-        response.validate().statusCode( is( NOT_FOUND ) );
+        response.validate().statusCode( is( OK ) );
         response.validate().body( "dataItems", is( empty() ) );
     }
 
@@ -184,7 +182,7 @@ public class DataItemQueryTests extends ApiTest
             .get( format( theUrlParams, theDimensionType, aNonExistingName ) );
 
         // Then
-        response.validate().statusCode( is( NOT_FOUND ) );
+        response.validate().statusCode( is( OK ) );
         response.validate().body( "pager", is( nullValue() ) );
         response.validate().body( "dataItems", is( empty() ) );
     }

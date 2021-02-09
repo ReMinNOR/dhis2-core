@@ -43,7 +43,6 @@ import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasString
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
@@ -138,6 +137,10 @@ public class DataElementQuery implements DataItemQuery
         {
             sql.append( ", displayname.value AS i18n_name" );
         }
+        else
+        {
+            sql.append( ", dataelement.\"name\" AS i18n_name" );
+        }
 
         sql.append( " FROM dataelement " );
 
@@ -193,9 +196,49 @@ public class DataElementQuery implements DataItemQuery
             }
             else
             {
-                // No locale, so we default the comparison to the raw name.
-                sql.append( " AND (dataelement.\"name\" ILIKE :" + NAME + ")" );
+                // User does not have any locale set.
+                sql.append( " AND ( dataelement.\"name\" ILIKE :" + DISPLAY_NAME + ")" );
             }
+        }
+        else if ( hasStringPresence( paramsMap, LOCALE ) )
+        {
+            // If we reach here it means that we do not have a display name
+            // filter set.
+            // And the user has a default locale configured.
+            final StringBuilder noDisplayNameQuery = new StringBuilder();
+
+            noDisplayNameQuery
+                .append( " AND displayname.locale = :" + LOCALE )
+                .append( " AND displayname.property = 'NAME' " )
+                // .append( " AND displayname.value ILIKE :" + DISPLAY_NAME )
+                .append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" )
+                .append( " UNION " )
+                .append(
+                    " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
+                .append(
+                    " FROM dataelement, jsonb_to_recordset(dataelement.translations) AS displayname(locale TEXT, property TEXT)" )
+                .append( " WHERE dataelement.uid" )
+                .append( " NOT IN (" )
+                .append( " SELECT dataelement.uid FROM dataelement," )
+                .append(
+                    " jsonb_to_recordset(dataelement.translations) AS displayname(locale TEXT, property TEXT)" )
+                .append( " WHERE displayname.locale = :" + LOCALE )
+                .append( ")" )
+                .append( " AND displayname.property = 'NAME'" )
+                // .append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME )
+                .append( valueTypeFiltering( "dataelement", paramsMap ) )
+                .append( uidFiltering( "dataelement", paramsMap ) )
+                .append( " UNION " )
+                .append(
+                    " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
+                .append( " FROM dataelement" )
+                .append( " WHERE (dataelement.translations = '[]' OR dataelement.translations IS NULL)" )
+                // .append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME )
+                .append( valueTypeFiltering( "dataelement", paramsMap ) )
+                .append( uidFiltering( "dataelement", paramsMap ) )
+                .append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" );
+
+            sql.append( noDisplayNameQuery.toString() );
         }
 
         sql.append( valueTypeFiltering( "dataelement", paramsMap ) );
@@ -211,8 +254,16 @@ public class DataElementQuery implements DataItemQuery
 
         if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
         {
-            // 5 means i18n_name
-            sql.append( displayColumnOrdering( 5, paramsMap ) );
+            if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
+            {
+                // 5 means i18n_name
+                sql.append( displayColumnOrdering( 5, paramsMap ) );
+            }
+            else
+            {
+                // 2 means name
+                sql.append( displayColumnOrdering( 2, paramsMap ) );
+            }
         }
         else if ( hasStringPresence( paramsMap, NAME_ORDER ) )
         {
