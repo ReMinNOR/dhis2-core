@@ -285,6 +285,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         {
             // sql.append( " AND (pi_displayname.value ILIKE :" + DISPLAY_NAME +
             // ")" );
+            sql.append( " AND pi_displayname.value IS NOT NULL" );
 
             sql.append( " UNION " )
                 .append(

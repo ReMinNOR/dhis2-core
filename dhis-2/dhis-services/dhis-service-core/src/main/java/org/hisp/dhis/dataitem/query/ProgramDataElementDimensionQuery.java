@@ -308,6 +308,8 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
             // sql.append( " AND (de_displayname.value ILIKE :" + DISPLAY_NAME +
             // " OR p_displayname.value ILIKE :"
             // + DISPLAY_NAME + ")" );
+            sql.append( " AND p_displayname.value IS NOT NULL" )
+                .append( " AND de_displayname.value IS NOT NULL" );
 
             sql.append( " UNION " )
                 .append(

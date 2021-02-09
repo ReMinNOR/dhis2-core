@@ -4,6 +4,7 @@ import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.deleteWhitespace;
@@ -46,7 +47,6 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
@@ -294,7 +294,7 @@ public class FilteringHelper
     public static void setFiltering( final Set<String> filters, final WebOptions options,
         final MapSqlParameterSource paramsMap, final User currentUser )
     {
-        final Locale currentLocale = ObjectUtils.defaultIfNull( getUserSetting( DB_LOCALE ),
+        final Locale currentLocale = defaultIfNull( getUserSetting( DB_LOCALE ),
             getUserSetting( UI_LOCALE ) );
 
         if ( currentLocale != null && isNotBlank( currentLocale.getLanguage() ) )

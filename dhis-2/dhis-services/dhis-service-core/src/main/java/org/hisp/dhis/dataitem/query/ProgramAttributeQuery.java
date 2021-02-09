@@ -313,6 +313,9 @@ public class ProgramAttributeQuery implements DataItemQuery
             // sql.append( " AND (tea_displayname.value ILIKE :" + DISPLAY_NAME
             // + " OR p_displayname.value ILIKE :"
             // + DISPLAY_NAME + ")" );
+            sql.append( " AND p_displayname.value IS NOT NULL" )
+                .append( " AND tea_displayname.value IS NOT NULL" );
+
             sql.append( " UNION " )
                 .append(
                     " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
@@ -344,6 +347,7 @@ public class ProgramAttributeQuery implements DataItemQuery
                 .append( " OR" )
                 .append( " (p_displayname.locale = :" + LOCALE + ")" )
                 .append( " )" )
+                // .append(" AND tea_displayname.value IS NOT NULL ")
                 // .append( " AND (trackedentityattribute.name ILIKE :" +
                 // DISPLAY_NAME + " OR program.name ILIKE :"
                 // + DISPLAY_NAME
