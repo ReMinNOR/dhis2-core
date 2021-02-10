@@ -327,6 +327,26 @@ public class ProgramIndicatorQuery implements DataItemQuery
                 .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
                 .append(
                     " GROUP BY programindicator.\"name\", programindicator.uid, program.uid, programindicator.code" );
+
+            if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+            {
+                final StringBuilder ordering = new StringBuilder();
+
+                if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                {
+                    // 5, 2 means pi_i18n_name and programindicator.uid
+                    // respectively
+                    ordering.append( " ORDER BY 5, 2 ASC" );
+                }
+                else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                {
+                    // 5, 2 means pi_i18n_name and programindicator.uid
+                    // respectively
+                    ordering.append( " ORDER BY 5, 2 DESC" );
+                }
+
+                sql.append( ordering.toString() );
+            }
         }
         else
         {

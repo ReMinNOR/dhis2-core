@@ -377,6 +377,28 @@ public class ProgramDataElementDimensionQuery implements DataItemQuery
 
                 .append(
                     " GROUP BY program.\"name\", program.uid, dataelement.\"name\", dataelement.uid, dataelement.valuetype, dataelement.code" );
+
+            if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+            {
+                final StringBuilder ordering = new StringBuilder();
+
+                if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                {
+                    // 1, 4, 3 means program."name", dataelement."name" and
+                    // dataelement.uid
+                    // respectively
+                    ordering.append( " ORDER BY 1, 4, 3 ASC" );
+                }
+                else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                {
+                    // 1, 4, 3 means program."name", dataelement."name" and
+                    // dataelement.uid
+                    // respectively
+                    ordering.append( " ORDER BY 1, 4, 3 DESC" );
+                }
+
+                sql.append( ordering.toString() );
+            }
         }
         else
         {

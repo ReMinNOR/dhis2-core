@@ -297,12 +297,10 @@ public class FilteringHelper
         final Locale currentLocale = defaultIfNull( getUserSetting( DB_LOCALE ),
             getUserSetting( UI_LOCALE ) );
 
-//        if ( currentLocale != null && isNotBlank( currentLocale.getLanguage() ) )
-//        {
-//            paramsMap.addValue( LOCALE, trimToEmpty( currentLocale.getLanguage() ) );
-//        }
-
-        paramsMap.addValue( LOCALE, null );
+        if ( currentLocale != null && isNotBlank( currentLocale.getLanguage() ) )
+        {
+            paramsMap.addValue( LOCALE, trimToEmpty( currentLocale.getLanguage() ) );
+        }
 
         final String ilikeName = extractValueFromFilter( filters, NAME_ILIKE );
 

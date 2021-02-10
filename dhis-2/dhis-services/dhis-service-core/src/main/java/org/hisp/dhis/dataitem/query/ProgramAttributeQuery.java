@@ -381,6 +381,30 @@ public class ProgramAttributeQuery implements DataItemQuery
                 .append(
                     " GROUP BY program.uid, trackedentityattribute.uid, p_i18n_name, tea_i18n_name,"
                         + " trackedentityattribute.valuetype, trackedentityattribute.code" );
+
+            if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+            {
+                final StringBuilder ordering = new StringBuilder();
+
+                if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                {
+                    // 1, 3, 4 means program."name",
+                    // trackedentityattribute."name" and
+                    // trackedentityattribute.uid
+                    // respectively
+                    ordering.append( " ORDER BY 1, 3, 4 ASC" );
+                }
+                else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                {
+                    // 1, 3, 4 means program."name",
+                    // trackedentityattribute."name" and
+                    // trackedentityattribute.uid
+                    // respectively
+                    ordering.append( " ORDER BY 1, 3, 4 DESC" );
+                }
+
+                sql.append( ordering.toString() );
+            }
         }
         else
         {
@@ -389,6 +413,30 @@ public class ProgramAttributeQuery implements DataItemQuery
                 " GROUP BY program.\"name\", program.uid, trackedentityattribute.\"name\", trackedentityattribute.uid,"
                     + " trackedentityattribute.valuetype, trackedentityattribute.code,"
                     + " p_i18n_name, tea_i18n_name" );
+
+            if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+            {
+                final StringBuilder ordering = new StringBuilder();
+
+                if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                {
+                    // 1, 3, 4 means program."name",
+                    // trackedentityattribute."name" and
+                    // trackedentityattribute.uid
+                    // respectively
+                    ordering.append( " ORDER BY 1, 3, 4 ASC" );
+                }
+                else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
+                {
+                    // 1, 3, 4 means program."name",
+                    // trackedentityattribute."name" and
+                    // trackedentityattribute.uid
+                    // respectively
+                    ordering.append( " ORDER BY 1, 3, 4 DESC" );
+                }
+
+                sql.append( ordering.toString() );
+            }
         }
 
         sql.append( maxLimit( paramsMap ) );
