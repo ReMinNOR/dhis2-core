@@ -25,29 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat;
+package org.hisp.dhis.user.job;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import static java.time.ZoneId.systemDefault;
 
-@Getter
-@RequiredArgsConstructor
-public class ReferenceTrackerEntity
+import java.time.LocalDate;
+import java.util.Date;
+
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.user.UserService;
+import org.springframework.stereotype.Component;
+
+/**
+ * @author Jan Bernitt
+ */
+@AllArgsConstructor
+@Component( "disableInactiveUsersJob" )
+public class DisableInactiveUsersJob extends AbstractJob
 {
-    /**
-     * Reference uid: this correspond to the UID of a TEI, PS or PSI from the
-     * Tracker Import payload
-     */
-    private final String uid;
+    private final UserService userService;
 
-    /**
-     * Reference uid of the parent object of this Reference. This is only
-     * populated if uid references a ProgramStage or a Program Stage Instance
-     */
-    private final String parentUid;
+    private final Notifier notifier;
 
-    public boolean isRoot()
+    @Override
+    public JobType getJobType()
     {
-        return this.parentUid.equals( "ROOT" );
+        return JobType.DISABLE_INACTIVE_USERS;
+    }
+
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
+    {
+        DisableInactiveUsersJobParameters parameters = (DisableInactiveUsersJobParameters) jobConfiguration
+            .getJobParameters();
+        LocalDate today = LocalDate.now();
+        LocalDate since = today.minusMonths( parameters.getInactiveMonths() );
+        Date nMonthsAgo = Date.from( since.atStartOfDay( systemDefault() ).toInstant() );
+        int disabledUserCount = userService.disableUsersInactiveSince( nMonthsAgo );
+        notifier.notify( jobConfiguration, String.format( "Disabled %d users with %d months of inactivity",
+            disabledUserCount, parameters.getInactiveMonths() ) );
     }
 }

@@ -25,29 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.web;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
-import java.util.Collection;
+import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.With;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import org.hisp.dhis.common.Pager;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
-@Data
-@With
-@AllArgsConstructor
-@NoArgsConstructor
-public class PagingWrapper<T>
+/**
+ * @author Jan Bernitt
+ */
+public class DisableInactiveUsersJobParametersDeserializer
+    extends AbstractJobParametersDeserializer<DisableInactiveUsersJobParameters>
 {
-    @JsonProperty
-    private Collection<T> instances;
 
-    @JsonUnwrapped
-    private Pager pager;
+    public DisableInactiveUsersJobParametersDeserializer()
+    {
+        super( DisableInactiveUsersJobParameters.class, CustomJobParameters.class );
+    }
+
+    @JsonDeserialize
+    public static class CustomJobParameters extends DisableInactiveUsersJobParameters
+    {
+    }
 }
