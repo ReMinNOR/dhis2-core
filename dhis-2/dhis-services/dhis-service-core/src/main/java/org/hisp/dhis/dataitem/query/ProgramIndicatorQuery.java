@@ -29,6 +29,7 @@ package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
@@ -185,71 +186,30 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
         sql.append( uidFiltering( "programindicator", paramsMap ) );
 
+        sql.append( specificDisplayNameFilter( paramsMap ) );
+
+        sql.append( specificLocaleFilter( paramsMap ) );
+
+        sql.append( noDisplayNameAndNoLocaleFilter( paramsMap ) );
+
+        sql.append( maxLimit( paramsMap ) );
+
+        return sql.toString();
+    }
+
+    private String specificDisplayNameFilter( final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder sql = new StringBuilder();
+
         if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
             if ( hasStringPresence( paramsMap, LOCALE ) )
             {
-                sql.append( " AND (pi_displayname.value ILIKE :" + DISPLAY_NAME + ")" );
+                sql.append( fetchDisplayName( paramsMap, true ) );
 
-                sql.append( " UNION " )
-                    .append(
-                        " SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.\"name\" AS pi_i18n_name" )
-                    .append( " FROM programindicator" )
-                    .append( " JOIN program ON program.programid = programindicator.programid" )
-                    .append(
-                        " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
-                    .append(
-                        " LEFT JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
-                    .append( " WHERE " )
-                    .append( " programindicator.uid NOT IN (" )
-                    .append( " SELECT programindicator.uid" )
-                    .append( " FROM programindicator" )
-                    .append( " JOIN program ON program.programid = programindicator.programid" )
-                    .append(
-                        " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
-                    .append(
-                        " LEFT JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
-                    .append( "  WHERE" )
-                    .append( " (pi_displayname.locale = :" + LOCALE + ")" )
-                    .append( " )" )
-                    .append( " AND (programindicator.name ILIKE :" + DISPLAY_NAME + ")" )
-                    .append( programIdFiltering( paramsMap ) )
-                    .append( uidFiltering( "programindicator", paramsMap ) )
-                    .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
-                    .append( " UNION " )
-                    .append(
-                        " SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.\"name\" as pi_i18n_name" )
-                    .append( " FROM programindicator" )
-                    .append( " JOIN program ON program.programid = programindicator.programid" )
-                    .append( " WHERE" )
-                    .append(
-                        " (programindicator.translations = '[]' OR programindicator.translations IS NULL) AND programindicator.name ILIKE :"
-                            + DISPLAY_NAME )
-                    .append( programIdFiltering( paramsMap ) )
-                    .append( uidFiltering( "programindicator", paramsMap ) )
-                    .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
-                    .append(
-                        " GROUP BY programindicator.\"name\", programindicator.uid, program.uid, programindicator.code" );
-
-                if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
-                {
-                    final StringBuilder ordering = new StringBuilder();
-
-                    if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-                    {
-                        // 5, 2 means pi_i18n_name and programindicator.uid
-                        // respectively
-                        ordering.append( " ORDER BY 5, 2 ASC" );
-                    }
-                    else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-                    {
-                        // 5, 2 means pi_i18n_name and programindicator.uid
-                        // respectively
-                        ordering.append( " ORDER BY 5, 2 DESC" );
-                    }
-
-                    sql.append( ordering.toString() );
-                }
+                // 5, 2 means pi_i18n_name and programindicator.uid
+                // respectively
+                sql.append( addOrderingStatement( paramsMap, "5, 2" ) );
             }
             else
             {
@@ -260,95 +220,37 @@ public class ProgramIndicatorQuery implements DataItemQuery
                     " GROUP BY program.\"name\", program.uid, programindicator.\"name\", programindicator.uid,"
                         + " programindicator.code, programindicator.translations, pi_i18n_name" );
 
-                if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
-                {
-                    final StringBuilder ordering = new StringBuilder();
-
-                    if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-                    {
-                        // 1, 2 means programindicator."name" and
-                        // programindicator.uid respectively
-                        ordering.append( " ORDER BY 1, 2 ASC" );
-                    }
-                    else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-                    {
-                        // 1, 2 means programindicator."name" and
-                        // programindicator.uid respectively
-                        ordering.append( " ORDER BY 1, 2 DESC" );
-                    }
-
-                    sql.append( ordering.toString() );
-                }
+                // 1, 2 means programindicator."name" and
+                // programindicator.uid respectively
+                sql.append( addOrderingStatement( paramsMap, "1, 2" ) );
             }
         }
-        else if ( hasStringPresence( paramsMap, LOCALE ) )
+
+        return sql.toString();
+    }
+
+    private String specificLocaleFilter( final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        if ( !hasStringPresence( paramsMap, DISPLAY_NAME ) && hasStringPresence( paramsMap, LOCALE ) )
         {
-            // sql.append( " AND (pi_displayname.value ILIKE :" + DISPLAY_NAME +
-            // ")" );
-            sql.append( " AND pi_displayname.value IS NOT NULL" );
 
-            sql.append( " UNION " )
-                .append(
-                    " SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.\"name\" AS pi_i18n_name" )
-                .append( " FROM programindicator" )
-                .append( " JOIN program ON program.programid = programindicator.programid" )
-                .append(
-                    " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
-                .append(
-                    " LEFT JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
-                .append( " WHERE " )
-                .append( " programindicator.uid NOT IN (" )
-                .append( " SELECT programindicator.uid" )
-                .append( " FROM programindicator" )
-                .append( " JOIN program ON program.programid = programindicator.programid" )
-                .append(
-                    " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
-                .append(
-                    " LEFT JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
-                .append( "  WHERE" )
-                .append( " (pi_displayname.locale = :" + LOCALE + ")" )
-                .append( " )" )
-                // .append( " AND (programindicator.name ILIKE :" + DISPLAY_NAME
-                // + ")" )
-                .append( programIdFiltering( paramsMap ) )
-                .append( uidFiltering( "programindicator", paramsMap ) )
-                .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
-                .append( " UNION " )
-                .append(
-                    " SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.\"name\" as pi_i18n_name" )
-                .append( " FROM programindicator" )
-                .append( " JOIN program ON program.programid = programindicator.programid" )
-                .append( " WHERE" )
-                .append(
-                    " (programindicator.translations = '[]' OR programindicator.translations IS NULL) " )
-                // + " AND programindicator.name ILIKE :" + DISPLAY_NAME )
-                .append( programIdFiltering( paramsMap ) )
-                .append( uidFiltering( "programindicator", paramsMap ) )
-                .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
-                .append(
-                    " GROUP BY programindicator.\"name\", programindicator.uid, program.uid, programindicator.code" );
+            sql.append( fetchDisplayName( paramsMap, false ) );
 
-            if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
-            {
-                final StringBuilder ordering = new StringBuilder();
-
-                if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-                {
-                    // 5, 2 means pi_i18n_name and programindicator.uid
-                    // respectively
-                    ordering.append( " ORDER BY 5, 2 ASC" );
-                }
-                else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-                {
-                    // 5, 2 means pi_i18n_name and programindicator.uid
-                    // respectively
-                    ordering.append( " ORDER BY 5, 2 DESC" );
-                }
-
-                sql.append( ordering.toString() );
-            }
+            // 5, 2 means pi_i18n_name and programindicator.uid
+            // respectively
+            sql.append( addOrderingStatement( paramsMap, "5, 2" ) );
         }
-        else
+
+        return sql.toString();
+    }
+
+    private String noDisplayNameAndNoLocaleFilter( final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        if ( !hasStringPresence( paramsMap, DISPLAY_NAME ) && !hasStringPresence( paramsMap, LOCALE ) )
         {
             // No filter by display name is set and any locale is defined.
             sql.append(
@@ -356,7 +258,81 @@ public class ProgramIndicatorQuery implements DataItemQuery
                     + " programindicator.code, pi_i18n_name" );
         }
 
-        sql.append( maxLimit( paramsMap ) );
+        return sql.toString();
+    }
+
+    private String fetchDisplayName( final MapSqlParameterSource paramsMap, final boolean filterByDisplayName )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        if ( filterByDisplayName )
+        {
+            sql.append( " AND (pi_displayname.value ILIKE :" + DISPLAY_NAME + ")" );
+        }
+
+        sql.append( " AND pi_displayname.value IS NOT NULL" );
+
+        sql.append( " UNION " )
+            .append(
+                " SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.\"name\" AS pi_i18n_name" )
+            .append( " FROM programindicator" )
+            .append( " JOIN program ON program.programid = programindicator.programid" )
+            .append(
+                " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+            .append(
+                " LEFT JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+            .append( " WHERE " )
+            .append( " programindicator.uid NOT IN (" )
+            .append( " SELECT programindicator.uid" )
+            .append( " FROM programindicator" )
+            .append( " JOIN program ON program.programid = programindicator.programid" )
+            .append(
+                " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+            .append(
+                " LEFT JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
+            .append( "  WHERE" )
+            .append( " (pi_displayname.locale = :" + LOCALE + ")" )
+            .append( " )" );
+
+        if ( filterByDisplayName )
+        {
+            sql.append( " AND (programindicator.name ILIKE :" + DISPLAY_NAME + ")" );
+        }
+
+        sql.append( programIdFiltering( paramsMap ) )
+            .append( uidFiltering( "programindicator", paramsMap ) )
+            .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
+            .append( " UNION " )
+            .append(
+                " SELECT programindicator.\"name\", programindicator.uid, programindicator.code, program.uid AS program_uid, programindicator.\"name\" as pi_i18n_name" )
+            .append( " FROM programindicator" )
+            .append( " JOIN program ON program.programid = programindicator.programid" )
+            .append( " WHERE" )
+            .append(
+                " (programindicator.translations = '[]' OR programindicator.translations IS NULL) " );
+
+        if ( filterByDisplayName )
+        {
+            sql.append( " AND programindicator.name ILIKE :" + DISPLAY_NAME );
+        }
+
+        sql.append( programIdFiltering( paramsMap ) )
+            .append( uidFiltering( "programindicator", paramsMap ) )
+            .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
+            .append(
+                " GROUP BY programindicator.\"name\", programindicator.uid, program.uid, programindicator.code" );
+
+        return sql.toString();
+    }
+
+    private String addOrderingStatement( final MapSqlParameterSource paramsMap, final String orderingColumns )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+        {
+            sql.append( " ORDER BY " + orderingColumns + SPACE + paramsMap.getValue( DISPLAY_NAME_ORDER ) );
+        }
 
         return sql.toString();
     }

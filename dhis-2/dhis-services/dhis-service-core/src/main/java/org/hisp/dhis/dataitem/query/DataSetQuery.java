@@ -149,85 +149,12 @@ public class DataSetQuery implements DataItemQuery
             .append( ")" );
 
         sql.append( nameFiltering( "dataset", paramsMap ) );
+
         sql.append( uidFiltering( "dataset", paramsMap ) );
 
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
-        {
-            if ( hasStringPresence( paramsMap, LOCALE ) )
-            {
-                final StringBuilder displayNameQuery = new StringBuilder();
+        sql.append( specificDisplayNameFilter( paramsMap ) );
 
-                displayNameQuery
-                    .append( " AND displayname.locale = :" + LOCALE )
-                    .append( " AND displayname.property = 'NAME' AND displayname.value ILIKE :" + DISPLAY_NAME )
-                    .append( " UNION " )
-                    .append(
-                        " SELECT dataset.uid, dataset.\"name\", dataset.code, dataset.\"name\" AS i18n_name" )
-                    .append(
-                        " FROM dataset, jsonb_to_recordset(dataset.translations) AS displayname(locale TEXT, property TEXT)" )
-                    .append( " WHERE dataset.uid" )
-                    .append( " NOT IN (" )
-                    .append( " SELECT dataset.uid FROM dataset," )
-                    .append(
-                        " jsonb_to_recordset(dataset.translations) AS displayname(locale TEXT, property TEXT)" )
-                    .append( " WHERE displayname.locale = :" + LOCALE )
-                    .append( ")" )
-                    .append( " AND displayname.property = 'NAME'" )
-                    .append( " AND dataset.\"name\" ILIKE :" + DISPLAY_NAME )
-                    .append( " AND (" + sharingConditions( "dataset", paramsMap ) + ")" )
-                    .append( uidFiltering( "dataset", paramsMap ) )
-                    .append( " UNION " )
-                    .append(
-                        " SELECT dataset.uid, dataset.\"name\", dataset.code, dataset.\"name\" AS i18n_name" )
-                    .append( " FROM dataset" )
-                    .append( " WHERE (dataset.translations = '[]' OR dataset.translations IS NULL)" )
-                    .append( " AND dataset.\"name\" ILIKE :" + DISPLAY_NAME )
-                    .append( " AND (" + sharingConditions( "dataset", paramsMap ) + ")" )
-                    .append( uidFiltering( "dataset", paramsMap ) );
-
-                sql.append( displayNameQuery.toString() );
-            }
-            else
-            {
-                // User does not have any locale set.
-                sql.append( " AND ( dataset.\"name\" ILIKE :" + DISPLAY_NAME + ")" );
-            }
-        }
-        else if ( hasStringPresence( paramsMap, LOCALE ) )
-        {
-            final StringBuilder displayNameQuery = new StringBuilder();
-
-            displayNameQuery
-                .append( " AND displayname.locale = :" + LOCALE )
-                .append( " AND displayname.property = 'NAME' " )
-                // " AND displayname.value ILIKE :" + DISPLAY_NAME )
-                .append( " UNION " )
-                .append(
-                    " SELECT dataset.uid, dataset.\"name\", dataset.code, dataset.\"name\" AS i18n_name" )
-                .append(
-                    " FROM dataset, jsonb_to_recordset(dataset.translations) AS displayname(locale TEXT, property TEXT)" )
-                .append( " WHERE dataset.uid" )
-                .append( " NOT IN (" )
-                .append( " SELECT dataset.uid FROM dataset," )
-                .append(
-                    " jsonb_to_recordset(dataset.translations) AS displayname(locale TEXT, property TEXT)" )
-                .append( " WHERE displayname.locale = :" + LOCALE )
-                .append( ")" )
-                .append( " AND displayname.property = 'NAME'" )
-                // .append( " AND dataset.\"name\" ILIKE :" + DISPLAY_NAME )
-                .append( " AND (" + sharingConditions( "dataset", paramsMap ) + ")" )
-                .append( uidFiltering( "dataset", paramsMap ) )
-                .append( " UNION " )
-                .append(
-                    " SELECT dataset.uid, dataset.\"name\", dataset.code, dataset.\"name\" AS i18n_name" )
-                .append( " FROM dataset" )
-                .append( " WHERE (dataset.translations = '[]' OR dataset.translations IS NULL)" )
-                // .append( " AND dataset.\"name\" ILIKE :" + DISPLAY_NAME )
-                .append( " AND (" + sharingConditions( "dataset", paramsMap ) + ")" )
-                .append( uidFiltering( "dataset", paramsMap ) );
-
-            sql.append( displayNameQuery.toString() );
-        }
+        sql.append( specificLocaleFilter( paramsMap ) );
 
         sql.append( " GROUP BY dataset.uid, dataset.\"name\", dataset.code" );
 
@@ -255,6 +182,88 @@ public class DataSetQuery implements DataItemQuery
         }
 
         sql.append( maxLimit( paramsMap ) );
+
+        return sql.toString();
+    }
+
+    private String specificDisplayNameFilter( final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
+        {
+            if ( hasStringPresence( paramsMap, LOCALE ) )
+            {
+                sql.append( fetchDisplayName( paramsMap, true ) );
+            }
+            else
+            {
+                // User does not have any locale set.
+                sql.append( " AND ( dataset.\"name\" ILIKE :" + DISPLAY_NAME + ")" );
+            }
+        }
+
+        return sql.toString();
+    }
+
+    private String specificLocaleFilter( final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        if ( !hasStringPresence( paramsMap, DISPLAY_NAME ) && hasStringPresence( paramsMap, LOCALE ) )
+        {
+            sql.append( fetchDisplayName( paramsMap, false ) );
+        }
+
+        return sql.toString();
+    }
+
+    private String fetchDisplayName( final MapSqlParameterSource paramsMap, boolean filterByDisplayName )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        sql.append( " AND displayname.locale = :" + LOCALE )
+            .append( " AND displayname.property = 'NAME'" );
+
+        if ( filterByDisplayName )
+        {
+            sql.append( " AND displayname.value ILIKE :" + DISPLAY_NAME );
+        }
+
+        sql.append( " UNION " )
+            .append(
+                " SELECT dataset.uid, dataset.\"name\", dataset.code, dataset.\"name\" AS i18n_name" )
+            .append(
+                " FROM dataset, jsonb_to_recordset(dataset.translations) AS displayname(locale TEXT, property TEXT)" )
+            .append( " WHERE dataset.uid" )
+            .append( " NOT IN (" )
+            .append( " SELECT dataset.uid FROM dataset," )
+            .append(
+                " jsonb_to_recordset(dataset.translations) AS displayname(locale TEXT, property TEXT)" )
+            .append( " WHERE displayname.locale = :" + LOCALE )
+            .append( ")" )
+            .append( " AND displayname.property = 'NAME'" );
+
+        if ( filterByDisplayName )
+        {
+            sql.append( " AND dataset.\"name\" ILIKE :" + DISPLAY_NAME );
+        }
+
+        sql.append( " AND (" + sharingConditions( "dataset", paramsMap ) + ")" )
+            .append( uidFiltering( "dataset", paramsMap ) )
+            .append( " UNION " )
+            .append(
+                " SELECT dataset.uid, dataset.\"name\", dataset.code, dataset.\"name\" AS i18n_name" )
+            .append( " FROM dataset" )
+            .append( " WHERE (dataset.translations = '[]' OR dataset.translations IS NULL)" );
+
+        if ( filterByDisplayName )
+        {
+            sql.append( " AND dataset.\"name\" ILIKE :" + DISPLAY_NAME );
+        }
+
+        sql.append( " AND (" + sharingConditions( "dataset", paramsMap ) + ")" )
+            .append( uidFiltering( "dataset", paramsMap ) );
 
         return sql.toString();
     }

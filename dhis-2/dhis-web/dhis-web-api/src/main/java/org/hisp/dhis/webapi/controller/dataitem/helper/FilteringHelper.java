@@ -280,10 +280,6 @@ public class FilteringHelper
         return EMPTY;
     }
 
-    // TODO: MAIKEL: Review this flow. Allow filter and display name at the
-    // same time? I dont't think it will make sense. Should be
-    // blocked during the validation.
-
     /**
      * Sets the filtering defined by filters list into the paramsMap.
      *

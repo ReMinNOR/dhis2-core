@@ -156,92 +156,12 @@ public class DataElementQuery implements DataItemQuery
 
         sql.append( nameFiltering( "dataelement", paramsMap ) );
 
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
-        {
-            if ( hasStringPresence( paramsMap, LOCALE ) )
-            {
-                final StringBuilder displayNameQuery = new StringBuilder();
+        sql.append( specificDisplayNameFilter( paramsMap ) );
 
-                displayNameQuery
-                    .append( " AND displayname.locale = :" + LOCALE )
-                    .append( " AND displayname.property = 'NAME' AND displayname.value ILIKE :" + DISPLAY_NAME )
-                    .append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" )
-                    .append( " UNION " )
-                    .append(
-                        " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
-                    .append(
-                        " FROM dataelement, jsonb_to_recordset(dataelement.translations) AS displayname(locale TEXT, property TEXT)" )
-                    .append( " WHERE dataelement.uid" )
-                    .append( " NOT IN (" )
-                    .append( " SELECT dataelement.uid FROM dataelement," )
-                    .append(
-                        " jsonb_to_recordset(dataelement.translations) AS displayname(locale TEXT, property TEXT)" )
-                    .append( " WHERE displayname.locale = :" + LOCALE )
-                    .append( ")" )
-                    .append( " AND displayname.property = 'NAME'" )
-                    .append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME )
-                    .append( valueTypeFiltering( "dataelement", paramsMap ) )
-                    .append( uidFiltering( "dataelement", paramsMap ) )
-                    .append( " UNION " )
-                    .append(
-                        " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
-                    .append( " FROM dataelement" )
-                    .append( " WHERE (dataelement.translations = '[]' OR dataelement.translations IS NULL)" )
-                    .append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME )
-                    .append( valueTypeFiltering( "dataelement", paramsMap ) )
-                    .append( uidFiltering( "dataelement", paramsMap ) )
-                    .append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" );
-
-                sql.append( displayNameQuery.toString() );
-            }
-            else
-            {
-                // User does not have any locale set.
-                sql.append( " AND ( dataelement.\"name\" ILIKE :" + DISPLAY_NAME + ")" );
-            }
-        }
-        else if ( hasStringPresence( paramsMap, LOCALE ) )
-        {
-            // If we reach here it means that we do not have a display name
-            // filter set.
-            // And the user has a default locale configured.
-            final StringBuilder noDisplayNameQuery = new StringBuilder();
-
-            noDisplayNameQuery
-                .append( " AND displayname.locale = :" + LOCALE )
-                .append( " AND displayname.property = 'NAME' " )
-                // .append( " AND displayname.value ILIKE :" + DISPLAY_NAME )
-                .append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" )
-                .append( " UNION " )
-                .append(
-                    " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
-                .append(
-                    " FROM dataelement, jsonb_to_recordset(dataelement.translations) AS displayname(locale TEXT, property TEXT)" )
-                .append( " WHERE dataelement.uid" )
-                .append( " NOT IN (" )
-                .append( " SELECT dataelement.uid FROM dataelement," )
-                .append(
-                    " jsonb_to_recordset(dataelement.translations) AS displayname(locale TEXT, property TEXT)" )
-                .append( " WHERE displayname.locale = :" + LOCALE )
-                .append( ")" )
-                .append( " AND displayname.property = 'NAME'" )
-                // .append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME )
-                .append( valueTypeFiltering( "dataelement", paramsMap ) )
-                .append( uidFiltering( "dataelement", paramsMap ) )
-                .append( " UNION " )
-                .append(
-                    " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
-                .append( " FROM dataelement" )
-                .append( " WHERE (dataelement.translations = '[]' OR dataelement.translations IS NULL)" )
-                // .append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME )
-                .append( valueTypeFiltering( "dataelement", paramsMap ) )
-                .append( uidFiltering( "dataelement", paramsMap ) )
-                .append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" );
-
-            sql.append( noDisplayNameQuery.toString() );
-        }
+        sql.append( specificLocaleFilter( paramsMap ) );
 
         sql.append( valueTypeFiltering( "dataelement", paramsMap ) );
+
         sql.append( uidFiltering( "dataelement", paramsMap ) );
 
         sql.append(
@@ -271,6 +191,93 @@ public class DataElementQuery implements DataItemQuery
         }
 
         sql.append( maxLimit( paramsMap ) );
+
+        return sql.toString();
+    }
+
+    private String specificDisplayNameFilter( final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
+        {
+            if ( hasStringPresence( paramsMap, LOCALE ) )
+            {
+                sql.append( fetchDisplayName( paramsMap, true ) );
+            }
+            else
+            {
+                // User does not have any locale set.
+                sql.append( " AND ( dataelement.\"name\" ILIKE :" + DISPLAY_NAME + ")" );
+            }
+        }
+
+        return sql.toString();
+    }
+
+    private String specificLocaleFilter( final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        if ( !hasStringPresence( paramsMap, DISPLAY_NAME ) && hasStringPresence( paramsMap, LOCALE ) )
+        {
+            // If we reach here it means that we do not have a display name
+            // filter set.
+            // And the user has a default locale configured.
+            sql.append( fetchDisplayName( paramsMap, false ) );
+        }
+
+        return sql.toString();
+    }
+
+    private String fetchDisplayName( final MapSqlParameterSource paramsMap, boolean filterByDisplayName )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        sql.append( " AND displayname.locale = :" + LOCALE )
+            .append( " AND displayname.property = 'NAME'" );
+
+        if ( filterByDisplayName )
+        {
+            sql.append( " AND displayname.value ILIKE :" + DISPLAY_NAME );
+        }
+
+        sql.append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" )
+            .append( " UNION " )
+            .append(
+                " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
+            .append(
+                " FROM dataelement, jsonb_to_recordset(dataelement.translations) AS displayname(locale TEXT, property TEXT)" )
+            .append( " WHERE dataelement.uid" )
+            .append( " NOT IN (" )
+            .append( " SELECT dataelement.uid FROM dataelement," )
+            .append(
+                " jsonb_to_recordset(dataelement.translations) AS displayname(locale TEXT, property TEXT)" )
+            .append( " WHERE displayname.locale = :" + LOCALE )
+            .append( ")" )
+            .append( " AND displayname.property = 'NAME'" );
+
+        if ( filterByDisplayName )
+        {
+            sql.append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME );
+        }
+
+        sql.append( valueTypeFiltering( "dataelement", paramsMap ) )
+            .append( uidFiltering( "dataelement", paramsMap ) )
+            .append( " UNION " )
+            .append(
+                " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
+            .append( " FROM dataelement" )
+            .append( " WHERE (dataelement.translations = '[]' OR dataelement.translations IS NULL)" );
+
+        if ( filterByDisplayName )
+        {
+            sql.append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME );
+        }
+
+        sql.append( valueTypeFiltering( "dataelement", paramsMap ) )
+            .append( uidFiltering( "dataelement", paramsMap ) )
+            .append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" );
 
         return sql.toString();
     }
