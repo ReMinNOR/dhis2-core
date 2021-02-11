@@ -39,9 +39,9 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFi
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
+import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.displayNameOrdering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
@@ -204,7 +204,7 @@ public class ProgramAttributeQuery implements DataItemQuery
                 // 7, 8, 4 means p_i18n_name, tea_i18n_name and
                 // trackedentityattribute.uid
                 // respectively
-                sql.append( addOrderingStatement( paramsMap, "7, 8, 4" ) );
+                sql.append( displayNameOrdering( "7, 8, 4", paramsMap ) );
             }
             else
             {
@@ -219,7 +219,7 @@ public class ProgramAttributeQuery implements DataItemQuery
                 // trackedentityattribute."name" and
                 // trackedentityattribute.uid
                 // respectively
-                sql.append( addOrderingStatement( paramsMap, "1, 3, 4" ) );
+                sql.append( displayNameOrdering( "1, 3, 4", paramsMap ) );
             }
         }
 
@@ -237,7 +237,7 @@ public class ProgramAttributeQuery implements DataItemQuery
             // 7, 8, 4 means p_i18n_name, tea_i18n_name and
             // trackedentityattribute.uid
             // respectively
-            sql.append( addOrderingStatement( paramsMap, "7, 8, 4" ) );
+            sql.append( displayNameOrdering( "7, 8, 4", paramsMap ) );
         }
 
         return sql.toString();
@@ -257,7 +257,7 @@ public class ProgramAttributeQuery implements DataItemQuery
             // trackedentityattribute."name" and
             // trackedentityattribute.uid
             // respectively
-            sql.append( addOrderingStatement( paramsMap, "1, 3, 4" ) );
+            sql.append( displayNameOrdering( "1, 3, 4", paramsMap ) );
         }
 
         return sql.toString();
@@ -353,18 +353,6 @@ public class ProgramAttributeQuery implements DataItemQuery
             .append( " AND (" + sharingConditions( "program", "trackedentityattribute", paramsMap ) + ")" )
             .append( " GROUP BY program.uid, trackedentityattribute.uid, p_i18n_name, tea_i18n_name,"
                 + " trackedentityattribute.valuetype, trackedentityattribute.code" );
-
-        return sql.toString();
-    }
-
-    private String addOrderingStatement( final MapSqlParameterSource paramsMap, final String orderingColumns )
-    {
-        final StringBuilder sql = new StringBuilder();
-
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
-        {
-            sql.append( " ORDER BY " + orderingColumns + SPACE + paramsMap.getValue( DISPLAY_NAME_ORDER ) );
-        }
 
         return sql.toString();
     }

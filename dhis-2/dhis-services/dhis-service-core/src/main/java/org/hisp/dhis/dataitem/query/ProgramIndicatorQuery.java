@@ -29,7 +29,6 @@ package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
@@ -39,9 +38,9 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFi
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
+import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.displayNameOrdering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
@@ -209,7 +208,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
                 // 5, 2 means pi_i18n_name and programindicator.uid
                 // respectively
-                sql.append( addOrderingStatement( paramsMap, "5, 2" ) );
+                sql.append( displayNameOrdering( "5, 2", paramsMap ) );
             }
             else
             {
@@ -222,7 +221,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
                 // 1, 2 means programindicator."name" and
                 // programindicator.uid respectively
-                sql.append( addOrderingStatement( paramsMap, "1, 2" ) );
+                sql.append( displayNameOrdering( "1, 2", paramsMap ) );
             }
         }
 
@@ -240,7 +239,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
             // 5, 2 means pi_i18n_name and programindicator.uid
             // respectively
-            sql.append( addOrderingStatement( paramsMap, "5, 2" ) );
+            sql.append( displayNameOrdering( "5, 2", paramsMap ) );
         }
 
         return sql.toString();
@@ -321,18 +320,6 @@ public class ProgramIndicatorQuery implements DataItemQuery
             .append( " AND (" + sharingConditions( "programindicator", paramsMap ) + ")" )
             .append(
                 " GROUP BY programindicator.\"name\", programindicator.uid, program.uid, programindicator.code" );
-
-        return sql.toString();
-    }
-
-    private String addOrderingStatement( final MapSqlParameterSource paramsMap, final String orderingColumns )
-    {
-        final StringBuilder sql = new StringBuilder();
-
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
-        {
-            sql.append( " ORDER BY " + orderingColumns + SPACE + paramsMap.getValue( DISPLAY_NAME_ORDER ) );
-        }
 
         return sql.toString();
     }

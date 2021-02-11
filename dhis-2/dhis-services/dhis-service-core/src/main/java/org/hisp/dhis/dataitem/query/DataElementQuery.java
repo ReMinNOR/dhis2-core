@@ -37,7 +37,6 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFilteri
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
-import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.displayColumnOrdering;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
@@ -53,6 +52,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataitem.DataItem;
+import org.hisp.dhis.dataitem.query.shared.OrderingStatement;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -177,12 +177,12 @@ public class DataElementQuery implements DataItemQuery
             if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
             {
                 // 5 means i18n_name
-                sql.append( displayColumnOrdering( 5, paramsMap ) );
+                sql.append( OrderingStatement.displayNameOrdering( 5, paramsMap ) );
             }
             else
             {
                 // 2 means name
-                sql.append( displayColumnOrdering( 2, paramsMap ) );
+                sql.append( OrderingStatement.displayNameOrdering( 2, paramsMap ) );
             }
         }
         else if ( hasStringPresence( paramsMap, NAME_ORDER ) )

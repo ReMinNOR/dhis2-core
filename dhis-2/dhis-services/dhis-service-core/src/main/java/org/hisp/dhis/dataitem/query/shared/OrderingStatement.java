@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
@@ -50,35 +51,36 @@ public class OrderingStatement
 
         if ( hasStringPresence( paramsMap, NAME_ORDER ) )
         {
-            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( NAME_ORDER ) ) )
+            ordering.append( " ORDER BY " + tableName + ".\"name\", uid " + paramsMap.getValue( NAME_ORDER ) );
+        }
+
+        return ordering.toString();
+    }
+
+    public static String displayNameOrdering( final int columnNumber, final MapSqlParameterSource paramsMap )
+    {
+        final StringBuilder ordering = new StringBuilder();
+
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+        {
+            if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
             {
-                ordering.append( " ORDER BY " + tableName + ".\"name\", uid ASC" );
-            }
-            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( NAME_ORDER ) ) )
-            {
-                ordering.append( " ORDER BY " + tableName + ".\"name\", uid DESC" );
+                ordering.append( " ORDER BY " + columnNumber + SPACE + paramsMap.getValue( DISPLAY_NAME_ORDER ) );
             }
         }
 
         return ordering.toString();
     }
 
-    public static String displayColumnOrdering( final int columnNumber, final MapSqlParameterSource paramsMap )
+    public static String displayNameOrdering( final String orderingColumns, final MapSqlParameterSource paramsMap )
     {
-        final StringBuilder ordering = new StringBuilder();
+        final StringBuilder sql = new StringBuilder();
 
         if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
         {
-            if ( "ASC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-            {
-                ordering.append( " ORDER BY " + columnNumber + ", uid ASC" );
-            }
-            else if ( "DESC".equalsIgnoreCase( (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) ) )
-            {
-                ordering.append( " ORDER BY " + columnNumber + ", uid DESC" );
-            }
+            sql.append( " ORDER BY " + orderingColumns + SPACE + paramsMap.getValue( DISPLAY_NAME_ORDER ) );
         }
 
-        return ordering.toString();
+        return sql.toString();
     }
 }
