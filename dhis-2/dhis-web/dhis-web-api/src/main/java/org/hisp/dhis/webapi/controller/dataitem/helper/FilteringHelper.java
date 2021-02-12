@@ -312,11 +312,11 @@ public class FilteringHelper
             paramsMap.addValue( DISPLAY_NAME, wrap( trimToEmpty( ilikeDisplayName ), "%" ) );
         }
 
-        final String ilikeId = extractValueFromFilter( filters, ID_EQUAL );
+        final String equalId = extractValueFromFilter( filters, ID_EQUAL );
 
-        if ( isNotBlank( ilikeId ) )
+        if ( isNotBlank( equalId ) )
         {
-            paramsMap.addValue( UID, ilikeId );
+            paramsMap.addValue( UID, equalId );
         }
 
         final String rootJunction = options.getRootJunction().name();

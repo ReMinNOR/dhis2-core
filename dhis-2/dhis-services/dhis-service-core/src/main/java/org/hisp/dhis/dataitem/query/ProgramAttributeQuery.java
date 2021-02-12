@@ -34,19 +34,24 @@ import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.ValueType.fromString;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.displayNameOrdering;
+import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
@@ -61,13 +66,23 @@ import org.springframework.stereotype.Component;
 
 /**
  * This component is responsible for providing query capabilities on top of
- * ProgramTrackedEntityAttributeDimensionItems.
+ * ProgramTrackedEntityAttributeDimensionItem objects.
  *
  * @author maikel arabori
  */
+@Slf4j
 @Component
 public class ProgramAttributeQuery implements DataItemQuery
 {
+    private static final String COMMON_COLUMNS = "program.\"name\" AS program_name, program.uid AS program_uid,"
+        + " trackedentityattribute.uid, trackedentityattribute.\"name\", trackedentityattribute.valuetype, trackedentityattribute.code,"
+        + " trackedentityattribute.sharing AS trackedentityattribute_sharing, program.sharing AS program_sharing";
+
+    private static final String COMMON_UIDS = "program.uid, trackedentityattribute.uid";
+
+    private static final String JOINS = " JOIN program_attributes ON program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid"
+        + " JOIN program ON program_attributes.programid = program.programid";
+
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public ProgramAttributeQuery( @Qualifier( "readOnlyJdbcTemplate" )
@@ -137,223 +152,182 @@ public class ProgramAttributeQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder();
 
-        sql.append(
-            "SELECT program.\"name\" AS program_name, program.uid AS program_uid, trackedentityattribute.\"name\", trackedentityattribute.uid," )
-            .append( " trackedentityattribute.valuetype, trackedentityattribute.code" );
+        // Creating a temp translated table to be queried.
+        sql.append( "SELECT * FROM (" );
 
         if ( hasStringPresence( paramsMap, LOCALE ) )
         {
-            sql.append( ", p_displayname.value AS p_i18n_name" )
-                .append( ", tea_displayname.value AS tea_i18n_name" );
+            // Selecting only rows that contains both programs and
+            // tracked entity attributes
+            // translations at the same time.
+            sql.append( selectRowsContainingBothTranslatedNames( false ) )
+
+                .append( " UNION" )
+
+                // Selecting only rows with translated programs.
+                .append( selectRowsContainingOnlyTranslatedProgramNames( false ) )
+
+                .append( " UNION" )
+
+                // Selecting only rows with translated tracked entity
+                // attributes.
+                .append( selectRowsContainingOnlyTranslatedTrackedEntityAttributeNames( false ) )
+
+                .append( " UNION" )
+
+                // Selecting ALL rows, not taking into consideration
+                // translations.
+                .append( selectAllRowsIgnoringAnyTranslation() )
+
+                /// AND excluding ALL translated rows previously selected
+                /// (translated programs and translated tracked entity
+                /// attributes).
+                .append( " WHERE (" + COMMON_UIDS + ") NOT IN (" )
+
+                .append( selectRowsContainingBothTranslatedNames( true ) )
+
+                .append( " UNION" )
+
+                // Selecting only rows with translated programs.
+                .append( selectRowsContainingOnlyTranslatedProgramNames( true ) )
+
+                .append( " UNION" )
+
+                // Selecting only rows with translated tracked entity
+                // attributes.
+                .append( selectRowsContainingOnlyTranslatedTrackedEntityAttributeNames( true ) )
+
+                // Closing NOT IN exclusions.
+                .append( ")" );
         }
         else
         {
-            sql.append( ", program.\"name\" AS p_i18n_name" )
-                .append( ", trackedentityattribute.\"name\" AS tea_i18n_name" );
-
+            // Retrieving all rows ignoring translation as no locale is defined.
+            sql.append( selectAllRowsIgnoringAnyTranslation() );
         }
 
-        sql.append( " FROM trackedentityattribute" )
-            .append(
-                " JOIN program_attributes ON program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid" )
-            .append( " JOIN program ON program_attributes.programid = program.programid" );
+        sql.append(
+            " GROUP BY program.\"name\", trackedentityattribute.\"name\", " + COMMON_UIDS
+                + ", trackedentityattribute.valuetype, trackedentityattribute.code, p_i18n_name, tea_i18n_name,"
+                + " program_sharing, trackedentityattribute_sharing" );
 
-        if ( hasStringPresence( paramsMap, LOCALE ) )
+        // Closing the temp table.
+        sql.append( " ) t" );
+
+        sql.append( " WHERE" );
+
+        // Applying filters, ordering and limits.
+        sql.append( always( sharingConditions( "t.program_sharing",
+            "t.trackedentityattribute_sharing", paramsMap ) ) );
+
+        sql.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
+        sql.append( ifSet( displayFiltering( "t.p_i18n_name", "t.tea_i18n_name", paramsMap ) ) );
+        sql.append( ifSet( nameFiltering( "t.program_name", "t.name", paramsMap ) ) );
+        sql.append( ifSet( programIdFiltering( "t.program_uid", paramsMap ) ) );
+        sql.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
+
+        sql.append( ifSet( nameOrdering( "t.program_name, t.name, t.uid", paramsMap ) ) );
+        sql.append( ifSet( displayNameOrdering( "t.p_i18n_name, t.tea_i18n_name, t.uid", paramsMap ) ) );
+
+        sql.append( ifSet( maxLimit( paramsMap ) ) );
+
+        final String fullStatement = sql.toString();
+
+        log.trace( "Full SQL: " + fullStatement );
+
+        return fullStatement;
+    }
+
+    private String selectRowsContainingBothTranslatedNames( final boolean onlyUidColumns )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        if ( onlyUidColumns )
         {
-            sql.append(
-                " LEFT JOIN jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
-                    + LOCALE + " AND p_displayname.property = 'NAME'" );
-            sql.append(
-                " LEFT JOIN jsonb_to_recordset(trackedentityattribute.translations) as tea_displayname(value TEXT, locale TEXT, property TEXT) ON tea_displayname.locale = :"
-                    + LOCALE + " AND tea_displayname.property = 'NAME'" );
+            sql.append( " SELECT " + COMMON_UIDS );
+        }
+        else
+        {
+            sql.append( " SELECT " + COMMON_COLUMNS )
+                .append( ", p_displayname.value AS p_i18n_name, tea_displayname.value AS tea_i18n_name" );
         }
 
-        sql.append( " WHERE (" )
-            .append( sharingConditions( "program", "trackedentityattribute", paramsMap ) )
+        sql.append( " FROM trackedentityattribute " )
+            .append( JOINS )
+            .append(
+                " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
+                    + LOCALE + " AND p_displayname.property = 'NAME'" )
+            .append(
+                " JOIN jsonb_to_recordset(trackedentityattribute.translations) AS tea_displayname(value TEXT, locale TEXT, property TEXT) ON tea_displayname.locale = :"
+                    + LOCALE + " AND tea_displayname.property = 'NAME'" );
+
+        return sql.toString();
+    }
+
+    private String selectRowsContainingOnlyTranslatedProgramNames( final boolean onlyUidColumns )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        if ( onlyUidColumns )
+        {
+            sql.append( " SELECT " + COMMON_UIDS );
+        }
+        else
+        {
+            sql.append( " SELECT " + COMMON_COLUMNS )
+                .append( ", p_displayname.value AS p_i18n_name, trackedentityattribute.\"name\" AS tea_i18n_name" );
+        }
+
+        sql.append( " FROM trackedentityattribute " )
+            .append( JOINS )
+            .append(
+                " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
+                    + LOCALE + " AND p_displayname.property = 'NAME'" )
+            .append( " WHERE (" + COMMON_UIDS + ")" )
+            .append( " NOT IN (" )
+
+            // Exclude rows already fully translated.
+            .append( selectRowsContainingBothTranslatedNames( true ) )
             .append( ")" );
 
-        sql.append( nameFiltering( "program", "trackedentityattribute", paramsMap ) );
+        return sql.toString();
+    }
 
-        sql.append( valueTypeFiltering( "trackedentityattribute", paramsMap ) );
+    private String selectRowsContainingOnlyTranslatedTrackedEntityAttributeNames( final boolean onlyUidColumns )
+    {
+        final StringBuilder sql = new StringBuilder();
 
-        sql.append( programIdFiltering( paramsMap ) );
+        if ( onlyUidColumns )
+        {
+            sql.append( " SELECT " + COMMON_UIDS );
+        }
+        else
+        {
+            sql.append( " SELECT " + COMMON_COLUMNS )
+                .append( ", program.\"name\" AS p_i18n_name, tea_displayname.value AS tea_i18n_name" );
+        }
 
-        sql.append( uidFiltering( "trackedentityattribute", paramsMap ) );
+        sql.append( " FROM trackedentityattribute " )
+            .append( JOINS )
+            .append(
+                " JOIN jsonb_to_recordset(trackedentityattribute.translations) AS tea_displayname(value TEXT, locale TEXT, property TEXT) ON tea_displayname.locale = :"
+                    + LOCALE + " AND tea_displayname.property = 'NAME'" )
+            .append( " WHERE (" + COMMON_UIDS + ")" )
+            .append( " NOT IN (" )
 
-        sql.append( specificDisplayNameFilter( paramsMap ) );
-
-        sql.append( specificLocaleFilter( paramsMap ) );
-
-        sql.append( noDisplayNameAndNoLocaleFilter( paramsMap ) );
-
-        sql.append( maxLimit( paramsMap ) );
+            // Exclude rows already fully translated.
+            .append( selectRowsContainingBothTranslatedNames( true ) )
+            .append( ")" );
 
         return sql.toString();
     }
 
-    private String specificDisplayNameFilter( final MapSqlParameterSource paramsMap )
+    private String selectAllRowsIgnoringAnyTranslation()
     {
-        final StringBuilder sql = new StringBuilder();
-
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
-        {
-            if ( hasStringPresence( paramsMap, LOCALE ) )
-            {
-                sql.append( fetchDisplayName( paramsMap, true ) );
-
-                // 7, 8, 4 means p_i18n_name, tea_i18n_name and
-                // trackedentityattribute.uid
-                // respectively
-                sql.append( displayNameOrdering( "7, 8, 4", paramsMap ) );
-            }
-            else
-            {
-                // User does not have any locale set.
-                sql.append( " AND (program.\"name\" ILIKE :" + DISPLAY_NAME
-                    + " OR trackedentityattribute.\"name\" ILIKE :" + DISPLAY_NAME + ")" );
-
-                sql.append( " GROUP BY program.uid, trackedentityattribute.uid, p_i18n_name, tea_i18n_name,"
-                    + " trackedentityattribute.valuetype, trackedentityattribute.code" );
-
-                // 1, 3, 4 means program."name",
-                // trackedentityattribute."name" and
-                // trackedentityattribute.uid
-                // respectively
-                sql.append( displayNameOrdering( "1, 3, 4", paramsMap ) );
-            }
-        }
-
-        return sql.toString();
-    }
-
-    private String specificLocaleFilter( final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder sql = new StringBuilder();
-
-        if ( !hasStringPresence( paramsMap, DISPLAY_NAME ) && hasStringPresence( paramsMap, LOCALE ) )
-        {
-            sql.append( fetchDisplayName( paramsMap, false ) );
-
-            // 7, 8, 4 means p_i18n_name, tea_i18n_name and
-            // trackedentityattribute.uid
-            // respectively
-            sql.append( displayNameOrdering( "7, 8, 4", paramsMap ) );
-        }
-
-        return sql.toString();
-    }
-
-    private String noDisplayNameAndNoLocaleFilter( final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder sql = new StringBuilder();
-
-        if ( !hasStringPresence( paramsMap, DISPLAY_NAME ) && !hasStringPresence( paramsMap, LOCALE ) )
-        {
-            // No filter by display name is set and any locale is defined.
-            sql.append( " GROUP BY program.uid, trackedentityattribute.uid, p_i18n_name, tea_i18n_name,"
-                + " trackedentityattribute.valuetype, trackedentityattribute.code" );
-
-            // 1, 3, 4 means program."name",
-            // trackedentityattribute."name" and
-            // trackedentityattribute.uid
-            // respectively
-            sql.append( displayNameOrdering( "1, 3, 4", paramsMap ) );
-        }
-
-        return sql.toString();
-    }
-
-    private String fetchDisplayName( final MapSqlParameterSource paramsMap, boolean filterByDisplayName )
-    {
-        final StringBuilder sql = new StringBuilder();
-
-        if ( filterByDisplayName )
-        {
-            sql.append( " AND (tea_displayname.value ILIKE :" + DISPLAY_NAME
-                + " OR p_displayname.value ILIKE :"
-                + DISPLAY_NAME + ")" );
-        }
-
-        sql.append( " AND p_displayname.value IS NOT NULL" )
-            .append( " AND tea_displayname.value IS NOT NULL" );
-
-        sql.append( " UNION " )
-            .append(
-                " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
-            .append(
-                " trackedentityattribute.name, trackedentityattribute.\"uid\", trackedentityattribute.valuetype, trackedentityattribute.code," )
-            .append(
-                " program.\"name\" AS p_i18n_name, trackedentityattribute.\"name\" AS tea_i18n_name" )
-            .append( " FROM trackedentityattribute" )
-            .append(
-                " JOIN program_attributes ON program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid" )
-            .append( " JOIN program ON program_attributes.programid = program.programid" )
-            .append(
-                " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
-            .append(
-                " LEFT JOIN jsonb_to_recordset(trackedentityattribute.translations) AS tea_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
-            .append( " WHERE " )
-            .append( " trackedentityattribute.uid NOT IN (" )
-            .append( " SELECT trackedentityattribute.uid" )
-            .append( " FROM trackedentityattribute" )
-            .append(
-                " JOIN program_attributes ON program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid" )
-            .append( " JOIN program ON program_attributes.programid = program.programid" )
-            .append(
-                " LEFT JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
-            .append(
-                " LEFT JOIN jsonb_to_recordset(trackedentityattribute.translations) AS tea_displayname(value TEXT, locale TEXT, property TEXT) ON TRUE" )
-            .append( "  WHERE" )
-            .append( " (tea_displayname.locale = :" + LOCALE + ")" )
-            .append( " OR" )
-            .append( " (p_displayname.locale = :" + LOCALE + ")" )
-            .append( " )" );
-
-        if ( filterByDisplayName )
-        {
-            sql.append( " AND tea_displayname.value IS NOT NULL " )
-                .append( " AND (trackedentityattribute.name ILIKE :" +
-                    DISPLAY_NAME + " OR program.name ILIKE :" + DISPLAY_NAME + ")" );
-        }
-
-        sql.append( valueTypeFiltering( "trackedentityattribute", paramsMap ) )
-            .append( uidFiltering( "trackedentityattribute", paramsMap ) )
-            .append( programIdFiltering( paramsMap ) )
-            .append( " AND (" + sharingConditions( "program", "trackedentityattribute", paramsMap ) + ")" )
-            .append( " UNION " )
-            .append( " SELECT program.\"name\" AS program_name, program.uid AS program_uid," )
-            .append(
-                " trackedentityattribute.name, trackedentityattribute.\"uid\", trackedentityattribute.valuetype, trackedentityattribute.code," )
-            .append(
-                " program.\"name\" AS p_i18n_name, trackedentityattribute.\"name\" AS tea_i18n_name" )
-            .append( " FROM trackedentityattribute" )
-            .append(
-                " JOIN program_attributes ON program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid" )
-            .append( " JOIN program ON program_attributes.programid = program.programid" )
-            .append( " WHERE" )
-            .append(
-                " (trackedentityattribute.translations = '[]' OR trackedentityattribute.translations IS NULL)" );
-
-        if ( filterByDisplayName )
-        {
-            sql.append( "AND trackedentityattribute.name ILIKE :" + DISPLAY_NAME );
-        }
-
-        sql.append( " AND" )
-            .append( " (program.translations = '[]' OR program.translations IS NULL)" );
-
-        if ( filterByDisplayName )
-        {
-            sql.append( " AND program.name ILIKE :" + DISPLAY_NAME );
-        }
-
-        sql.append( valueTypeFiltering( "trackedentityattribute", paramsMap ) )
-            .append( uidFiltering( "trackedentityattribute", paramsMap ) )
-            .append( programIdFiltering( paramsMap ) )
-            .append( " AND (" + sharingConditions( "program", "trackedentityattribute", paramsMap ) + ")" )
-            .append( " GROUP BY program.uid, trackedentityattribute.uid, p_i18n_name, tea_i18n_name,"
-                + " trackedentityattribute.valuetype, trackedentityattribute.code" );
-
-        return sql.toString();
+        return new StringBuilder()
+            .append( " SELECT " + COMMON_COLUMNS )
+            .append( ", program.\"name\" AS p_i18n_name, trackedentityattribute.\"name\" AS tea_i18n_name" )
+            .append( " FROM trackedentityattribute " )
+            .append( JOINS ).toString();
     }
 }

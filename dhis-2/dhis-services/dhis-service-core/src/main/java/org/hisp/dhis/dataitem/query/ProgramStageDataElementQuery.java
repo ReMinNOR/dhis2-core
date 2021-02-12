@@ -32,15 +32,15 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
-import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
+import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFiltering;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.displayNameOrdering;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
@@ -54,8 +54,9 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.DataItem;
-import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -65,25 +66,27 @@ import org.springframework.stereotype.Component;
 
 /**
  * This component is responsible for providing query capabilities on top of
- * ProgramIndicator objects.
+ * ProgramDataElementDimensionItem objects.
  *
  * @author maikel arabori
  */
 @Slf4j
 @Component
-public class ProgramIndicatorQuery implements DataItemQuery
+public class ProgramStageDataElementQuery implements DataItemQuery
 {
-    private static final String COMMON_COLUMNS = "programindicator.\"name\", programindicator.uid, programindicator.code,"
-        + " program.\"name\" AS program_name, program.uid AS program_uid, program.sharing AS program_sharing,"
-        + " programindicator.sharing AS programindicator_sharing";
+    private static final String COMMON_COLUMNS = "program.\"name\" AS program_name, program.uid AS program_uid,"
+        + " dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code,"
+        + " dataelement.sharing AS dataelement_sharing, program.sharing AS program_sharing";
 
-    private static final String COMMON_UIDS = "program.uid, programindicator.uid";
+    private static final String COMMON_UIDS = "program.uid, dataelement.uid";
 
-    private static final String JOINS = "JOIN program ON program.programid = programindicator.programid";
+    private static final String JOINS = "JOIN programstagedataelement ON programstagedataelement.dataelementid = dataelement.dataelementid"
+        + " JOIN programstage ON programstagedataelement.programstageid = programstage.programstageid"
+        + " JOIN program ON program.programid = programstage.programid";
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public ProgramIndicatorQuery( @Qualifier( "readOnlyJdbcTemplate" )
+    public ProgramStageDataElementQuery( @Qualifier( "readOnlyJdbcTemplate" )
     final JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
@@ -95,42 +98,27 @@ public class ProgramIndicatorQuery implements DataItemQuery
     {
         final List<DataItem> dataItems = new ArrayList<>();
 
-        // Very specific case, for Indicator objects, needed to handle filter by
-        // value type NUMBER.
-        // When the value type filter does not have a NUMBER type, we should not
-        // execute this query.
-        // It returns an empty instead.
-        if ( skipValueType( NUMBER, paramsMap ) )
-        {
-            return dataItems;
-        }
-
-        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
-            getProgramIndicatorQuery( paramsMap ), paramsMap );
+        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( getProgramDataElementQuery( paramsMap ),
+            paramsMap );
 
         while ( rowSet.next() )
         {
             final DataItem viewItem = new DataItem();
+            final ValueType valueType = fromString( rowSet.getString( "valuetype" ) );
             final String name = trimToEmpty(
                 rowSet.getString( "program_name" ) + SPACE + trimToEmpty( rowSet.getString( "name" ) ) );
             final String displayName = defaultIfBlank( rowSet.getString( "p_i18n_name" ),
                 rowSet.getString( "program_name" ) ) + SPACE
-                + defaultIfBlank( rowSet.getString( "pi_i18n_name" ), trimToEmpty( rowSet.getString( "name" ) ) );
+                + defaultIfBlank( rowSet.getString( "de_i18n_name" ), trimToEmpty( rowSet.getString( "name" ) ) );
 
             viewItem.setName( name );
             viewItem.setDisplayName( displayName );
-            viewItem.setName( name );
-            viewItem.setDisplayName( displayName );
+            viewItem.setValueType( valueType.name() );
+            viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );
-            viewItem.setId( rowSet.getString( "uid" ) );
+            viewItem.setId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
             viewItem.setCode( rowSet.getString( "code" ) );
-            viewItem.setDimensionItemType( PROGRAM_INDICATOR.name() );
-
-            // Specific case where we have to force a vale type. Program
-            // Indicators don't have a value type but they always evaluate to
-            // numbers.
-            viewItem.setValueType( NUMBER.name() );
-            viewItem.setSimplifiedValueType( NUMBER.name() );
+            viewItem.setDimensionItemType( PROGRAM_DATA_ELEMENT.name() );
 
             dataItems.add( viewItem );
         }
@@ -141,20 +129,10 @@ public class ProgramIndicatorQuery implements DataItemQuery
     @Override
     public int count( final MapSqlParameterSource paramsMap )
     {
-        // Very specific case, for Indicator objects, needed to handle filter by
-        // value type NUMBER.
-        // When the value type filter does not have a NUMBER type, we should not
-        // execute this query.
-        // It returns ZERO.
-        if ( skipValueType( NUMBER, paramsMap ) )
-        {
-            return 0;
-        }
-
         final StringBuilder sql = new StringBuilder();
 
         sql.append( "SELECT COUNT(*) FROM (" )
-            .append( getProgramIndicatorQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
+            .append( getProgramDataElementQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
@@ -163,10 +141,10 @@ public class ProgramIndicatorQuery implements DataItemQuery
     @Override
     public Class<? extends BaseDimensionalItemObject> getAssociatedEntity()
     {
-        return ProgramIndicator.class;
+        return ProgramDataElementDimensionItem.class;
     }
 
-    private String getProgramIndicatorQuery( final MapSqlParameterSource paramsMap )
+    private String getProgramDataElementQuery( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder();
 
@@ -175,8 +153,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
         if ( hasStringPresence( paramsMap, LOCALE ) )
         {
-            // Selecting only rows that contains both programs and program
-            // indicators translations at the same time.
+            // Selecting only rows that contains both programs and data elements
+            // translations at the same time.
             sql.append( selectRowsContainingBothTranslatedNames( false ) )
 
                 .append( " UNION" )
@@ -186,8 +164,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
                 .append( " UNION" )
 
-                // Selecting only rows with translated program indicators.
-                .append( selectRowsContainingOnlyTranslatedProgramIndicatorNames( false ) )
+                // Selecting only rows with translated data elements.
+                .append( selectRowsContainingOnlyTranslatedDataElementNames( false ) )
 
                 .append( " UNION" )
 
@@ -196,7 +174,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
                 .append( selectAllRowsIgnoringAnyTranslation() )
 
                 /// AND excluding ALL translated rows previously selected
-                /// (translated programs and translated program indicators).
+                /// (translated programs and translated data elements).
                 .append( " WHERE (" + COMMON_UIDS + ") NOT IN (" )
 
                 .append( selectRowsContainingBothTranslatedNames( true ) )
@@ -208,8 +186,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
                 .append( " UNION" )
 
-                // Selecting only rows with translated program indicators.
-                .append( selectRowsContainingOnlyTranslatedProgramIndicatorNames( true ) )
+                // Selecting only rows with translated data elements.
+                .append( selectRowsContainingOnlyTranslatedDataElementNames( true ) )
 
                 // Closing NOT IN exclusions.
                 .append( ")" );
@@ -221,8 +199,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
         }
 
         sql.append(
-            " GROUP BY program.\"name\", programindicator.\"name\", " + COMMON_UIDS
-                + ", programindicator.code, p_i18n_name, pi_i18n_name, program_sharing, programindicator_sharing" );
+            " GROUP BY program.\"name\", dataelement.\"name\", " + COMMON_UIDS
+                + ", dataelement.valuetype, dataelement.code, p_i18n_name, de_i18n_name, program_sharing, dataelement_sharing" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -231,15 +209,16 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
         // Applying filters, ordering and limits.
         sql.append( always( sharingConditions( "t.program_sharing",
-            "t.programindicator_sharing", paramsMap ) ) );
+            "t.dataelement_sharing", paramsMap ) ) );
 
-        sql.append( ifSet( displayFiltering( "t.p_i18n_name", "t.pi_i18n_name", paramsMap ) ) );
+        sql.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
+        sql.append( ifSet( displayFiltering( "t.p_i18n_name", "t.de_i18n_name", paramsMap ) ) );
         sql.append( ifSet( nameFiltering( "t.program_name", "t.name", paramsMap ) ) );
         sql.append( ifSet( programIdFiltering( "t.program_uid", paramsMap ) ) );
         sql.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
 
         sql.append( ifSet( nameOrdering( "t.program_name, t.name, t.uid", paramsMap ) ) );
-        sql.append( ifSet( displayNameOrdering( "t.p_i18n_name, t.pi_i18n_name, t.uid", paramsMap ) ) );
+        sql.append( ifSet( displayNameOrdering( "t.p_i18n_name, t.de_i18n_name, t.uid", paramsMap ) ) );
 
         sql.append( ifSet( maxLimit( paramsMap ) ) );
 
@@ -261,17 +240,17 @@ public class ProgramIndicatorQuery implements DataItemQuery
         else
         {
             sql.append( " SELECT " + COMMON_COLUMNS )
-                .append( ", p_displayname.value AS p_i18n_name, pi_displayname.value AS pi_i18n_name" );
+                .append( ", p_displayname.value AS p_i18n_name, de_displayname.value AS de_i18n_name" );
         }
 
-        sql.append( " FROM programindicator " )
+        sql.append( " FROM dataelement " )
             .append( JOINS )
             .append(
                 " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
                     + LOCALE + " AND p_displayname.property = 'NAME'" )
             .append(
-                " JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON pi_displayname.locale = :"
-                    + LOCALE + " AND pi_displayname.property = 'NAME'" );
+                " JOIN jsonb_to_recordset(dataelement.translations) AS de_displayname(value TEXT, locale TEXT, property TEXT) ON de_displayname.locale = :"
+                    + LOCALE + " AND de_displayname.property = 'NAME'" );
 
         return sql.toString();
     }
@@ -287,10 +266,10 @@ public class ProgramIndicatorQuery implements DataItemQuery
         else
         {
             sql.append( " SELECT " + COMMON_COLUMNS )
-                .append( ", p_displayname.value AS p_i18n_name, programindicator.\"name\" AS pi_i18n_name" );
+                .append( ", p_displayname.value AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" );
         }
 
-        sql.append( " FROM programindicator " )
+        sql.append( " FROM dataelement " )
             .append( JOINS )
             .append(
                 " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
@@ -305,7 +284,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         return sql.toString();
     }
 
-    private String selectRowsContainingOnlyTranslatedProgramIndicatorNames( final boolean onlyUidColumns )
+    private String selectRowsContainingOnlyTranslatedDataElementNames( final boolean onlyUidColumns )
     {
         final StringBuilder sql = new StringBuilder();
 
@@ -316,14 +295,14 @@ public class ProgramIndicatorQuery implements DataItemQuery
         else
         {
             sql.append( " SELECT " + COMMON_COLUMNS )
-                .append( ", program.\"name\" AS p_i18n_name, pi_displayname.value AS pi_i18n_name" );
+                .append( ", program.\"name\" AS p_i18n_name, de_displayname.value AS de_i18n_name" );
         }
 
-        sql.append( " FROM programindicator " )
+        sql.append( " FROM dataelement " )
             .append( JOINS )
             .append(
-                " JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON pi_displayname.locale = :"
-                    + LOCALE + " AND pi_displayname.property = 'NAME'" )
+                " JOIN jsonb_to_recordset(dataelement.translations) AS de_displayname(value TEXT, locale TEXT, property TEXT) ON de_displayname.locale = :"
+                    + LOCALE + " AND de_displayname.property = 'NAME'" )
             .append( " WHERE (" + COMMON_UIDS + ")" )
             .append( " NOT IN (" )
 
@@ -338,8 +317,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( " SELECT " + COMMON_COLUMNS )
-            .append( ", program.\"name\" AS p_i18n_name, programindicator.\"name\" AS pi_i18n_name" )
-            .append( " FROM programindicator " )
+            .append( ", program.\"name\" AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" )
+            .append( " FROM dataelement " )
             .append( JOINS ).toString();
     }
 }

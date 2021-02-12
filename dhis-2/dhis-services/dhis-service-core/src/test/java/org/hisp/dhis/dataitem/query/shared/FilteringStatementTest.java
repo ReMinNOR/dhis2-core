@@ -50,94 +50,93 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 public class FilteringStatementTest
 {
     @Test
-    public void testCommonFilteringUsingOneTableAliasAndIlikeFilterIsSet()
+    public void testCommonFilteringUsingOneColumnAndIlikeFilterIsSet()
     {
         // Given
-        final String aTableAlias = "de";
+        final String aColumn = "anyColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME, "abc" );
-        final String expectedStatement = " AND (" + aTableAlias + ".\"name\" ILIKE :" + NAME + ")";
+        final String expectedStatement = " AND (anyColumn ILIKE :name)";
 
         // When
-        final String resultStatement = nameFiltering( aTableAlias, theParameterSource );
+        final String resultStatement = nameFiltering( aColumn, theParameterSource );
 
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testCommonFilteringUsingOneTableAliasAndIlikeFilterIsNotSet()
+    public void testCommonFilteringUsingOneColumnAndIlikeFilterIsNotSet()
     {
         // Given
-        final String aTableAlias = "de";
+        final String aColumn = "anyColumn";
         final MapSqlParameterSource noFiltersParameterSource = new MapSqlParameterSource();
 
         // When
-        final String resultStatement = nameFiltering( aTableAlias, noFiltersParameterSource );
+        final String resultStatement = nameFiltering( aColumn, noFiltersParameterSource );
 
         // Then
         assertThat( resultStatement, is( EMPTY ) );
     }
 
     @Test
-    public void testCommonFilteringUsingOneTableAliasAndIlikeFilterIsNull()
+    public void testCommonFilteringUsingOneColumnAndIlikeFilterIsNull()
     {
         // Given
-        final String aTableAlias = "de";
+        final String aColumn = "anyColumn";
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( NAME, null );
 
         // When
-        final String actualResult = valueTypeFiltering( aTableAlias, filtersParameterSource );
+        final String actualResult = valueTypeFiltering( aColumn, filtersParameterSource );
 
         // Then
         assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
-    public void testCommonFilteringUsingOneTableAliasAndIlikeFilterIsEmpty()
+    public void testCommonFilteringUsingOneColumnAndIlikeFilterIsEmpty()
     {
         // Given
-        final String aTableAlias = "de";
+        final String aColumn = "anyColumn";
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( NAME, EMPTY );
 
         // When
-        final String actualResult = valueTypeFiltering( aTableAlias, filtersParameterSource );
+        final String actualResult = valueTypeFiltering( aColumn, filtersParameterSource );
 
         // Then
         assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
-    public void testCommonFilteringUsingTwoTableAliasAndIlikeFilterIsSet()
+    public void testCommonFilteringUsingTwoColumnAndIlikeFilterIsSet()
     {
         // Given
-        final String tableAlias1 = "de";
-        final String tableAlias2 = "p";
+        final String column1 = "anyColumn";
+        final String column2 = "otherColumn";
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( NAME, "abc" );
-        final String expectedStatement = " AND (" + tableAlias1 + ".\"name\" ILIKE :" + NAME + " OR "
-            + tableAlias2 + ".\"name\" ILIKE :" + NAME + ")";
+        final String expectedStatement = " AND (anyColumn ILIKE :name OR otherColumn ILIKE :name)";
 
         // When
-        final String resultStatement = nameFiltering( tableAlias1, tableAlias2, filtersParameterSource );
+        final String resultStatement = nameFiltering( column1, column2, filtersParameterSource );
 
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testCommonFilteringUsingTwoTableAliasAndIlikeFilterIsNotSet()
+    public void testCommonFilteringUsingTwoColumnAndIlikeFilterIsNotSet()
     {
         // Given
-        final String tableAlias1 = "de";
-        final String tableAlias2 = "p";
+        final String column1 = "anyColumn";
+        final String column2 = "otherColumn";
         final MapSqlParameterSource noFiltersParameterSource = new MapSqlParameterSource();
         final String expectedStatement = EMPTY;
 
         // When
-        final String resultStatement = nameFiltering( tableAlias1, tableAlias2,
+        final String resultStatement = nameFiltering( column1, column2,
             noFiltersParameterSource );
 
         // Then
@@ -145,76 +144,76 @@ public class FilteringStatementTest
     }
 
     @Test
-    public void testValueTypeFilteringUsingOneTableAliasWhenFilterIsSet()
+    public void testValueTypeFilteringUsingOneColumnWhenFilterIsSet()
     {
         // Given
-        final String aTableAlias = "de";
+        final String aColumn = "anyColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( VALUE_TYPES, unmodifiableSet( "NUMBER", "INTEGER" ) );
-        final String expectedStatement = " AND (" + aTableAlias + ".valuetype IN (:" + VALUE_TYPES + "))";
+        final String expectedStatement = " AND (anyColumn IN (:valueTypes))";
 
         // When
-        final String resultStatement = valueTypeFiltering( aTableAlias, theParameterSource );
+        final String resultStatement = valueTypeFiltering( aColumn, theParameterSource );
 
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testValueTypeFilteringUsingOneTableAliasWhenFilterIsNotSet()
+    public void testValueTypeFilteringUsingOneColumnWhenFilterIsNotSet()
     {
         // Given
-        final String aTableAlias = "de";
+        final String aColumn = "anyColumn";
         final MapSqlParameterSource noFiltersParameterSource = new MapSqlParameterSource();
         final String expectedStatement = EMPTY;
 
         // When
-        final String resultStatement = valueTypeFiltering( aTableAlias, noFiltersParameterSource );
+        final String resultStatement = valueTypeFiltering( aColumn, noFiltersParameterSource );
 
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testValueTypeFilteringUsingOneTableAliasWhenFilterHasEmptySet()
+    public void testValueTypeFilteringUsingOneColumnWhenFilterHasEmptySet()
     {
         // Given
-        final String aTableAlias = "de";
+        final String aColumn = "anyColumn";
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( VALUE_TYPES, emptySet() );
 
         // When
-        final String actualResult = valueTypeFiltering( aTableAlias, filtersParameterSource );
+        final String actualResult = valueTypeFiltering( aColumn, filtersParameterSource );
 
         // Then
         assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
-    public void testValueTypeFilteringUsingOneTableAliasWhenFilterIsSetToNull()
+    public void testValueTypeFilteringUsingOneColumnWhenFilterIsSetToNull()
     {
         // Given
-        final String aTableAlias = "de";
+        final String aColumn = "anyColumn";
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( VALUE_TYPES, null );
 
         // When
-        final String actualResult = valueTypeFiltering( aTableAlias, filtersParameterSource );
+        final String actualResult = valueTypeFiltering( aColumn, filtersParameterSource );
 
         // Then
         assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
-    public void testValueTypeFilteringUsingOneTableAliasWhenFilterIsNotSetInstance()
+    public void testValueTypeFilteringUsingOneColumnWhenFilterIsNotSetInstance()
     {
         // Given
-        final String aTableAlias = "de";
+        final String aColumn = "anyColumn";
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( VALUE_TYPES, "String" );
 
         // When
-        final String actualResult = valueTypeFiltering( aTableAlias, filtersParameterSource );
+        final String actualResult = valueTypeFiltering( aColumn, filtersParameterSource );
 
         // Then
         assertThat( actualResult, is( EMPTY ) );

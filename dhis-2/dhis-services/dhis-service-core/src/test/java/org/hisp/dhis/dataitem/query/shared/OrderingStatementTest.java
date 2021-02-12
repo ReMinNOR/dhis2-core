@@ -47,13 +47,13 @@ public class OrderingStatementTest
     public void testCommonOrderingWhenOrderIsAsc()
     {
         // Given
-        final String tableAlias = "t";
+        final String aGroupOfColumns = "anyColumn, otherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME_ORDER, "asc" );
-        final String expectedStatement = " ORDER BY " + tableAlias + ".\"name\", uid ASC";
+            .addValue( NAME_ORDER, "ASC" );
+        final String expectedStatement = " ORDER BY anyColumn, otherColumn ASC";
 
         // When
-        final String actualStatement = nameOrdering( tableAlias, theParameterSource );
+        final String actualStatement = nameOrdering( aGroupOfColumns, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -63,13 +63,13 @@ public class OrderingStatementTest
     public void testCommonOrderingWhenOrderIsDesc()
     {
         // Given
-        final String tableAlias = "t";
+        final String aColumn = "anyColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME_ORDER, "desc" );
-        final String expectedStatement = " ORDER BY " + tableAlias + ".\"name\", uid DESC";
+            .addValue( NAME_ORDER, "DESC" );
+        final String expectedStatement = " ORDER BY anyColumn DESC";
 
         // When
-        final String actualStatement = nameOrdering( tableAlias, theParameterSource );
+        final String actualStatement = nameOrdering( aColumn, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -79,11 +79,11 @@ public class OrderingStatementTest
     public void testCommonOrderingWhenOrderIsNotSet()
     {
         // Given
-        final String tableAlias = "t";
+        final String aColumn = "anyColumn";
         final MapSqlParameterSource noParameterSource = new MapSqlParameterSource();
 
         // When
-        final String actualStatement = nameOrdering( tableAlias, noParameterSource );
+        final String actualStatement = nameOrdering( aColumn, noParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -93,11 +93,11 @@ public class OrderingStatementTest
     public void testCommonOrderingWhenParameterSourceIsNull()
     {
         // Given
-        final String tableAlias = "t";
+        final String aColumn = "anyColumn";
         final MapSqlParameterSource nullParameterSource = null;
 
         // When
-        final String actualStatement = nameOrdering( tableAlias, nullParameterSource );
+        final String actualStatement = nameOrdering( aColumn, nullParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -107,12 +107,12 @@ public class OrderingStatementTest
     public void testCommonOrderingWhenOrderFilterIsSetToNull()
     {
         // Given
-        final String tableAlias = "de";
+        String aColumn = "anyColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, null );
 
         // When
-        final String actualStatement = nameOrdering( tableAlias, theParameterSource );
+        final String actualStatement = nameOrdering( aColumn, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -122,12 +122,12 @@ public class OrderingStatementTest
     public void testCommonOrderingWhenOrderFilterIsSetToEmpty()
     {
         // Given
-        final String tableAlias = "de";
+        String aColumn = "anyColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, EMPTY );
 
         // When
-        final String actualStatement = nameOrdering( tableAlias, theParameterSource );
+        final String actualStatement = nameOrdering( aColumn, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );

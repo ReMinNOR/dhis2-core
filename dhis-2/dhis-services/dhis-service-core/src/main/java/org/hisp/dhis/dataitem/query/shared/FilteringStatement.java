@@ -28,8 +28,10 @@
 package org.hisp.dhis.dataitem.query.shared;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasSetPresence;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
@@ -52,55 +54,67 @@ public class FilteringStatement
     {
     }
 
-    public static String uidFiltering( final String tableName, final MapSqlParameterSource paramsMap )
+    public static String uidFiltering( final String column, final MapSqlParameterSource paramsMap )
     {
-        final StringBuilder filtering = new StringBuilder();
-
         if ( hasStringPresence( paramsMap, UID ) )
         {
-            filtering.append( getRootJunction( paramsMap ) + " (" + tableName + ".\"uid\" = :" + UID + ")" );
+            return SPACE + getRootJunction( paramsMap ) + " (" + column + " IN (:" + UID + "))";
         }
 
-        return filtering.toString();
+        return EMPTY;
     }
 
-    public static String nameFiltering( final String tableName, final MapSqlParameterSource paramsMap )
+    public static String nameFiltering( final String column, final MapSqlParameterSource paramsMap )
     {
-        final StringBuilder filtering = new StringBuilder();
-
         if ( hasStringPresence( paramsMap, NAME ) )
         {
-            filtering.append( " AND (" + tableName + ".\"name\" ILIKE :" + NAME + ")" );
+            return " AND (" + column + " ILIKE :" + NAME + ")";
         }
 
-        return filtering.toString();
+        return EMPTY;
     }
 
-    public static String nameFiltering( final String tableOne, final String tableTwo,
+    public static String nameFiltering( final String columnOne, final String columnTwo,
         final MapSqlParameterSource paramsMap )
     {
-        final StringBuilder filtering = new StringBuilder();
-
         if ( hasStringPresence( paramsMap, NAME ) )
         {
-            filtering.append( " AND (" + tableOne + ".\"name\" ILIKE :" + NAME + " OR " + tableTwo
-                + ".\"name\" ILIKE :" + NAME + ")" );
+            return " AND (" + columnOne + " ILIKE :" + NAME + " OR " + columnTwo + " ILIKE :" + NAME + ")";
         }
 
-        return filtering.toString();
+        return EMPTY;
     }
 
-    public static String valueTypeFiltering( final String tableName, final MapSqlParameterSource paramsMap )
+    public static String displayFiltering( final String column, final MapSqlParameterSource paramsMap )
     {
-        final StringBuilder filtering = new StringBuilder();
-
-        if ( hasSetPresence( paramsMap, VALUE_TYPES ) )
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-
-            filtering.append( " AND (" + tableName + ".valuetype IN (:" + VALUE_TYPES + "))" );
+            return " AND (" + column + " ILIKE :" + DISPLAY_NAME + ")";
         }
 
-        return filtering.toString();
+        return EMPTY;
+    }
+
+    public static String displayFiltering( final String columnOne, final String columnTwo,
+        final MapSqlParameterSource paramsMap )
+    {
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
+        {
+            return " AND (" + columnOne + " ILIKE :" + DISPLAY_NAME + " OR " + columnTwo + " ILIKE :" + DISPLAY_NAME
+                + ")";
+        }
+
+        return EMPTY;
+    }
+
+    public static String valueTypeFiltering( final String column, final MapSqlParameterSource paramsMap )
+    {
+        if ( hasSetPresence( paramsMap, VALUE_TYPES ) )
+        {
+            return " AND (" + column + " IN (:" + VALUE_TYPES + "))";
+        }
+
+        return EMPTY;
     }
 
     public static boolean skipValueType( final ValueType valueTypeToSkip, final MapSqlParameterSource paramsMap )
@@ -118,14 +132,24 @@ public class FilteringStatement
         return false;
     }
 
-    public static String programIdFiltering( final MapSqlParameterSource paramsMap )
+    public static String programIdFiltering( final String column, final MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, PROGRAM_ID ) )
         {
-            return " AND program.uid = :" + PROGRAM_ID;
+            return " AND " + column + " = :" + PROGRAM_ID;
         }
 
         return EMPTY;
+    }
+
+    public static String ifSet( final String anyString )
+    {
+        return anyString;
+    }
+
+    public static String always( final String anyString )
+    {
+        return anyString;
     }
 
     private static String getRootJunction( final MapSqlParameterSource paramsMap )

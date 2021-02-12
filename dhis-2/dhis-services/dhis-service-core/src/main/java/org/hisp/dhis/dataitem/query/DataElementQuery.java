@@ -33,26 +33,28 @@ import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.ValueType.fromString;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
+import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.displayNameOrdering;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataitem.DataItem;
-import org.hisp.dhis.dataitem.query.shared.OrderingStatement;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -62,13 +64,19 @@ import org.springframework.stereotype.Component;
 
 /**
  * This component is responsible for providing query capabilities on top of
- * DataElements.
+ * DataElement objects.
  *
  * @author maikel arabori
  */
+@Slf4j
 @Component
 public class DataElementQuery implements DataItemQuery
 {
+    private static final String COMMON_COLUMNS = "dataelement.uid, dataelement.\"name\", dataelement.valuetype,"
+        + " dataelement.code, dataelement.sharing AS dataelement_sharing";
+
+    private static final String ITEM_UID = "dataelement.uid";
+
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public DataElementQuery( @Qualifier( "readOnlyJdbcTemplate" )
@@ -85,7 +93,7 @@ public class DataElementQuery implements DataItemQuery
         final List<DataItem> dataItems = new ArrayList<>();
 
         final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
-            getDataElementQueryWith( paramsMap ), paramsMap );
+            getDataElementQuery( paramsMap ), paramsMap );
 
         while ( rowSet.next() )
         {
@@ -114,7 +122,7 @@ public class DataElementQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         sql.append( "SELECT COUNT(*) FROM (" )
-            .append( getDataElementQueryWith( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
+            .append( getDataElementQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
@@ -126,159 +134,95 @@ public class DataElementQuery implements DataItemQuery
         return DataElement.class;
     }
 
-    private String getDataElementQueryWith( final MapSqlParameterSource paramsMap )
+    private String getDataElementQuery( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder();
 
-        sql.append(
-            "SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code" );
+        // Creating a temp translated table to be queried.
+        sql.append( "SELECT * FROM (" );
 
         if ( hasStringPresence( paramsMap, LOCALE ) )
         {
-            sql.append( ", displayname.value AS i18n_name" );
+            // Selecting only rows that contains translated names.
+            sql.append( selectRowsContainingTranslatedName( false ) )
+
+                .append( " UNION" )
+
+                // Selecting ALL rows, not taking into consideration
+                // translations.
+                .append( selectAllRowsIgnoringAnyTranslation() )
+
+                /// AND excluding ALL translated rows previously selected
+                /// (translated data elements).
+                .append( " WHERE (" + ITEM_UID + ") NOT IN (" )
+
+                .append( selectRowsContainingTranslatedName( true ) )
+
+                // Closing NOT IN exclusions
+                .append( ")" );
         }
         else
         {
-            sql.append( ", dataelement.\"name\" AS i18n_name" );
+            // Retrieving all rows ignoring translation as no locale is defined.
+            sql.append( selectAllRowsIgnoringAnyTranslation() );
         }
-
-        sql.append( " FROM dataelement " );
-
-        if ( hasStringPresence( paramsMap, LOCALE ) )
-        {
-            sql.append(
-                ", jsonb_to_recordset(dataelement.translations) as displayname(value TEXT, locale TEXT, property TEXT)" );
-        }
-
-        sql.append( " WHERE (" )
-            .append( sharingConditions( "dataelement", paramsMap ) )
-            .append( ")" );
-
-        sql.append( nameFiltering( "dataelement", paramsMap ) );
-
-        sql.append( specificDisplayNameFilter( paramsMap ) );
-
-        sql.append( specificLocaleFilter( paramsMap ) );
-
-        sql.append( valueTypeFiltering( "dataelement", paramsMap ) );
-
-        sql.append( uidFiltering( "dataelement", paramsMap ) );
 
         sql.append(
-            " GROUP BY dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code" );
+            " GROUP BY dataelement.\"name\", " + ITEM_UID + ", dataelement.valuetype, dataelement.code, i18n_name,"
+                + " dataelement_sharing" );
 
-        if ( hasStringPresence( paramsMap, LOCALE ) )
+        // Closing the temp table.
+        sql.append( " ) t" );
+
+        sql.append( " WHERE" );
+
+        // Applying filters, ordering and limits.
+        sql.append( always( sharingConditions( "t.dataelement_sharing", paramsMap ) ) );
+
+        sql.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
+        sql.append( ifSet( displayFiltering( "t.i18n_name", paramsMap ) ) );
+        sql.append( ifSet( nameFiltering( "t.name", paramsMap ) ) );
+        sql.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
+
+        sql.append( ifSet( nameOrdering( "t.name, t.uid", paramsMap ) ) );
+        sql.append( ifSet( displayNameOrdering( "t.i18n_name, t.uid", paramsMap ) ) );
+
+        sql.append( ifSet( maxLimit( paramsMap ) ) );
+
+        final String fullStatement = sql.toString();
+
+        log.trace( "Full SQL: " + fullStatement );
+
+        return fullStatement;
+    }
+
+    private String selectRowsContainingTranslatedName( final boolean onlyUidColumn )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        if ( onlyUidColumn )
         {
-            sql.append( ", i18n_name" );
+            sql.append( " SELECT " + ITEM_UID );
+        }
+        else
+        {
+            sql.append( " SELECT " + COMMON_COLUMNS )
+                .append( ", de_displayname.value AS i18n_name" );
         }
 
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
-        {
-            if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
-            {
-                // 5 means i18n_name
-                sql.append( OrderingStatement.displayNameOrdering( 5, paramsMap ) );
-            }
-            else
-            {
-                // 2 means name
-                sql.append( OrderingStatement.displayNameOrdering( 2, paramsMap ) );
-            }
-        }
-        else if ( hasStringPresence( paramsMap, NAME_ORDER ) )
-        {
-            sql.append( nameOrdering( "dataelement", paramsMap ) );
-        }
-
-        sql.append( maxLimit( paramsMap ) );
+        sql.append( " FROM dataelement " )
+            .append(
+                " JOIN jsonb_to_recordset(dataelement.translations) AS de_displayname(value TEXT, locale TEXT, property TEXT) ON de_displayname.locale = :"
+                    + LOCALE + " AND de_displayname.property = 'NAME'" );
 
         return sql.toString();
     }
 
-    private String specificDisplayNameFilter( final MapSqlParameterSource paramsMap )
+    private String selectAllRowsIgnoringAnyTranslation()
     {
-        final StringBuilder sql = new StringBuilder();
-
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
-        {
-            if ( hasStringPresence( paramsMap, LOCALE ) )
-            {
-                sql.append( fetchDisplayName( paramsMap, true ) );
-            }
-            else
-            {
-                // User does not have any locale set.
-                sql.append( " AND ( dataelement.\"name\" ILIKE :" + DISPLAY_NAME + ")" );
-            }
-        }
-
-        return sql.toString();
-    }
-
-    private String specificLocaleFilter( final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder sql = new StringBuilder();
-
-        if ( !hasStringPresence( paramsMap, DISPLAY_NAME ) && hasStringPresence( paramsMap, LOCALE ) )
-        {
-            // If we reach here it means that we do not have a display name
-            // filter set.
-            // And the user has a default locale configured.
-            sql.append( fetchDisplayName( paramsMap, false ) );
-        }
-
-        return sql.toString();
-    }
-
-    private String fetchDisplayName( final MapSqlParameterSource paramsMap, boolean filterByDisplayName )
-    {
-        final StringBuilder sql = new StringBuilder();
-
-        sql.append( " AND displayname.locale = :" + LOCALE )
-            .append( " AND displayname.property = 'NAME'" );
-
-        if ( filterByDisplayName )
-        {
-            sql.append( " AND displayname.value ILIKE :" + DISPLAY_NAME );
-        }
-
-        sql.append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" )
-            .append( " UNION " )
-            .append(
-                " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
-            .append(
-                " FROM dataelement, jsonb_to_recordset(dataelement.translations) AS displayname(locale TEXT, property TEXT)" )
-            .append( " WHERE dataelement.uid" )
-            .append( " NOT IN (" )
-            .append( " SELECT dataelement.uid FROM dataelement," )
-            .append(
-                " jsonb_to_recordset(dataelement.translations) AS displayname(locale TEXT, property TEXT)" )
-            .append( " WHERE displayname.locale = :" + LOCALE )
-            .append( ")" )
-            .append( " AND displayname.property = 'NAME'" );
-
-        if ( filterByDisplayName )
-        {
-            sql.append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME );
-        }
-
-        sql.append( valueTypeFiltering( "dataelement", paramsMap ) )
-            .append( uidFiltering( "dataelement", paramsMap ) )
-            .append( " UNION " )
-            .append(
-                " SELECT dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code, dataelement.\"name\" AS i18n_name" )
-            .append( " FROM dataelement" )
-            .append( " WHERE (dataelement.translations = '[]' OR dataelement.translations IS NULL)" );
-
-        if ( filterByDisplayName )
-        {
-            sql.append( " AND dataelement.\"name\" ILIKE :" + DISPLAY_NAME );
-        }
-
-        sql.append( valueTypeFiltering( "dataelement", paramsMap ) )
-            .append( uidFiltering( "dataelement", paramsMap ) )
-            .append( " AND (" + sharingConditions( "dataelement", paramsMap ) + ")" );
-
-        return sql.toString();
+        return new StringBuilder()
+            .append( " SELECT " + COMMON_COLUMNS )
+            .append( ", dataelement.\"name\" AS i18n_name" )
+            .append( " FROM dataelement " ).toString();
     }
 }

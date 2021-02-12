@@ -127,108 +127,108 @@ public class UserAccessStatementTest
     public void testSharingConditionsUsingTwoTableAliasWhenGroupUserIdsIsSet()
     {
         // Given
-        final String tableAlias1 = "de";
-        final String tableAlias2 = "t";
+        final String aColumn1 = "anyColumn";
+        final String aColumn2 = "otherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( USER_GROUP_UIDS, "uid-1, uid-2" );
 
         // When
-        final String actualStatement = sharingConditions( tableAlias1, tableAlias2, theParameterSource );
+        final String actualStatement = sharingConditions( aColumn1, aColumn2, theParameterSource );
 
         // Then
-        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias1 ) ) );
-        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias1 ) ) );
-        assertThat( actualStatement, containsString( userAccessCondition( tableAlias1 ) ) );
-        assertThat( actualStatement, containsString( userGroupAccessCondition( tableAlias1 ) ) );
+        assertThat( actualStatement, containsString( publicAccessCondition( aColumn1 ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( aColumn1 ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( aColumn1 ) ) );
+        assertThat( actualStatement, containsString( userGroupAccessCondition( aColumn1 ) ) );
 
-        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias2 ) ) );
-        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias2 ) ) );
-        assertThat( actualStatement, containsString( userAccessCondition( tableAlias2 ) ) );
-        assertThat( actualStatement, containsString( userGroupAccessCondition( tableAlias2 ) ) );
+        assertThat( actualStatement, containsString( publicAccessCondition( aColumn2 ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( aColumn2 ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( aColumn2 ) ) );
+        assertThat( actualStatement, containsString( userGroupAccessCondition( aColumn2 ) ) );
     }
 
     @Test
     public void testSharingConditionsUsingTwoTableAliasWhenGroupUserIdsIsSetToNull()
     {
         // Given
-        final String tableAlias1 = "de";
-        final String tableAlias2 = "t";
+        final String aColumn1 = "anyColumn";
+        final String aColumn2 = "otherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( USER_GROUP_UIDS, null );
 
         // When
-        final String actualStatement = sharingConditions( tableAlias1, tableAlias2, theParameterSource );
+        final String actualStatement = sharingConditions( aColumn1, aColumn2, theParameterSource );
 
         // Then
-        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias1 ) ) );
-        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias1 ) ) );
-        assertThat( actualStatement, containsString( userAccessCondition( tableAlias1 ) ) );
-        assertThat( actualStatement, not( containsString( userGroupAccessCondition( tableAlias1 ) ) ) );
+        assertThat( actualStatement, containsString( publicAccessCondition( aColumn1 ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( aColumn1 ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( aColumn1 ) ) );
+        assertThat( actualStatement, not( containsString( userGroupAccessCondition( aColumn1 ) ) ) );
 
-        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias2 ) ) );
-        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias2 ) ) );
-        assertThat( actualStatement, containsString( userAccessCondition( tableAlias2 ) ) );
-        assertThat( actualStatement, not( containsString( userGroupAccessCondition( tableAlias2 ) ) ) );
+        assertThat( actualStatement, containsString( publicAccessCondition( aColumn2 ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( aColumn2 ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( aColumn2 ) ) );
+        assertThat( actualStatement, not( containsString( userGroupAccessCondition( aColumn2 ) ) ) );
     }
 
     @Test
     public void testSharingConditionsUsingTwoTableAliasWhenGroupUserIdsIsSetToEmpty()
     {
         // Given
-        final String tableAlias1 = "de";
-        final String tableAlias2 = "t";
+        String aColumn1 = "anyColumn";
+        String aColumn2 = "otherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( USER_GROUP_UIDS, "" );
 
         // When
-        final String actualStatement = sharingConditions( tableAlias1, tableAlias2, theParameterSource );
+        final String actualStatement = sharingConditions( aColumn1, aColumn2, theParameterSource );
 
         // Then
-        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias1 ) ) );
-        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias1 ) ) );
-        assertThat( actualStatement, containsString( userAccessCondition( tableAlias1 ) ) );
-        assertThat( actualStatement, not( containsString( userGroupAccessCondition( tableAlias1 ) ) ) );
+        assertThat( actualStatement, containsString( publicAccessCondition( aColumn1 ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( aColumn1 ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( aColumn1 ) ) );
+        assertThat( actualStatement, not( containsString( userGroupAccessCondition( aColumn1 ) ) ) );
 
-        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias2 ) ) );
-        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias2 ) ) );
-        assertThat( actualStatement, containsString( userAccessCondition( tableAlias2 ) ) );
-        assertThat( actualStatement, not( containsString( userGroupAccessCondition( tableAlias2 ) ) ) );
+        assertThat( actualStatement, containsString( publicAccessCondition( aColumn2 ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( aColumn2 ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( aColumn2 ) ) );
+        assertThat( actualStatement, not( containsString( userGroupAccessCondition( aColumn2 ) ) ) );
     }
 
     @Test
     public void testSharingConditionsUsingTwoTableAliasWhenGroupUserIdsIsNotSet()
     {
         // Given
-        final String tableAlias1 = "de";
-        final String tableAlias2 = "t";
+        String aColumn1 = "anyColumn";
+        String aColumn2 = "otherColumn";
         final MapSqlParameterSource noParameterSource = new MapSqlParameterSource();
 
         // When
-        final String actualStatement = sharingConditions( tableAlias1, tableAlias2, noParameterSource );
+        final String actualStatement = sharingConditions( aColumn1, aColumn2, noParameterSource );
 
         // Then
-        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias1 ) ) );
-        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias1 ) ) );
-        assertThat( actualStatement, containsString( userAccessCondition( tableAlias1 ) ) );
-        assertThat( actualStatement, not( containsString( userGroupAccessCondition( tableAlias1 ) ) ) );
+        assertThat( actualStatement, containsString( publicAccessCondition( aColumn1 ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( aColumn1 ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( aColumn1 ) ) );
+        assertThat( actualStatement, not( containsString( userGroupAccessCondition( aColumn1 ) ) ) );
 
-        assertThat( actualStatement, containsString( publicAccessCondition( tableAlias2 ) ) );
-        assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias2 ) ) );
-        assertThat( actualStatement, containsString( userAccessCondition( tableAlias2 ) ) );
-        assertThat( actualStatement, not( containsString( userGroupAccessCondition( tableAlias2 ) ) ) );
+        assertThat( actualStatement, containsString( publicAccessCondition( aColumn2 ) ) );
+        assertThat( actualStatement, containsString( ownerAccessCondition( aColumn2 ) ) );
+        assertThat( actualStatement, containsString( userAccessCondition( aColumn2 ) ) );
+        assertThat( actualStatement, not( containsString( userGroupAccessCondition( aColumn2 ) ) ) );
     }
 
     @Test
     public void testOwnerAccessCondition()
     {
         // Given
-        final String tableAlias = "de";
-        final String expectedStatement = "(jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') IS NULL OR "
-            + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') = 'null' OR "
-            + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'owner') = :userUid)";
+        String aColumn = "anyColumn";
+        final String expectedStatement = "(jsonb_extract_path_text(" + aColumn + ", 'owner') IS NULL OR "
+            + "jsonb_extract_path_text(" + aColumn + ", 'owner') = 'null' OR "
+            + "jsonb_extract_path_text(" + aColumn + ", 'owner') = :userUid)";
 
         // When
-        final String actualStatement = ownerAccessCondition( tableAlias );
+        final String actualStatement = ownerAccessCondition( aColumn );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -253,13 +253,13 @@ public class UserAccessStatementTest
     public void testPublicAccessCondition()
     {
         // Given
-        final String tableAlias = "de";
-        final String expectedStatement = "(jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') IS NULL OR "
-            + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') = 'null' OR "
-            + "jsonb_extract_path_text(" + tableAlias + ".sharing, 'public') LIKE 'r%')";
+        String aColumn = "anyColumn";
+        final String expectedStatement = "(jsonb_extract_path_text(" + aColumn + ", 'public') IS NULL OR "
+            + "jsonb_extract_path_text(" + aColumn + ", 'public') = 'null' OR "
+            + "jsonb_extract_path_text(" + aColumn + ", 'public') LIKE 'r%')";
 
         // When
-        final String actualStatement = publicAccessCondition( tableAlias );
+        final String actualStatement = publicAccessCondition( aColumn );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -284,12 +284,12 @@ public class UserAccessStatementTest
     public void testUserAccessCondition()
     {
         // Given
-        final String tableAlias = "de";
-        final String expectedStatement = "(jsonb_has_user_id(" + tableAlias + ".sharing, :" + USER_UID + ") = TRUE "
-            + "AND jsonb_check_user_access(" + tableAlias + ".sharing, :" + USER_UID + ", 'r%') = TRUE)";
+        String aColumn = "anyColumn";
+        final String expectedStatement = "(jsonb_has_user_id(" + aColumn + ", :" + USER_UID + ") = TRUE "
+            + "AND jsonb_check_user_access(" + aColumn + ", :" + USER_UID + ", 'r%') = TRUE)";
 
         // When
-        final String actualStatement = userAccessCondition( tableAlias );
+        final String actualStatement = userAccessCondition( aColumn );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -314,13 +314,13 @@ public class UserAccessStatementTest
     public void testUserGroupAccessCondition()
     {
         // Given
-        final String tableAlias = "de";
-        final String expectedStatement = "(" + HAS_USER_GROUP_IDS + "(" + tableAlias + ".sharing, :" + USER_GROUP_UIDS
-            + ") = TRUE " + "AND " + CHECK_USER_GROUPS_ACCESS + "(" + tableAlias + ".sharing, 'r%', :" + USER_GROUP_UIDS
+        String aColumn = "anyColumn";
+        final String expectedStatement = "(" + HAS_USER_GROUP_IDS + "(" + aColumn + ", :" + USER_GROUP_UIDS
+            + ") = TRUE " + "AND " + CHECK_USER_GROUPS_ACCESS + "(" + aColumn + ", 'r%', :" + USER_GROUP_UIDS
             + ") = TRUE)";
 
         // When
-        final String actualStatement = userGroupAccessCondition( tableAlias );
+        final String actualStatement = userGroupAccessCondition( aColumn );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );

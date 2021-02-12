@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
@@ -45,42 +46,23 @@ public class OrderingStatement
     {
     }
 
-    public static String nameOrdering( final String tableName, final MapSqlParameterSource paramsMap )
+    public static String nameOrdering( final String orderingColumns, final MapSqlParameterSource paramsMap )
     {
-        final StringBuilder ordering = new StringBuilder();
-
         if ( hasStringPresence( paramsMap, NAME_ORDER ) )
         {
-            ordering.append( " ORDER BY " + tableName + ".\"name\", uid " + paramsMap.getValue( NAME_ORDER ) );
+            return " ORDER BY " + orderingColumns + SPACE + paramsMap.getValue( NAME_ORDER );
         }
 
-        return ordering.toString();
-    }
-
-    public static String displayNameOrdering( final int columnNumber, final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder ordering = new StringBuilder();
-
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
-        {
-            if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
-            {
-                ordering.append( " ORDER BY " + columnNumber + SPACE + paramsMap.getValue( DISPLAY_NAME_ORDER ) );
-            }
-        }
-
-        return ordering.toString();
+        return EMPTY;
     }
 
     public static String displayNameOrdering( final String orderingColumns, final MapSqlParameterSource paramsMap )
     {
-        final StringBuilder sql = new StringBuilder();
-
         if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
         {
-            sql.append( " ORDER BY " + orderingColumns + SPACE + paramsMap.getValue( DISPLAY_NAME_ORDER ) );
+            return " ORDER BY " + orderingColumns + SPACE + paramsMap.getValue( DISPLAY_NAME_ORDER );
         }
 
-        return sql.toString();
+        return EMPTY;
     }
 }

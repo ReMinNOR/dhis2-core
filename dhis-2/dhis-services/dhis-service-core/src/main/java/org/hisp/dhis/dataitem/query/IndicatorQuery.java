@@ -33,24 +33,26 @@ import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
 import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
+import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.displayNameOrdering;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.dataitem.DataItem;
-import org.hisp.dhis.dataitem.query.shared.OrderingStatement;
 import org.hisp.dhis.indicator.Indicator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -61,13 +63,19 @@ import org.springframework.stereotype.Component;
 
 /**
  * This component is responsible for providing query capabilities on top of
- * Indicators.
+ * Indicator objects.
  *
  * @author maikel arabori
  */
+@Slf4j
 @Component
 public class IndicatorQuery implements DataItemQuery
 {
+    private static final String COMMON_COLUMNS = "indicator.uid, indicator.\"name\","
+        + " indicator.code, indicator.sharing AS indicator_sharing";
+
+    private static final String ITEM_UID = "indicator.uid";
+
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public IndicatorQuery( @Qualifier( "readOnlyJdbcTemplate" )
@@ -150,147 +158,90 @@ public class IndicatorQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder();
 
-        sql.append( "SELECT indicator.uid, indicator.\"name\", indicator.code" );
+        // Creating a temp translated table to be queried.
+        sql.append( "SELECT * FROM (" );
 
         if ( hasStringPresence( paramsMap, LOCALE ) )
         {
-            sql.append( ", displayname.value AS i18n_name" );
+            // Selecting only rows that contains translated names.
+            sql.append( selectRowsContainingTranslatedName( false ) )
+
+                .append( " UNION" )
+
+                // Selecting ALL rows, not taking into consideration
+                // translations.
+                .append( selectAllRowsIgnoringAnyTranslation() )
+
+                /// AND excluding ALL translated rows previously selected
+                /// (translated names).
+                .append( " WHERE (" + ITEM_UID + ") NOT IN (" )
+
+                .append( selectRowsContainingTranslatedName( true ) )
+
+                // Closing NOT IN exclusions.
+                .append( ")" );
         }
         else
         {
-            sql.append( ", indicator.\"name\" AS i18n_name" );
+            // Retrieving all rows ignoring translation as no locale is defined.
+            sql.append( selectAllRowsIgnoringAnyTranslation() );
         }
 
-        sql.append( " FROM indicator " );
+        sql.append(
+            " GROUP BY indicator.\"name\", " + ITEM_UID + ", indicator.code, i18n_name,"
+                + " indicator_sharing" );
 
-        if ( hasStringPresence( paramsMap, LOCALE ) )
+        // Closing the temp table.
+        sql.append( " ) t" );
+
+        sql.append( " WHERE" );
+
+        // Applying filters, ordering and limits.
+        sql.append( always( sharingConditions( "t.indicator_sharing", paramsMap ) ) );
+
+        sql.append( ifSet( displayFiltering( "t.i18n_name", paramsMap ) ) );
+        sql.append( ifSet( nameFiltering( "t.name", paramsMap ) ) );
+        sql.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
+
+        sql.append( ifSet( nameOrdering( "t.name, t.uid", paramsMap ) ) );
+        sql.append( ifSet( displayNameOrdering( "t.i18n_name, t.uid", paramsMap ) ) );
+
+        sql.append( ifSet( maxLimit( paramsMap ) ) );
+
+        final String fullStatement = sql.toString();
+
+        log.trace( "Full SQL: " + fullStatement );
+
+        return fullStatement;
+    }
+
+    private String selectRowsContainingTranslatedName( final boolean onlyUidColumn )
+    {
+        final StringBuilder sql = new StringBuilder();
+
+        if ( onlyUidColumn )
         {
-            sql.append(
-                " LEFT JOIN jsonb_to_recordset(indicator.translations) as displayname(value TEXT, locale TEXT, property TEXT) ON displayname.locale = :"
-                    + LOCALE + " AND displayname.property = 'NAME'" );
+            sql.append( " SELECT " + ITEM_UID );
         }
-
-        sql.append( " WHERE (" )
-            .append( sharingConditions( "indicator", paramsMap ) )
-            .append( ")" );
-
-        sql.append( nameFiltering( "indicator", paramsMap ) );
-
-        sql.append( uidFiltering( "indicator", paramsMap ) );
-
-        sql.append( specificDisplayNameFilter( paramsMap ) );
-
-        sql.append( specificLocaleFilter( paramsMap ) );
-
-        sql.append( " GROUP BY indicator.uid, indicator.\"name\", indicator.code" );
-
-        if ( hasStringPresence( paramsMap, LOCALE ) )
+        else
         {
-            sql.append( ", i18n_name" );
+            sql.append( " SELECT " + COMMON_COLUMNS )
+                .append( ", i_displayname.value AS i18n_name" );
         }
 
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
-        {
-            if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
-            {
-                // 4 means i18n_name
-                sql.append( OrderingStatement.displayNameOrdering( 4, paramsMap ) );
-            }
-            else
-            {
-                // 2 means name
-                sql.append( OrderingStatement.displayNameOrdering( 2, paramsMap ) );
-            }
-        }
-        else if ( hasStringPresence( paramsMap, NAME_ORDER ) )
-        {
-            sql.append( nameOrdering( "indicator", paramsMap ) );
-        }
-
-        sql.append( maxLimit( paramsMap ) );
+        sql.append( " FROM indicator " )
+            .append(
+                " JOIN jsonb_to_recordset(indicator.translations) AS i_displayname(value TEXT, locale TEXT, property TEXT) ON i_displayname.locale = :"
+                    + LOCALE + " AND i_displayname.property = 'NAME'" );
 
         return sql.toString();
     }
 
-    private String specificDisplayNameFilter( final MapSqlParameterSource paramsMap )
+    private String selectAllRowsIgnoringAnyTranslation()
     {
-        final StringBuilder sql = new StringBuilder();
-
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
-        {
-            if ( hasStringPresence( paramsMap, LOCALE ) )
-            {
-                sql.append( fetchDisplayName( paramsMap, true ) );
-            }
-            else
-            {
-                // User does not have any locale set.
-                sql.append( " AND ( indicator.\"name\" ILIKE :" + DISPLAY_NAME + ")" );
-            }
-        }
-
-        return sql.toString();
-    }
-
-    private String specificLocaleFilter( final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder sql = new StringBuilder();
-
-        if ( !hasStringPresence( paramsMap, DISPLAY_NAME ) && hasStringPresence( paramsMap, LOCALE ) )
-        {
-            sql.append( fetchDisplayName( paramsMap, false ) );
-        }
-
-        return sql.toString();
-    }
-
-    private String fetchDisplayName( final MapSqlParameterSource paramsMap, boolean filterByDisplayName )
-    {
-        final StringBuilder sql = new StringBuilder();
-
-        sql.append( " AND displayname.locale = :" + LOCALE )
-            .append( " AND displayname.property = 'NAME'" );
-
-        if ( filterByDisplayName )
-        {
-            sql.append( " AND displayname.value ILIKE :" + DISPLAY_NAME );
-        }
-
-        sql.append( " UNION " )
-            .append(
-                " SELECT indicator.uid, indicator.\"name\", indicator.code, indicator.\"name\" AS i18n_name" )
-            .append(
-                " FROM indicator, jsonb_to_recordset(indicator.translations) AS displayname(locale TEXT, property TEXT)" )
-            .append( " WHERE indicator.uid" )
-            .append( " NOT IN (" )
-            .append( " SELECT indicator.uid FROM indicator," )
-            .append(
-                " jsonb_to_recordset(indicator.translations) AS displayname(locale TEXT, property TEXT)" )
-            .append( " WHERE displayname.locale = :" + LOCALE )
-            .append( ")" )
-            .append( " AND displayname.property = 'NAME'" );
-
-        if ( filterByDisplayName )
-        {
-            sql.append( " AND indicator.\"name\" ILIKE :" + DISPLAY_NAME );
-        }
-
-        sql.append( " AND (" + sharingConditions( "indicator", paramsMap ) + ")" )
-            .append( uidFiltering( "indicator", paramsMap ) )
-            .append( " UNION " )
-            .append(
-                " SELECT indicator.uid, indicator.\"name\", indicator.code, indicator.\"name\" AS i18n_name" )
-            .append( " FROM indicator" )
-            .append( " WHERE (indicator.translations = '[]' OR indicator.translations IS NULL)" );
-
-        if ( filterByDisplayName )
-        {
-            sql.append( " AND indicator.\"name\" ILIKE :" + DISPLAY_NAME );
-        }
-
-        sql.append( " AND (" + sharingConditions( "indicator", paramsMap ) + ")" )
-            .append( uidFiltering( "indicator", paramsMap ) );
-
-        return sql.toString();
+        return new StringBuilder()
+            .append( " SELECT " + COMMON_COLUMNS )
+            .append( ", indicator.\"name\" AS i18n_name" )
+            .append( " FROM indicator " ).toString();
     }
 }

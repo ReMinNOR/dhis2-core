@@ -30,8 +30,11 @@ package org.hisp.dhis.dataitem.query.shared;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_GROUP_UIDS;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_UID;
+import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_ACCESS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_GROUPS_ACCESS;
+import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.EXTRACT_PATH_TEXT;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_IDS;
+import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_ID;
 import static org.springframework.util.Assert.hasText;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -47,95 +50,109 @@ public class UserAccessStatement
     {
     }
 
-    public static String sharingConditions( final String tableName, final MapSqlParameterSource paramsMap )
+    public static String sharingConditions( final String column, final MapSqlParameterSource paramsMap )
     {
         final StringBuilder conditions = new StringBuilder();
 
         conditions
-            .append( publicAccessCondition( tableName ) )
+            .append( " (" ) // Isolator
+
+            .append( " ( " ) // Grouping clauses
+            .append( publicAccessCondition( column ) )
             .append( " OR " )
-            .append( ownerAccessCondition( tableName ) )
+            .append( ownerAccessCondition( column ) )
             .append( " OR " )
-            .append( userAccessCondition( tableName ) );
+            .append( userAccessCondition( column ) )
+            .append( " ) " ); // Grouping clauses closing
 
         if ( hasStringPresence( paramsMap, USER_GROUP_UIDS ) )
         {
-            conditions.append( " OR (" + userGroupAccessCondition( tableName ) + ")" );
+            conditions.append( " OR (" + userGroupAccessCondition( column ) + ")" );
         }
+
+        conditions.append( ")" ); // Isolator closing
 
         return conditions.toString();
     }
 
-    public static String sharingConditions( final String tableOne, final String tableTwo,
+    public static String sharingConditions( final String columnOne, final String columnTwo,
         final MapSqlParameterSource paramsMap )
     {
         final StringBuilder conditions = new StringBuilder();
 
         conditions
+            .append( " (" ) // Isolator
+
+            .append( " ( " ) // Grouping clauses
             .append( "(" ) // Table 1 conditions
-            .append( publicAccessCondition( tableOne ) )
+            .append( publicAccessCondition( columnOne ) )
             .append( " OR " )
-            .append( ownerAccessCondition( tableOne ) )
+            .append( ownerAccessCondition( columnOne ) )
             .append( " OR " )
-            .append( userAccessCondition( tableOne ) )
+            .append( userAccessCondition( columnOne ) )
             .append( ")" ) // Table 1 conditions end
             .append( " AND (" ) // Table 2 conditions
-            .append( publicAccessCondition( tableTwo ) )
+            .append( publicAccessCondition( columnTwo ) )
             .append( " OR " )
-            .append( ownerAccessCondition( tableTwo ) )
+            .append( ownerAccessCondition( columnTwo ) )
             .append( " OR " )
-            .append( userAccessCondition( tableTwo ) )
-            .append( ")" ); // Table 2 conditions end
+            .append( userAccessCondition( columnTwo ) )
+            .append( ")" ) // Table 2 conditions end
+            .append( " )" ); // Grouping clauses closing
 
         if ( hasStringPresence( paramsMap, USER_GROUP_UIDS ) )
         {
             conditions.append( " OR (" );
 
             // Program group access checks
-            conditions.append( userGroupAccessCondition( tableOne ) );
+            conditions.append( userGroupAccessCondition( columnOne ) );
 
             // DataElement access checks
-            conditions.append( " AND " + userGroupAccessCondition( tableTwo ) );
+            conditions.append( " AND " + userGroupAccessCondition( columnTwo ) );
 
             // Closing OR condition
             conditions.append( ")" );
         }
 
+        conditions.append( ")" ); // Isolator closing
+
         return conditions.toString();
     }
 
-    static String ownerAccessCondition( final String tableName )
+    static String ownerAccessCondition( final String column )
     {
-        assertTableAlias( tableName );
+        assertTableAlias( column );
 
-        return "(jsonb_extract_path_text(" + tableName + ".sharing, 'owner') IS NULL OR "
-            + "jsonb_extract_path_text(" + tableName + ".sharing, 'owner') = 'null' OR "
-            + "jsonb_extract_path_text(" + tableName + ".sharing, 'owner') = :userUid)";
+        return "(" + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') IS NULL OR "
+            + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') = 'null' OR "
+            + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') = :userUid)";
     }
 
-    static String publicAccessCondition( final String tableName )
+    static String publicAccessCondition( final String column )
     {
-        assertTableAlias( tableName );
+        assertTableAlias( column );
 
-        return "(jsonb_extract_path_text(" + tableName + ".sharing, 'public') IS NULL OR "
-            + "jsonb_extract_path_text(" + tableName + ".sharing, 'public') = 'null' OR "
-            + "jsonb_extract_path_text(" + tableName + ".sharing, 'public') LIKE 'r%')";
+        return "(" + EXTRACT_PATH_TEXT + "(" + column + ", 'public') IS NULL OR "
+            + EXTRACT_PATH_TEXT + "(" + column + ", 'public') = 'null' OR "
+            + EXTRACT_PATH_TEXT + "(" + column + ", 'public') LIKE 'r%')";
     }
 
     static String userAccessCondition( final String tableName )
     {
         assertTableAlias( tableName );
 
-        return "(jsonb_has_user_id(" + tableName + ".sharing, :" + USER_UID + ") = TRUE "
-            + "AND jsonb_check_user_access(" + tableName + ".sharing, :" + USER_UID + ", 'r%') = TRUE)";
+        // TODO: MAIKEL: What's the difference between the two functions? Do we
+        // need both?
+        return "(" + HAS_USER_ID + "(" + tableName + ", :" + USER_UID + ") = TRUE "
+            + "AND " + CHECK_USER_ACCESS + "(" + tableName + ", :" + USER_UID + ", 'r%') = TRUE)";
     }
 
-    static String userGroupAccessCondition( final String tableName )
+    static String userGroupAccessCondition( final String column )
     {
-        assertTableAlias( tableName );
+        assertTableAlias( column );
 
-        return "(" + HAS_USER_GROUP_IDS + "(" + tableName + ".sharing, :" + USER_GROUP_UIDS + ") = TRUE " +
-            "AND " + CHECK_USER_GROUPS_ACCESS + "(" + tableName + ".sharing, 'r%', :" + USER_GROUP_UIDS + ") = TRUE)";
+        return "(" + HAS_USER_GROUP_IDS + "(" + column + ", :" + USER_GROUP_UIDS + ") = TRUE " +
+            "AND " + CHECK_USER_GROUPS_ACCESS + "(" + column + ", 'r%', :" + USER_GROUP_UIDS + ") = TRUE)";
     }
 
     private static void assertTableAlias( String tableName )
