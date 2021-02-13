@@ -50,38 +50,49 @@ public class OrderingStatement
     {
     }
 
-    public static String ordering( final String displayOrderingColumn, final String nameOrderingColumn,
+    public static String ordering( final String displayOrderingColumns, final String nameOrderingColumns,
         final MapSqlParameterSource paramsMap )
     {
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) && isNotBlank( displayOrderingColumn ) )
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) && isNotBlank( displayOrderingColumns ) )
         {
-            return buildOrderByStatement( displayOrderingColumn, (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) );
+            return buildOrderByStatement( displayOrderingColumns, (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) );
         }
-        else if ( hasStringPresence( paramsMap, NAME_ORDER ) && isNotBlank( nameOrderingColumn ) )
+        else if ( hasStringPresence( paramsMap, NAME_ORDER ) && isNotBlank( nameOrderingColumns ) )
         {
-            return buildOrderByStatement( displayOrderingColumn, (String) paramsMap.getValue( NAME_ORDER ) );
+            return buildOrderByStatement( nameOrderingColumns, (String) paramsMap.getValue( NAME_ORDER ) );
         }
 
         return EMPTY;
     }
 
-    private static String buildOrderByStatement( final String displayOrderingColumn,
+    private static String buildOrderByStatement( final String displayOrderingColumns,
         final String ascOrDesc )
     {
         final StringBuilder orderBy = new StringBuilder();
-        final String[] columns = trimToEmpty( displayOrderingColumn ).split( "," );
+        final String[] columns = trimToEmpty( displayOrderingColumns ).split( "," );
+        boolean hasElement = false;
 
         if ( columns != null && columns.length > 0 )
         {
-            orderBy.append( ORDER_BY );
-
             for ( final String column : columns )
             {
-                orderBy.append( column + SPACE + ascOrDesc + "," );
+                if ( isNotBlank( column ) )
+                {
+                    if ( !hasElement )
+                    {
+                        orderBy.append( ORDER_BY );
+                    }
+
+                    orderBy.append( column + SPACE + ascOrDesc + "," );
+                    hasElement = true;
+                }
             }
 
-            // Delete last extra comma.
-            orderBy.deleteCharAt( orderBy.length() - 1 );
+            if ( hasElement )
+            {
+                // Delete last extra comma.
+                orderBy.deleteCharAt( orderBy.length() - 1 );
+            }
         }
 
         return orderBy.toString();
