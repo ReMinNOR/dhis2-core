@@ -29,19 +29,22 @@ package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.rootJunction;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
-import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.displayNameOrdering;
-import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
+import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
@@ -55,6 +58,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataitem.DataItem;
+import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -177,16 +181,20 @@ public class DataElementQuery implements DataItemQuery
         sql.append( " WHERE" );
 
         // Applying filters, ordering and limits.
+
+        // Mandatory filters. They do not respect the root junction filtering.
         sql.append( always( sharingConditions( "t.dataelement_sharing", paramsMap ) ) );
+        sql.append( " AND" );
+        sql.append( always( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
 
-        sql.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
-        sql.append( ifSet( displayFiltering( "t.i18n_name", paramsMap ) ) );
-        sql.append( ifSet( nameFiltering( "t.name", paramsMap ) ) );
-        sql.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
+        // Optional filters, based on the current root junction.
+        final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
+        optionalFilters.append( ifSet( displayFiltering( "t.i18n_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( nameFiltering( "t.name", paramsMap ) ) );
+        optionalFilters.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
+        sql.append( ifAny( optionalFilters.toString() ) );
 
-        sql.append( ifSet( nameOrdering( "t.name, t.uid", paramsMap ) ) );
-        sql.append( ifSet( displayNameOrdering( "t.i18n_name, t.uid", paramsMap ) ) );
-
+        sql.append( ifSet( ordering( "t.i18n_name, t.uid", "t.name, t.uid", paramsMap ) ) );
         sql.append( ifSet( maxLimit( paramsMap ) ) );
 
         final String fullStatement = sql.toString();
@@ -194,6 +202,16 @@ public class DataElementQuery implements DataItemQuery
         log.trace( "Full SQL: " + fullStatement );
 
         return fullStatement;
+    }
+
+    public static String append( final String filterStatement, final MapSqlParameterSource paramsMap )
+    {
+        if ( isNotBlank( filterStatement ) )
+        {
+            return filterStatement + SPACE + rootJunction( paramsMap );
+        }
+
+        return EMPTY;
     }
 
     private String selectRowsContainingTranslatedName( final boolean onlyUidColumn )

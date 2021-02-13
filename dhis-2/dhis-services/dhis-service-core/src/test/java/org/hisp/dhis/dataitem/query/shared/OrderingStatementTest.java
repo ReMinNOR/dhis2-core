@@ -30,7 +30,8 @@ package org.hisp.dhis.dataitem.query.shared;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
+import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
 
 import org.junit.Test;
@@ -48,12 +49,13 @@ public class OrderingStatementTest
     {
         // Given
         final String aGroupOfColumns = "anyColumn, otherColumn";
+        final String otherGroupOfColumns = "anyColumn, otherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME_ORDER, "ASC" );
-        final String expectedStatement = " ORDER BY anyColumn, otherColumn ASC";
+            .addValue( DISPLAY_NAME_ORDER, "ASC" );
+        final String expectedStatement = " ORDER BY anyColumn ASC, otherColumn ASC";
 
         // When
-        final String actualStatement = nameOrdering( aGroupOfColumns, theParameterSource );
+        final String actualStatement = ordering( aGroupOfColumns, otherGroupOfColumns, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -64,12 +66,13 @@ public class OrderingStatementTest
     {
         // Given
         final String aColumn = "anyColumn";
+        final String otherColumn = "otherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, "DESC" );
         final String expectedStatement = " ORDER BY anyColumn DESC";
 
         // When
-        final String actualStatement = nameOrdering( aColumn, theParameterSource );
+        final String actualStatement = ordering( aColumn, otherColumn, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -80,10 +83,11 @@ public class OrderingStatementTest
     {
         // Given
         final String aColumn = "anyColumn";
+        final String otherColumn = "otherColumn";
         final MapSqlParameterSource noParameterSource = new MapSqlParameterSource();
 
         // When
-        final String actualStatement = nameOrdering( aColumn, noParameterSource );
+        final String actualStatement = ordering( aColumn, otherColumn, noParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -94,10 +98,11 @@ public class OrderingStatementTest
     {
         // Given
         final String aColumn = "anyColumn";
+        final String otherColumn = "otherColumn";
         final MapSqlParameterSource nullParameterSource = null;
 
         // When
-        final String actualStatement = nameOrdering( aColumn, nullParameterSource );
+        final String actualStatement = ordering( aColumn, otherColumn, nullParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -107,12 +112,13 @@ public class OrderingStatementTest
     public void testCommonOrderingWhenOrderFilterIsSetToNull()
     {
         // Given
-        String aColumn = "anyColumn";
+        final String aColumn = "anyColumn";
+        final String otherColumn = "otherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, null );
 
         // When
-        final String actualStatement = nameOrdering( aColumn, theParameterSource );
+        final String actualStatement = ordering( aColumn, otherColumn, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -122,12 +128,13 @@ public class OrderingStatementTest
     public void testCommonOrderingWhenOrderFilterIsSetToEmpty()
     {
         // Given
-        String aColumn = "anyColumn";
+        final String aColumn = "anyColumn";
+        final String otherColumn = "otherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, EMPTY );
 
         // When
-        final String actualStatement = nameOrdering( aColumn, theParameterSource );
+        final String actualStatement = ordering( aColumn, otherColumn, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );

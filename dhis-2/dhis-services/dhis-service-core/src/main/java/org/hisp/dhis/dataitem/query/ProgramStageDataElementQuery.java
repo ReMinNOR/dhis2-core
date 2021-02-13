@@ -36,14 +36,14 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
-import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.displayNameOrdering;
-import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.nameOrdering;
+import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
@@ -56,6 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.DataItem;
+import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -208,18 +209,23 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         sql.append( " WHERE" );
 
         // Applying filters, ordering and limits.
+
+        // Mandatory filters. They do not respect the root junction filtering.
         sql.append( always( sharingConditions( "t.program_sharing",
             "t.dataelement_sharing", paramsMap ) ) );
+        sql.append( " AND" );
+        sql.append( always( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
 
-        sql.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
-        sql.append( ifSet( displayFiltering( "t.p_i18n_name", "t.de_i18n_name", paramsMap ) ) );
-        sql.append( ifSet( nameFiltering( "t.program_name", "t.name", paramsMap ) ) );
-        sql.append( ifSet( programIdFiltering( "t.program_uid", paramsMap ) ) );
-        sql.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
+        // Optional filters, based on the current root junction.
+        final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
+        optionalFilters.append( ifSet( displayFiltering( "t.p_i18n_name", "t.de_i18n_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( nameFiltering( "t.program_name", "t.name", paramsMap ) ) );
+        optionalFilters.append( ifSet( programIdFiltering( "t.program_uid", paramsMap ) ) );
+        optionalFilters.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
+        sql.append( ifAny( optionalFilters.toString() ) );
 
-        sql.append( ifSet( nameOrdering( "t.program_name, t.name, t.uid", paramsMap ) ) );
-        sql.append( ifSet( displayNameOrdering( "t.p_i18n_name, t.de_i18n_name, t.uid", paramsMap ) ) );
-
+        sql.append(
+            ifSet( ordering( "t.p_i18n_name, t.de_i18n_name, t.uid", "t.program_name, t.name, t.uid", paramsMap ) ) );
         sql.append( ifSet( maxLimit( paramsMap ) ) );
 
         final String fullStatement = sql.toString();

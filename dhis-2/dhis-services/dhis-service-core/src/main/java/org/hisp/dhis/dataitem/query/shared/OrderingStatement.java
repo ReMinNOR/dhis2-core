@@ -29,6 +29,8 @@ package org.hisp.dhis.dataitem.query.shared;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
@@ -42,27 +44,46 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class OrderingStatement
 {
+    private static final String ORDER_BY = " ORDER BY ";
+
     private OrderingStatement()
     {
     }
 
-    public static String nameOrdering( final String orderingColumns, final MapSqlParameterSource paramsMap )
+    public static String ordering( final String displayOrderingColumn, final String nameOrderingColumn,
+        final MapSqlParameterSource paramsMap )
     {
-        if ( hasStringPresence( paramsMap, NAME_ORDER ) )
+        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) && isNotBlank( displayOrderingColumn ) )
         {
-            return " ORDER BY " + orderingColumns + SPACE + paramsMap.getValue( NAME_ORDER );
+            return buildOrderByStatement( displayOrderingColumn, (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) );
+        }
+        else if ( hasStringPresence( paramsMap, NAME_ORDER ) && isNotBlank( nameOrderingColumn ) )
+        {
+            return buildOrderByStatement( displayOrderingColumn, (String) paramsMap.getValue( NAME_ORDER ) );
         }
 
         return EMPTY;
     }
 
-    public static String displayNameOrdering( final String orderingColumns, final MapSqlParameterSource paramsMap )
+    private static String buildOrderByStatement( final String displayOrderingColumn,
+        final String ascOrDesc )
     {
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) )
+        final StringBuilder orderBy = new StringBuilder();
+        final String[] columns = trimToEmpty( displayOrderingColumn ).split( "," );
+
+        if ( columns != null && columns.length > 0 )
         {
-            return " ORDER BY " + orderingColumns + SPACE + paramsMap.getValue( DISPLAY_NAME_ORDER );
+            orderBy.append( ORDER_BY );
+
+            for ( final String column : columns )
+            {
+                orderBy.append( column + SPACE + ascOrDesc + "," );
+            }
+
+            // Delete last extra comma.
+            orderBy.deleteCharAt( orderBy.length() - 1 );
         }
 
-        return EMPTY;
+        return orderBy.toString();
     }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataitem.query.shared;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasSetPresence;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
@@ -58,7 +57,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, UID ) )
         {
-            return SPACE + getRootJunction( paramsMap ) + " (" + column + " IN (:" + UID + "))";
+            return " (" + column + " = :" + UID + ")";
         }
 
         return EMPTY;
@@ -68,7 +67,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, NAME ) )
         {
-            return " AND (" + column + " ILIKE :" + NAME + ")";
+            return " (" + column + " ILIKE :" + NAME + ")";
         }
 
         return EMPTY;
@@ -79,7 +78,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, NAME ) )
         {
-            return " AND (" + columnOne + " ILIKE :" + NAME + " OR " + columnTwo + " ILIKE :" + NAME + ")";
+            return " (" + columnOne + " ILIKE :" + NAME + " OR " + columnTwo + " ILIKE :" + NAME + ")";
         }
 
         return EMPTY;
@@ -89,7 +88,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            return " AND (" + column + " ILIKE :" + DISPLAY_NAME + ")";
+            return " (" + column + " ILIKE :" + DISPLAY_NAME + ")";
         }
 
         return EMPTY;
@@ -100,7 +99,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            return " AND (" + columnOne + " ILIKE :" + DISPLAY_NAME + " OR " + columnTwo + " ILIKE :" + DISPLAY_NAME
+            return " (" + columnOne + " ILIKE :" + DISPLAY_NAME + " OR " + columnTwo + " ILIKE :" + DISPLAY_NAME
                 + ")";
         }
 
@@ -111,7 +110,7 @@ public class FilteringStatement
     {
         if ( hasSetPresence( paramsMap, VALUE_TYPES ) )
         {
-            return " AND (" + column + " IN (:" + VALUE_TYPES + "))";
+            return " (" + column + " IN (:" + VALUE_TYPES + "))";
         }
 
         return EMPTY;
@@ -136,23 +135,46 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, PROGRAM_ID ) )
         {
-            return " AND " + column + " = :" + PROGRAM_ID;
+            return " " + column + " = :" + PROGRAM_ID;
         }
 
         return EMPTY;
     }
 
+    /**
+     * Simple decoration used ONLY to provide better readability.
+     *
+     * @param anyString
+     * @return the exact same value provided as argument.
+     */
+    public static String ifAny( final String anyString )
+    {
+        return anyString;
+    }
+
+    /**
+     * Simple decoration used ONLY to provide better readability.
+     *
+     * @param anyString
+     * @return the exact same value provided as argument.
+     */
     public static String ifSet( final String anyString )
     {
         return anyString;
     }
 
+    /**
+     * Simple decoration used ONLY to provide better readability.
+     *
+     * @param anyString
+     * @return the exact same value provided as argument.
+     */
     public static String always( final String anyString )
     {
         return anyString;
     }
 
-    private static String getRootJunction( final MapSqlParameterSource paramsMap )
+    public static String rootJunction( final MapSqlParameterSource paramsMap )
     {
         final String defaultRootJunction = "AND";
 
