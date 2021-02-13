@@ -49,6 +49,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class FilteringStatement
 {
+
+    public static final String ILIKE = " ILIKE :";
+
     private FilteringStatement()
     {
     }
@@ -67,7 +70,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, NAME ) )
         {
-            return " (" + column + " ILIKE :" + NAME + ")";
+            return " (" + column + ILIKE + NAME + ")";
         }
 
         return EMPTY;
@@ -78,7 +81,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, NAME ) )
         {
-            return " (" + columnOne + " ILIKE :" + NAME + " OR " + columnTwo + " ILIKE :" + NAME + ")";
+            return " (" + columnOne + ILIKE + NAME + " OR " + columnTwo + ILIKE + NAME + ")";
         }
 
         return EMPTY;
@@ -88,7 +91,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            return " (" + column + " ILIKE :" + DISPLAY_NAME + ")";
+            return " (" + column + ILIKE + DISPLAY_NAME + ")";
         }
 
         return EMPTY;
@@ -99,7 +102,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            return " (" + columnOne + " ILIKE :" + DISPLAY_NAME + " OR " + columnTwo + " ILIKE :" + DISPLAY_NAME
+            return " (" + columnOne + ILIKE + DISPLAY_NAME + " OR " + columnTwo + ILIKE + DISPLAY_NAME
                 + ")";
         }
 
