@@ -29,7 +29,7 @@ package org.hisp.dhis.dataitem.query;
 
 import java.util.List;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.DataItem;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
@@ -66,5 +66,5 @@ public interface DataItemQuery
      *
      * @return the entity associated to the interface implementation
      */
-    Class<? extends BaseDimensionalItemObject> getAssociatedEntity();
+    Class<? extends BaseIdentifiableObject> getAssociatedEntity();
 }

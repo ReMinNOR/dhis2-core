@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
@@ -35,7 +36,7 @@ public class FilteringHelperTest
             DataSet.class };
 
         // When
-        final Set<Class<? extends BaseDimensionalItemObject>> actualClasses = extractEntitiesFromInFilter( anyFilters );
+        final Set<Class<? extends BaseIdentifiableObject>> actualClasses = extractEntitiesFromInFilter( anyFilters );
 
         // Then
         assertThat( actualClasses, hasSize( 2 ) );
@@ -73,10 +74,10 @@ public class FilteringHelperTest
     {
         // Given
         final String filtersNotFullyDefined = "dimensionItemType:in:[,DATA_SET]";
-        final Class<? extends BaseDimensionalItemObject>[] expectedClasses = new Class[] { DataSet.class };
+        final Class<? extends BaseIdentifiableObject>[] expectedClasses = new Class[] { DataSet.class };
 
         // When
-        final Set<Class<? extends BaseDimensionalItemObject>> actualClasses = extractEntitiesFromInFilter(
+        final Set<Class<? extends BaseIdentifiableObject>> actualClasses = extractEntitiesFromInFilter(
             filtersNotFullyDefined );
 
         // Then
@@ -92,7 +93,7 @@ public class FilteringHelperTest
         final Class<? extends BaseDimensionalItemObject> expectedClass = DataSet.class;
 
         // When
-        final Class<? extends BaseDimensionalItemObject> actualClass = extractEntityFromEqualFilter( anyFilter );
+        final Class<? extends BaseIdentifiableObject> actualClass = extractEntityFromEqualFilter( anyFilter );
 
         // Then
         assertThat( actualClass, is( notNullValue() ) );

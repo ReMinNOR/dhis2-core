@@ -34,7 +34,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.DataItem;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
@@ -58,7 +58,7 @@ public class QueryExecutor
      * @param paramsMap the parameters
      * @return the list of DataItem found
      */
-    public List<DataItem> find( final Class<? extends BaseDimensionalItemObject> entity,
+    public List<DataItem> find( final Class<? extends BaseIdentifiableObject> entity,
         final MapSqlParameterSource paramsMap )
     {
         // Iterates through all implementations of DataItemQuery and execute the
@@ -82,7 +82,7 @@ public class QueryExecutor
      * @param paramsMap the parameters
      * @return the total of items found
      */
-    public int count( final Class<? extends BaseDimensionalItemObject> entity,
+    public int count( final Class<? extends BaseIdentifiableObject> entity,
         final MapSqlParameterSource paramsMap )
     {
         // Iterates through all implementations of DataItemQuery and execute the
@@ -99,8 +99,8 @@ public class QueryExecutor
         return 0;
     }
 
-    private boolean isEquals( final Class<? extends BaseDimensionalItemObject> entity,
-        final Class<? extends BaseDimensionalItemObject> other )
+    private boolean isEquals( final Class<? extends BaseIdentifiableObject> entity,
+        final Class<? extends BaseIdentifiableObject> other )
     {
         notNull( entity, "The entity must not be null" );
         notNull( other, "The other must not be null" );

@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.QueryExecutor;
@@ -28,6 +28,7 @@ import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -65,14 +66,15 @@ public class DataItemServiceFacade
      * This Map holds the allowed data types to be queried.
      */
     // @formatter:off
-    public static final Map<String, Class<? extends BaseDimensionalItemObject>> DATA_TYPE_ENTITY_MAP = ImmutableMap
-        .<String, Class<? extends BaseDimensionalItemObject>> builder()
+    public static final Map<String, Class<? extends BaseIdentifiableObject>> DATA_TYPE_ENTITY_MAP = ImmutableMap
+        .<String, Class<? extends BaseIdentifiableObject>> builder()
             .put( "INDICATOR", Indicator.class )
             .put( "DATA_ELEMENT", DataElement.class )
             .put( "DATA_SET", DataSet.class )
             .put( "PROGRAM_INDICATOR", ProgramIndicator.class )
             .put( "PROGRAM_DATA_ELEMENT", ProgramDataElementDimensionItem.class )
             .put( "PROGRAM_ATTRIBUTE", ProgramTrackedEntityAttributeDimensionItem.class )
+            .put( "PROGRAM_INDICATOR_GROUP", ProgramIndicatorGroup.class)
             .build();
     // @formatter:on
 
@@ -88,7 +90,7 @@ public class DataItemServiceFacade
      * @return the consolidated collection of entities found.
      */
     List<DataItem> retrieveDataItemEntities(
-        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities, final Set<String> filters,
+        final Set<Class<? extends BaseIdentifiableObject>> targetEntities, final Set<String> filters,
         final WebOptions options, final OrderParams orderParams )
     {
         final List<DataItem> dataItems = new ArrayList<>();
@@ -132,9 +134,9 @@ public class DataItemServiceFacade
      * @param filters
      * @return the data items classes to be queried
      */
-    Set<Class<? extends BaseDimensionalItemObject>> extractTargetEntities( final Set<String> filters )
+    Set<Class<? extends BaseIdentifiableObject>> extractTargetEntities( final Set<String> filters )
     {
-        final Set<Class<? extends BaseDimensionalItemObject>> targetedEntities = new HashSet<>( 0 );
+        final Set<Class<? extends BaseIdentifiableObject>> targetedEntities = new HashSet<>( 0 );
 
         if ( containsFilterWithOneOfPrefixes( filters, DIMENSION_TYPE_EQUAL.getCombination(),
             DIMENSION_TYPE_IN.getCombination() ) )
@@ -151,15 +153,15 @@ public class DataItemServiceFacade
     }
 
     private void addFilteredTargetEntities( final Set<String> filters,
-        final Set<Class<? extends BaseDimensionalItemObject>> targetedEntities )
+        final Set<Class<? extends BaseIdentifiableObject>> targetedEntities )
     {
         final Iterator<String> iterator = filters.iterator();
 
         while ( iterator.hasNext() )
         {
             final String filter = iterator.next();
-            final Class<? extends BaseDimensionalItemObject> entity = extractEntityFromEqualFilter( filter );
-            final Set<Class<? extends BaseDimensionalItemObject>> entities = extractEntitiesFromInFilter( filter );
+            final Class<? extends BaseIdentifiableObject> entity = extractEntityFromEqualFilter( filter );
+            final Set<Class<? extends BaseIdentifiableObject>> entities = extractEntitiesFromInFilter( filter );
 
             if ( entity != null || isNotEmpty( entities ) )
             {

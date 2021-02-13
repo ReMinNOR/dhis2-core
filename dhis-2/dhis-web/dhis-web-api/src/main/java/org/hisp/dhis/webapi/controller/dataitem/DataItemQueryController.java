@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -124,7 +124,7 @@ public class DataItemQueryController
         checkOrderParamsAndFiltersAllowance( orderParams.getOrders(), filters );
 
         // Extracting the target entities to be queried.
-        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = dataItemServiceFacade
+        final Set<Class<? extends BaseIdentifiableObject>> targetEntities = dataItemServiceFacade
             .extractTargetEntities( filters );
 
         // Checking if the user can read all the target entities.
@@ -145,11 +145,11 @@ public class DataItemQueryController
     }
 
     private void checkAuthorization( final User currentUser,
-        final Set<Class<? extends BaseDimensionalItemObject>> entities )
+        final Set<Class<? extends BaseIdentifiableObject>> entities )
     {
         if ( isNotEmpty( entities ) )
         {
-            for ( final Class<? extends BaseDimensionalItemObject> entity : entities )
+            for ( final Class<? extends BaseIdentifiableObject> entity : entities )
             {
                 if ( !aclService.canRead( currentUser, entity ) )
                 {

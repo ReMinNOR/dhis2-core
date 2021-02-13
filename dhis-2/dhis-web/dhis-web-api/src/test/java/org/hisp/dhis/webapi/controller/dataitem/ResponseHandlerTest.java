@@ -30,7 +30,7 @@ import java.util.Set;
 import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.QueryExecutor;
@@ -107,7 +107,7 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final List<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = asList( Indicator.class,
+        final List<Class<? extends BaseIdentifiableObject>> anyTargetEntities = asList( Indicator.class,
             DataSet.class );
         final Set<String> anyFilters = newHashSet( "any" );
         final User anyUser = new User();
@@ -136,7 +136,7 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final List<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = asList( Indicator.class,
+        final List<Class<? extends BaseIdentifiableObject>> anyTargetEntities = asList( Indicator.class,
             DataSet.class );
         final Set<String> anyFilters = newHashSet( "any" );
         final User anyUser = new User();
@@ -163,7 +163,7 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final List<Class<? extends BaseDimensionalItemObject>> emptyTargetEntities = emptyList();
+        final List<Class<? extends BaseIdentifiableObject>> emptyTargetEntities = emptyList();
         final Set<String> anyFilters = newHashSet( "any" );
         final User anyUser = new User();
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );

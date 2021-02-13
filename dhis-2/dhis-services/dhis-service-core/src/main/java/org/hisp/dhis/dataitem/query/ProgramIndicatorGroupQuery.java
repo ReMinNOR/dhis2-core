@@ -29,20 +29,14 @@ package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
-import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.rootJunction;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
@@ -55,10 +49,9 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
+import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -68,22 +61,22 @@ import org.springframework.stereotype.Component;
 
 /**
  * This component is responsible for providing query capabilities on top of
- * DataElement objects.
+ * ProgramIndicatorGroup objects.
  *
  * @author maikel arabori
  */
 @Slf4j
 @Component
-public class DataElementQuery implements DataItemQuery
+public class ProgramIndicatorGroupQuery implements DataItemQuery
 {
-    private static final String COMMON_COLUMNS = "dataelement.uid, dataelement.\"name\", dataelement.valuetype,"
-        + " dataelement.code, dataelement.sharing AS dataelement_sharing";
+    private static final String COMMON_COLUMNS = "programindicatorgroup.uid, programindicatorgroup.\"name\","
+        + " programindicatorgroup.code, programindicatorgroup.sharing AS programindicatorgroup_sharing";
 
-    private static final String ITEM_UID = "dataelement.uid";
+    private static final String ITEM_UID = "programindicatorgroup.uid";
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public DataElementQuery( @Qualifier( "readOnlyJdbcTemplate" )
+    public ProgramIndicatorGroupQuery( @Qualifier( "readOnlyJdbcTemplate" )
     final JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
@@ -96,23 +89,22 @@ public class DataElementQuery implements DataItemQuery
     {
         final List<DataItem> dataItems = new ArrayList<>();
 
-        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
-            getDataElementQuery( paramsMap ), paramsMap );
+        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( getProgramIndicatorGroupQuery( paramsMap ),
+            paramsMap );
 
         while ( rowSet.next() )
         {
             final DataItem viewItem = new DataItem();
-            final ValueType valueType = fromString( rowSet.getString( "valuetype" ) );
             final String name = trimToNull( rowSet.getString( "name" ) );
             final String displayName = defaultIfBlank( trimToNull( rowSet.getString( "i18n_name" ) ), name );
 
             viewItem.setName( name );
             viewItem.setDisplayName( displayName );
-            viewItem.setValueType( valueType.name() );
-            viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
             viewItem.setId( rowSet.getString( "uid" ) );
             viewItem.setCode( rowSet.getString( "code" ) );
-            viewItem.setDimensionItemType( DATA_ELEMENT.name() );
+
+            // TODO: MAIKEL: What's the dimension type for this case?
+            // viewItem.setDimensionItemType( INDICATOR.name() );
 
             dataItems.add( viewItem );
         }
@@ -126,7 +118,7 @@ public class DataElementQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         sql.append( "SELECT COUNT(*) FROM (" )
-            .append( getDataElementQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
+            .append( getProgramIndicatorGroupQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
@@ -135,10 +127,10 @@ public class DataElementQuery implements DataItemQuery
     @Override
     public Class<? extends BaseIdentifiableObject> getAssociatedEntity()
     {
-        return DataElement.class;
+        return ProgramIndicatorGroup.class;
     }
 
-    private String getDataElementQuery( final MapSqlParameterSource paramsMap )
+    private String getProgramIndicatorGroupQuery( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder();
 
@@ -157,12 +149,12 @@ public class DataElementQuery implements DataItemQuery
                 .append( selectAllRowsIgnoringAnyTranslation() )
 
                 /// AND excluding ALL translated rows previously selected
-                /// (translated data elements).
+                /// (translated names).
                 .append( " WHERE (" + ITEM_UID + ") NOT IN (" )
 
                 .append( selectRowsContainingTranslatedName( true ) )
 
-                // Closing NOT IN exclusions
+                // Closing NOT IN exclusions.
                 .append( ")" );
         }
         else
@@ -172,8 +164,8 @@ public class DataElementQuery implements DataItemQuery
         }
 
         sql.append(
-            " GROUP BY dataelement.\"name\", " + ITEM_UID + ", dataelement.valuetype, dataelement.code, i18n_name,"
-                + " dataelement_sharing" );
+            " GROUP BY programindicatorgroup.\"name\", " + ITEM_UID + ", programindicatorgroup.code, i18n_name,"
+                + " programindicatorgroup_sharing" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -183,9 +175,7 @@ public class DataElementQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.dataelement_sharing", paramsMap ) ) );
-        sql.append( " AND" );
-        sql.append( always( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
+        sql.append( always( sharingConditions( "t.programindicatorgroup_sharing", paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
@@ -204,16 +194,6 @@ public class DataElementQuery implements DataItemQuery
         return fullStatement;
     }
 
-    public static String append( final String filterStatement, final MapSqlParameterSource paramsMap )
-    {
-        if ( isNotBlank( filterStatement ) )
-        {
-            return filterStatement + SPACE + rootJunction( paramsMap );
-        }
-
-        return EMPTY;
-    }
-
     private String selectRowsContainingTranslatedName( final boolean onlyUidColumn )
     {
         final StringBuilder sql = new StringBuilder();
@@ -225,13 +205,13 @@ public class DataElementQuery implements DataItemQuery
         else
         {
             sql.append( " SELECT " + COMMON_COLUMNS )
-                .append( ", de_displayname.value AS i18n_name" );
+                .append( ", pig_displayname.value AS i18n_name" );
         }
 
-        sql.append( " FROM dataelement " )
+        sql.append( " FROM programindicatorgroup " )
             .append(
-                " JOIN jsonb_to_recordset(dataelement.translations) AS de_displayname(value TEXT, locale TEXT, property TEXT) ON de_displayname.locale = :"
-                    + LOCALE + " AND de_displayname.property = 'NAME'" );
+                " JOIN jsonb_to_recordset(programindicatorgroup.translations) AS pig_displayname(value TEXT, locale TEXT, property TEXT) ON pig_displayname.locale = :"
+                    + LOCALE + " AND pig_displayname.property = 'NAME'" );
 
         return sql.toString();
     }
@@ -240,7 +220,7 @@ public class DataElementQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( " SELECT " + COMMON_COLUMNS )
-            .append( ", dataelement.\"name\" AS i18n_name" )
-            .append( " FROM dataelement " ).toString();
+            .append( ", programindicatorgroup.\"name\" AS i18n_name" )
+            .append( " FROM programindicatorgroup " ).toString();
     }
 }

@@ -20,7 +20,7 @@ import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.QueryExecutor;
@@ -97,7 +97,7 @@ class ResponseHandler
      * @param filters the query filters used in the count query
      */
     void addPaginationToNode( final RootNode rootNode,
-        final List<Class<? extends BaseDimensionalItemObject>> targetEntities, final User currentUser,
+        final List<Class<? extends BaseIdentifiableObject>> targetEntities, final User currentUser,
         final WebOptions options, final Set<String> filters )
     {
         if ( options.hasPaging() && isNotEmpty( targetEntities ) )
@@ -125,7 +125,7 @@ class ResponseHandler
         }
     }
 
-    private int countEntityRowsTotal( final Class<? extends BaseDimensionalItemObject> entity, final WebOptions options,
+    private int countEntityRowsTotal( final Class<? extends BaseIdentifiableObject> entity, final WebOptions options,
         final MapSqlParameterSource paramsMap )
     {
         // Calculate pagination.
@@ -139,7 +139,7 @@ class ResponseHandler
     }
 
     private String createPageCountingCacheKey( final User currentUser,
-        final Class<? extends BaseDimensionalItemObject> entity, final Set<String> filters, final WebOptions options )
+        final Class<? extends BaseIdentifiableObject> entity, final Set<String> filters, final WebOptions options )
     {
         return currentUser.getUsername() + "." + entity + "." + join( "|", filters ) + "."
             + options.getRootJunction().name();

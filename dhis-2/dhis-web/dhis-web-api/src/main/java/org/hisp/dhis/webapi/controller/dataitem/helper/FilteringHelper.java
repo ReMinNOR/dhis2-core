@@ -47,7 +47,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -80,9 +80,9 @@ public class FilteringHelper
      * @throws IllegalQueryException if the filter points to a non supported
      *         class/entity
      */
-    public static Set<Class<? extends BaseDimensionalItemObject>> extractEntitiesFromInFilter( final String filter )
+    public static Set<Class<? extends BaseIdentifiableObject>> extractEntitiesFromInFilter( final String filter )
     {
-        final Set<Class<? extends BaseDimensionalItemObject>> dimensionTypes = new HashSet<>();
+        final Set<Class<? extends BaseIdentifiableObject>> dimensionTypes = new HashSet<>();
 
         if ( contains( filter, DIMENSION_TYPE_IN.getCombination() ) )
         {
@@ -117,10 +117,10 @@ public class FilteringHelper
      * @throws IllegalQueryException if the filter points to a non supported
      *         class/entity
      */
-    public static Class<? extends BaseDimensionalItemObject> extractEntityFromEqualFilter( final String filter )
+    public static Class<? extends BaseIdentifiableObject> extractEntityFromEqualFilter( final String filter )
     {
         final byte DIMENSION_TYPE = 2;
-        Class<? extends BaseDimensionalItemObject> entity = null;
+        Class<? extends BaseIdentifiableObject> entity = null;
 
         if ( filterHasPrefix( filter, DIMENSION_TYPE_EQUAL.getCombination() ) )
         {
@@ -399,9 +399,9 @@ public class FilteringHelper
         }
     }
 
-    private static Class<? extends BaseDimensionalItemObject> entityClassFromString( final String entityType )
+    private static Class<? extends BaseIdentifiableObject> entityClassFromString( final String entityType )
     {
-        final Class<? extends BaseDimensionalItemObject> entity = DATA_TYPE_ENTITY_MAP.get( trimToEmpty( entityType ) );
+        final Class<? extends BaseIdentifiableObject> entity = DATA_TYPE_ENTITY_MAP.get( trimToEmpty( entityType ) );
 
         if ( entity == null )
         {

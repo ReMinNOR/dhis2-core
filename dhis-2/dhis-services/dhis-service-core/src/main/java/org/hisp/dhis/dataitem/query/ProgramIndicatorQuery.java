@@ -53,7 +53,7 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -162,7 +162,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
     }
 
     @Override
-    public Class<? extends BaseDimensionalItemObject> getAssociatedEntity()
+    public Class<? extends BaseIdentifiableObject> getAssociatedEntity()
     {
         return ProgramIndicator.class;
     }

@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -73,7 +73,7 @@ public class DataItemQueryControllerTest
         final Map<String, String> anyUrlParameters = new HashMap<>();
         final OrderParams anyOrderParams = new OrderParams();
         final User anyUser = new User();
-        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
+        final Set<Class<? extends BaseIdentifiableObject>> targetEntities = new HashSet<>(
             singletonList( Indicator.class ) );
         final List<DataItem> itemsFound = singletonList( new DataItem() );
 
@@ -101,7 +101,7 @@ public class DataItemQueryControllerTest
         final Map<String, String> anyUrlParameters = new HashMap<>();
         final OrderParams anyOrderParams = new OrderParams();
         final User anyUser = new User();
-        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
+        final Set<Class<? extends BaseIdentifiableObject>> targetEntities = new HashSet<>(
             singletonList( Indicator.class ) );
         final List<DataItem> itemsFound = emptyList();
 
@@ -128,7 +128,7 @@ public class DataItemQueryControllerTest
         final Map<String, String> anyUrlParameters = new HashMap<>();
         final OrderParams anyOrderParams = new OrderParams();
         final User anyUser = new User();
-        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
+        final Set<Class<? extends BaseIdentifiableObject>> targetEntities = new HashSet<>(
             singletonList( Indicator.class ) );
         final boolean invalidAcl = false;
 

@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.QueryExecutor;
@@ -36,7 +36,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -69,8 +68,8 @@ public class DataItemServiceFacadeTest
     public void testRetrieveDataItemEntities()
     {
         // Given
-        final Class<? extends BaseDimensionalItemObject> targetEntity = Indicator.class;
-        final Set<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = new HashSet<>(
+        final Class<? extends BaseIdentifiableObject> targetEntity = Indicator.class;
+        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = new HashSet<>(
             asList( targetEntity ) );
         final List<DataItem> expectedItemsFound = asList( mockDataItem( INDICATOR ), mockDataItem( INDICATOR ) );
         final Set<String> anyFilters = newHashSet( "anyFilter" );
@@ -97,7 +96,7 @@ public class DataItemServiceFacadeTest
     public void testRetrieveDataItemEntitiesWhenTargetEntitiesIsEmpty()
     {
         // Given
-        final Set<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = emptySet();
+        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = emptySet();
         final Set<String> anyFilters = newHashSet( "anyFilter" );
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
         final Set<String> anyOrdering = new HashSet<>( asList( "name:desc" ) );
@@ -115,12 +114,12 @@ public class DataItemServiceFacadeTest
     public void testExtractTargetEntitiesUsingEqualsFilter()
     {
         // Given
-        final Set<Class<? extends BaseDimensionalItemObject>> expectedTargetEntities = new HashSet<>(
+        final Set<Class<? extends BaseIdentifiableObject>> expectedTargetEntities = new HashSet<>(
             asList( Indicator.class ) );
         final Set<String> theFilters = newHashSet( "dimensionItemType:eq:INDICATOR" );
 
         // When
-        final Set<Class<? extends BaseDimensionalItemObject>> actualTargetEntities = dataItemServiceFacade
+        final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities = dataItemServiceFacade
             .extractTargetEntities( theFilters );
 
         // Then
@@ -131,12 +130,12 @@ public class DataItemServiceFacadeTest
     public void testExtractTargetEntitiesUsingInFilter()
     {
         // Given
-        final Set<Class<? extends BaseDimensionalItemObject>> expectedTargetEntities = new HashSet<>(
+        final Set<Class<? extends BaseIdentifiableObject>> expectedTargetEntities = new HashSet<>(
             asList( Indicator.class, DataSet.class ) );
         final Set<String> theFilters = newHashSet( "dimensionItemType:in:[INDICATOR, DATA_SET]" );
 
         // When
-        final Set<Class<? extends BaseDimensionalItemObject>> actualTargetEntities = dataItemServiceFacade
+        final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities = dataItemServiceFacade
             .extractTargetEntities( theFilters );
 
         // Then
@@ -150,7 +149,7 @@ public class DataItemServiceFacadeTest
         final Set<String> noTargetEntitiesFilters = emptySet();
 
         // When
-        final Set<Class<? extends BaseDimensionalItemObject>> actualTargetEntities = dataItemServiceFacade
+        final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities = dataItemServiceFacade
             .extractTargetEntities( noTargetEntitiesFilters );
 
         // Then
