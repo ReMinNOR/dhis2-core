@@ -106,7 +106,7 @@ public class ProgramAttributeQuery implements DataItemQuery
             final ValueType valueType = fromString( rowSet.getString( "valuetype" ) );
 
             final String programName = trimToEmpty( rowSet.getString( "program_name" ) );
-            final String programDisplayName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_name" ) ),
+            final String displayProgramName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_name" ) ),
                 programName );
 
             final String name = trimToEmpty( rowSet.getString( "name" ) );
@@ -116,7 +116,7 @@ public class ProgramAttributeQuery implements DataItemQuery
             viewItem.setName( name );
             viewItem.setDisplayName( displayName );
             viewItem.setProgramName( programName );
-            viewItem.setDisplayProgramName( programDisplayName );
+            viewItem.setDisplayProgramName( displayProgramName );
             viewItem.setValueType( valueType.name() );
             viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );
