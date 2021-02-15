@@ -117,7 +117,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
             viewItem.setName( name );
             viewItem.setDisplayName( displayName );
             viewItem.setProgramName( programName );
-            viewItem.setDisplayProgramName( displayProgramName );
+            viewItem.setProgramDisplayName( displayProgramName );
             viewItem.setValueType( valueType.name() );
             viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );

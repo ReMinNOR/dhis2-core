@@ -64,7 +64,7 @@ public class DataItem implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String displayProgramName;
+    private String programDisplayName;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )

@@ -122,7 +122,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
             viewItem.setName( name );
             viewItem.setDisplayName( displayName );
             viewItem.setProgramName( programName );
-            viewItem.setDisplayProgramName( displayProgramName );
+            viewItem.setProgramDisplayName( displayProgramName );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
             viewItem.setCode( rowSet.getString( "code" ) );
