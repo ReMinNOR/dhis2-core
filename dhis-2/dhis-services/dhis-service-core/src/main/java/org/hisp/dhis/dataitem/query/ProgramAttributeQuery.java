@@ -57,7 +57,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -146,7 +145,7 @@ public class ProgramAttributeQuery implements DataItemQuery
     @Override
     public Class<? extends BaseIdentifiableObject> getAssociatedEntity()
     {
-        return ProgramTrackedEntityAttributeDimensionItem.class;
+        return QueryableDataItem.PROGRAM_ATTRIBUTE.getEntity();
     }
 
     private String getProgramAttributeQueryWith( final MapSqlParameterSource paramsMap )

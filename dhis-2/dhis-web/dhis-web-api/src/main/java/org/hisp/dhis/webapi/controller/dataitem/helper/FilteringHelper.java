@@ -1,9 +1,11 @@
 package org.hisp.dhis.webapi.controller.dataitem.helper;
 
+import static com.google.common.base.Enums.getIfPresent;
 import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
+import static org.apache.commons.lang3.EnumUtils.getEnumMap;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.contains;
@@ -28,7 +30,6 @@ import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2016;
 import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
 import static org.hisp.dhis.user.UserSettingKey.UI_LOCALE;
-import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DISPLAY_NAME_ILIKE;
@@ -50,6 +51,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.dataitem.Filter;
@@ -82,18 +84,18 @@ public class FilteringHelper
      */
     public static Set<Class<? extends BaseIdentifiableObject>> extractEntitiesFromInFilter( final String filter )
     {
-        final Set<Class<? extends BaseIdentifiableObject>> dimensionTypes = new HashSet<>();
+        final Set<Class<? extends BaseIdentifiableObject>> dataItemsEntity = new HashSet<>();
 
         if ( contains( filter, DIMENSION_TYPE_IN.getCombination() ) )
         {
-            final String[] dimensionTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
+            final String[] dimensionItemTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
                 "," );
 
-            if ( isNotEmpty( dimensionTypesInFilter ) )
+            if ( isNotEmpty( dimensionItemTypesInFilter ) )
             {
-                for ( final String dimensionType : dimensionTypesInFilter )
+                for ( final String dimensionItem : dimensionItemTypesInFilter )
                 {
-                    dimensionTypes.add( entityClassFromString( dimensionType ) );
+                    dataItemsEntity.add( entityClassFromString( dimensionItem ) );
                 }
             }
             else
@@ -102,7 +104,7 @@ public class FilteringHelper
             }
         }
 
-        return dimensionTypes;
+        return dataItemsEntity;
     }
 
     /**
@@ -399,16 +401,19 @@ public class FilteringHelper
         }
     }
 
-    private static Class<? extends BaseIdentifiableObject> entityClassFromString( final String entityType )
+    private static Class<? extends BaseIdentifiableObject> entityClassFromString( final String dimensionItem )
     {
-        final Class<? extends BaseIdentifiableObject> entity = DATA_TYPE_ENTITY_MAP.get( trimToEmpty( entityType ) );
 
-        if ( entity == null )
+        final QueryableDataItem item = getIfPresent( QueryableDataItem.class, dimensionItem )
+            .orNull();
+
+        if ( item == null )
         {
             throw new IllegalQueryException(
-                new ErrorMessage( E2016, entityType, "dimensionItemType", DATA_TYPE_ENTITY_MAP.keySet() ) );
+                new ErrorMessage( E2016, dimensionItem, "dimensionItemType",
+                    getEnumMap( QueryableDataItem.class ).keySet() ) );
         }
 
-        return entity;
+        return item.getEntity();
     }
 }

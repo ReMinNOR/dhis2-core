@@ -1,6 +1,7 @@
 package org.hisp.dhis.webapi.controller.dataitem;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.dataitem.query.QueryableDataItem.getEntities;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
@@ -16,28 +17,18 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.QueryExecutor;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramIndicatorGroup;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
-
-import com.google.common.collect.ImmutableMap;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,22 +52,6 @@ public class DataItemServiceFacade
     private final AclService aclService;
 
     private final QueryExecutor queryExecutor;
-
-    /**
-     * This Map holds the allowed data types to be queried.
-     */
-    // @formatter:off
-    public static final Map<String, Class<? extends BaseIdentifiableObject>> DATA_TYPE_ENTITY_MAP = ImmutableMap
-        .<String, Class<? extends BaseIdentifiableObject>> builder()
-            .put( "INDICATOR", Indicator.class )
-            .put( "DATA_ELEMENT", DataElement.class )
-            .put( "DATA_SET", DataSet.class )
-            .put( "PROGRAM_INDICATOR", ProgramIndicator.class )
-            .put( "PROGRAM_DATA_ELEMENT", ProgramDataElementDimensionItem.class )
-            .put( "PROGRAM_ATTRIBUTE", ProgramTrackedEntityAttributeDimensionItem.class )
-            .put( "PROGRAM_INDICATOR_GROUP", ProgramIndicatorGroup.class)
-            .build();
-    // @formatter:on
 
     /**
      * This method will iterate through the list of target entities, and query
@@ -146,7 +121,7 @@ public class DataItemServiceFacade
         else
         {
             // If no filter is set we search for all entities.
-            targetedEntities.addAll( DATA_TYPE_ENTITY_MAP.values() );
+            targetedEntities.addAll( getEntities() );
         }
 
         return targetedEntities;

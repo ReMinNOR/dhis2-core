@@ -56,7 +56,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -135,7 +134,7 @@ public class DataElementQuery implements DataItemQuery
     @Override
     public Class<? extends BaseIdentifiableObject> getAssociatedEntity()
     {
-        return DataElement.class;
+        return QueryableDataItem.DATA_ELEMENT.getEntity();
     }
 
     private String getDataElementQuery( final MapSqlParameterSource paramsMap )

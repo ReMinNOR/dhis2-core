@@ -65,7 +65,8 @@ public class FilterValidator
 
                         if ( trimToEmpty( attributeValue ).length() < MIN_TEXT_SEARCH_LENGTH )
                         {
-                            throw new IllegalQueryException( new ErrorMessage( E2038, MIN_TEXT_SEARCH_LENGTH, filter ) );
+                            throw new IllegalQueryException(
+                                new ErrorMessage( E2038, MIN_TEXT_SEARCH_LENGTH, filter ) );
                         }
 
                         if ( !getNames().contains( attributeName ) )

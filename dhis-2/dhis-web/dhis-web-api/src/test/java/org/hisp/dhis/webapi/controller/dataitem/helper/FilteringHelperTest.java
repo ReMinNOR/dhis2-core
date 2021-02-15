@@ -1,13 +1,13 @@
 package org.hisp.dhis.webapi.controller.dataitem.helper;
 
 import static com.google.common.collect.Sets.newHashSet;
+import static org.apache.commons.lang3.EnumUtils.getEnumMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
@@ -23,6 +23,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.junit.Test;
 
 public class FilteringHelperTest
@@ -52,7 +53,7 @@ public class FilteringHelperTest
         // Then
         assertThrows(
             "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
-                + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ),
+                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ),
             IllegalQueryException.class, () -> extractEntitiesFromInFilter( filtersWithInvalidType ) );
     }
 
@@ -109,7 +110,7 @@ public class FilteringHelperTest
         // When
         assertThrows(
             "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
-                + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ),
+                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ),
             IllegalQueryException.class, () -> extractEntityFromEqualFilter( filtersWithInvalidType ) );
 
     }

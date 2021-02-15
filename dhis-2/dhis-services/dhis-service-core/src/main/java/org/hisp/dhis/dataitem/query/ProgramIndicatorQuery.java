@@ -56,7 +56,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
-import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -164,7 +163,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
     @Override
     public Class<? extends BaseIdentifiableObject> getAssociatedEntity()
     {
-        return ProgramIndicator.class;
+        return QueryableDataItem.PROGRAM_INDICATOR.getEntity();
     }
 
     private String getProgramIndicatorQuery( final MapSqlParameterSource paramsMap )
