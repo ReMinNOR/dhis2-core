@@ -25,39 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.cache;
 
-import java.util.List;
-
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.period.PeriodType;
+import java.util.Map;
 
 /**
- * @author Kristian Nordal
+ * Provides cache builder to build instances.
+ *
+ * @author Ameen Mohamed
  */
-public interface DataSetStore
-    extends IdentifiableObjectStore<DataSet>, DataSetDataIntegrityProvider
+public interface CacheBuilderProvider
 {
-    String ID = DataSetStore.class.getName();
-
-    // -------------------------------------------------------------------------
-    // DataSet
-    // -------------------------------------------------------------------------
+    /**
+     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a
+     * cache that stores the valueType specified.
+     *
+     * @param valueType The class type of values to be stored in cache.
+     * @return A cache builder instance for the specified value type. Returns a
+     *         {@link ExtendedCacheBuilder}.
+     */
+    <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType );
 
     /**
-     * Gets all DataSets associated with the given PeriodType.
+     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a
+     * cache that stores the Map of keyType and valueType specified.
      *
-     * @param periodType the PeriodType.
-     * @return a list of DataSets.
+     * @param valueType The class type of values to be stored in cache.
+     * @return A cache builder instance for the specified value type. Returns a
+     *         {@link ExtendedCacheBuilder}.
      */
-    List<DataSet> getDataSetsByPeriodType( PeriodType periodType );
-
-    /**
-     * Gets all DataSets associated with the given DataEntryForm.
-     *
-     * @param dataEntryForm the DataEntryForm.
-     * @return a list of DataSets.
-     */
-    List<DataSet> getDataSetsByDataEntryForm( DataEntryForm dataEntryForm );
+    <K, V> ExtendedCacheBuilder<Map<K, V>> newCacheBuilder( Class<K> keyType, Class<V> valueType );
 }

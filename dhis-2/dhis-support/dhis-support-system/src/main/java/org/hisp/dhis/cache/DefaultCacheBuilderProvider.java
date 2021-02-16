@@ -25,44 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit.hibernate;
+package org.hisp.dhis.cache;
 
-import java.util.List;
+import java.util.Map;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Lars Helge Overland
+ * Provides cache builder to build instances.
+ *
+ * @author Ameen Mohamed
+ *
  */
-@Repository( "org.hisp.dhis.organisationunit.OrganisationUnitGroupStore" )
-public class HibernateOrganisationUnitGroupStore
-    extends HibernateIdentifiableObjectStore<OrganisationUnitGroup>
-    implements OrganisationUnitGroupStore
+@Component( "cacheProvider" )
+public class DefaultCacheBuilderProvider implements CacheBuilderProvider
 {
-    public HibernateOrganisationUnitGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    private DhisConfigurationProvider configurationProvider;
+
+    private RedisTemplate<String, ?> redisTemplate;
+
+    @Override
+    public <V> ExtendedCacheBuilder<V> newCacheBuilder( Class<V> valueType )
     {
-        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnitGroup.class, currentUserService, aclService,
-            true );
+        return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
     }
 
     @Override
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets()
+    public <K, V> ExtendedCacheBuilder<Map<K, V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
     {
-        return getQuery( "from OrganisationUnitGroup o where size(o.groupSets) > 0" ).list();
+        return new ExtendedCacheBuilder<Map<K, V>>( redisTemplate, configurationProvider );
     }
 
-    @Override
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
+    @Autowired
+    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
     {
-        return getQuery( "from OrganisationUnitGroup g where size(g.groupSets) = 0" ).list();
+        this.configurationProvider = configurationProvider;
     }
+
+    @Autowired( required = false )
+    @Qualifier( "redisTemplate" )
+    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
+    {
+        this.redisTemplate = redisTemplate;
+    }
+
 }
