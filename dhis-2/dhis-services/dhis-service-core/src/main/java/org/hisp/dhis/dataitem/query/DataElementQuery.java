@@ -132,7 +132,7 @@ public class DataElementQuery implements DataItemQuery
     }
 
     @Override
-    public Class<? extends BaseIdentifiableObject> getAssociatedEntity()
+    public Class<? extends BaseIdentifiableObject> getRootEntity()
     {
         return QueryableDataItem.DATA_ELEMENT.getEntity();
     }

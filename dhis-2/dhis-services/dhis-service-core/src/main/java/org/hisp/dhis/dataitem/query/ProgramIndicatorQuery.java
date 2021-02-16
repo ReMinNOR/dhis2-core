@@ -163,7 +163,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
     }
 
     @Override
-    public Class<? extends BaseIdentifiableObject> getAssociatedEntity()
+    public Class<? extends BaseIdentifiableObject> getRootEntity()
     {
         return QueryableDataItem.PROGRAM_INDICATOR.getEntity();
     }

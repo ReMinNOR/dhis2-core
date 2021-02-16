@@ -61,10 +61,10 @@ public interface DataItemQuery
     int count( MapSqlParameterSource paramsMap );
 
     /**
-     * Simply returns the entity associated with the respective interface
+     * Simply returns the entity associated with the respective interface/query
      * implementation.
      *
      * @return the entity associated to the interface implementation
      */
-    Class<? extends BaseIdentifiableObject> getAssociatedEntity();
+    Class<? extends BaseIdentifiableObject> getRootEntity();
 }

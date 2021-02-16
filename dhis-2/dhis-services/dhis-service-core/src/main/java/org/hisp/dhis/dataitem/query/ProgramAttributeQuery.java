@@ -97,7 +97,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         final List<DataItem> dataItems = new ArrayList<>();
 
         final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
-            getProgramAttributeQueryWith( paramsMap ), paramsMap );
+            getProgramAttributeQuery( paramsMap ), paramsMap );
 
         while ( rowSet.next() )
         {
@@ -136,19 +136,19 @@ public class ProgramAttributeQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         sql.append( "SELECT COUNT(*) FROM (" )
-            .append( getProgramAttributeQueryWith( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
+            .append( getProgramAttributeQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
         return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
     }
 
     @Override
-    public Class<? extends BaseIdentifiableObject> getAssociatedEntity()
+    public Class<? extends BaseIdentifiableObject> getRootEntity()
     {
         return QueryableDataItem.PROGRAM_ATTRIBUTE.getEntity();
     }
 
-    private String getProgramAttributeQueryWith( final MapSqlParameterSource paramsMap )
+    private String getProgramAttributeQuery( final MapSqlParameterSource paramsMap )
     {
         final StringBuilder sql = new StringBuilder();
 

@@ -149,7 +149,7 @@ public class IndicatorQuery implements DataItemQuery
     }
 
     @Override
-    public Class<? extends BaseIdentifiableObject> getAssociatedEntity()
+    public Class<? extends BaseIdentifiableObject> getRootEntity()
     {
         return QueryableDataItem.INDICATOR.getEntity();
     }

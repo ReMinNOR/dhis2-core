@@ -144,7 +144,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
     }
 
     @Override
-    public Class<? extends BaseIdentifiableObject> getAssociatedEntity()
+    public Class<? extends BaseIdentifiableObject> getRootEntity()
     {
         return QueryableDataItem.PROGRAM_DATA_ELEMENT.getEntity();
     }

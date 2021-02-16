@@ -66,7 +66,7 @@ public class QueryExecutor
         // "find" for the respective "entity".
         for ( final DataItemQuery dataItemQuery : dataItemQueries )
         {
-            if ( isEquals( entity, dataItemQuery.getAssociatedEntity() ) )
+            if ( isEquals( entity, dataItemQuery.getRootEntity() ) )
             {
                 return dataItemQuery.find( paramsMap );
             }
@@ -90,7 +90,7 @@ public class QueryExecutor
         // "count" for the respective "entity".
         for ( final DataItemQuery dataItemQuery : dataItemQueries )
         {
-            if ( isEquals( entity, dataItemQuery.getAssociatedEntity() ) )
+            if ( isEquals( entity, dataItemQuery.getRootEntity() ) )
             {
                 return dataItemQuery.count( paramsMap );
             }

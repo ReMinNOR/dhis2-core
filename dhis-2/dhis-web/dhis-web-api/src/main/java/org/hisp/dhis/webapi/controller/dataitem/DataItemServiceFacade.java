@@ -85,12 +85,13 @@ public class DataItemServiceFacade
             setMaxResultsWhenPaging( options, paramsMap );
 
             // Retrieving all items for each entity type.
-            targetEntities.parallelStream().forEach( ( entity ) -> {
+            for ( final Class<? extends BaseIdentifiableObject> entity : targetEntities )
+            {
                 if ( aclService.canRead( currentUser, entity ) )
                 {
                     dataItems.addAll( queryExecutor.find( entity, paramsMap ) );
                 }
-            } );
+            }
 
             // In memory sorting.
             sort( dataItems, orderParams );
