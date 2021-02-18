@@ -196,18 +196,6 @@ public class UserCredentials
         this.lastLogin = null;
         this.passwordLastUpdated = new Date();
         this.setAutoFields(); // Needed to support user credentials uniqueness
-        this.setSecret();
-    }
-
-    @Override
-    public void setAutoFields()
-    {
-        if ( uuid == null )
-        {
-            uuid = UUID.randomUUID();
-        }
-
-        super.setAutoFields();
     }
 
     // -------------------------------------------------------------------------
@@ -534,6 +522,10 @@ public class UserCredentials
 
     public UUID getUuid()
     {
+        if ( uuid == null )
+        {
+            uuid = UUID.randomUUID();
+        }
         return uuid;
     }
 
@@ -593,6 +585,10 @@ public class UserCredentials
     @JsonIgnore
     public String getSecret()
     {
+        if ( secret == null )
+        {
+            this.setSecret();
+        }
         return secret;
     }
 
