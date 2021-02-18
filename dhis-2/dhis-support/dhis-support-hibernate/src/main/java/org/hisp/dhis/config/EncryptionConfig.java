@@ -81,7 +81,7 @@ public class EncryptionConfig
         PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
         encryptor.setAlgorithm( "PBEWITHSHA256AND128BITAES-CBC-BC" );
         encryptor.setPassword( password );
-        encryptor.setPoolSize( 4 );
+        encryptor.setPoolSize( Runtime.getRuntime().availableProcessors() );
         encryptor.setSaltGenerator( new RandomSaltGenerator() );
 
         return encryptor;
