@@ -28,10 +28,13 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
@@ -41,11 +44,16 @@ import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.UserGroupInfoStore;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.util.CollectionUtils.containsAny;
@@ -60,11 +68,40 @@ public class DefaultAclService implements AclService
 {
     private final SchemaService schemaService;
 
-    public DefaultAclService( SchemaService schemaService )
+    private final UserGroupInfoStore userGroupInfoStore;
+
+    private final Environment env;
+
+    private final CacheProvider cacheProvider;
+
+    /**
+     * Cache for checking if user is member of a UserGroup
+     * Cache key userGroupUid-userUid
+     */
+    private static Cache<Boolean> IS_USER_GROUP_MEMBER;
+
+    @PostConstruct
+    public void init()
+    {
+        IS_USER_GROUP_MEMBER = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "isUserGroupMember" )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 1000000 ).build();
+    }
+
+    public DefaultAclService( SchemaService schemaService, CacheProvider cacheProvider, Environment  env, UserGroupInfoStore userGroupInfoStore )
     {
         checkNotNull( schemaService );
+        checkNotNull( cacheProvider );
+        checkNotNull( env );
+        checkNotNull( userGroupInfoStore );
 
         this.schemaService = schemaService;
+        this.cacheProvider = cacheProvider;
+        this.env = env;
+        this.userGroupInfoStore = userGroupInfoStore;
     }
 
     @Override
@@ -227,6 +264,7 @@ public class DefaultAclService implements AclService
 
         return false;
     }
+
 
     @Override
     public boolean canUpdate( User user, IdentifiableObject object )
@@ -654,7 +692,7 @@ public class DefaultAclService implements AclService
             // Check if user is allowed to read this object through group access
 
             if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
-                    && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+                && hasUserGroupAccess( object.getUserGroupAccesses(), user ) )
             {
                 return true;
             }
@@ -665,7 +703,7 @@ public class DefaultAclService implements AclService
             // Check if user is allowed to read to this object through user access
 
             if ( AccessStringHelper.isEnabled( userAccess.getAccess(), permission )
-                    && user.equals( userAccess.getUser() ) )
+                && user.equals( userAccess.getUser() ) )
             {
                 return true;
             }
@@ -715,5 +753,25 @@ public class DefaultAclService implements AclService
 
         return checkSharingAccess(user, object) &&
             ( checkUser(user, object) || checkSharingPermission( user, object, Permission.WRITE ) );
+    }
+
+    private boolean hasUserGroupAccess( Set<UserGroupAccess> userGroupAccesses, User user )
+    {
+        if ( userGroupAccesses == null || userGroupAccesses.isEmpty() )
+        {
+            return false;
+        }
+
+        for ( UserGroupAccess uga : userGroupAccesses )
+        {
+            String cacheKey = uga.getUserGroup().getUid() + "-" + user.getUid();
+
+            if ( IS_USER_GROUP_MEMBER.get( cacheKey, bol -> userGroupInfoStore.isMember( uga.getUserGroup(), user.getUid() ) ).get() )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
