@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,78 +25,7 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.report.EventRow;
-import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
-import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
-import org.hisp.dhis.jdbc.JdbcUtils;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.util.ObjectUtils;
-import org.postgis.PGgeometry;
-import org.postgresql.util.PGobject;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.env.Environment;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCallback;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Repository;
-
-import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+package org.hisp.dhis.dxf2.events.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
@@ -137,6 +64,78 @@ import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
+import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.report.EventRow;
+import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
+import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
+import org.hisp.dhis.jdbc.JdbcUtils;
+import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.query.Order;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Repository;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -145,25 +144,24 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 public class JdbcEventStore implements EventStore
 {
 
-    private static final String PSI_EVENT_COMMENT_QUERY =
-            "select psic.programstageinstanceid    as psic_id," +
-                    " psinote.trackedentitycommentid as psinote_id," +
-                    " psinote.commenttext            as psinote_value," +
-                    " psinote.created                as psinote_storeddate," +
-                    " psinote.creator                as psinote_storedby," +
-                    " psinote.uid                    as psinote_uid," +
-                    " psinote.lastupdated            as psinote_lastupdated," +
-                    " usernote.userid                as usernote_id," +
-                    " usernote.code                  as usernote_code," +
-                    " usernote.uid                   as usernote_uid," +
-                    " usernote.username              as usernote_username," +
-                    " userinfo.firstname             as userinfo_firstname," +
-                    " userinfo.surname               as userinfo_surname" +
-                    " from programstageinstancecomments psic" +
-                    " inner join trackedentitycomment psinote" +
-                    " on psic.trackedentitycommentid = psinote.trackedentitycommentid" +
-                    " left join users usernote on psinote.lastupdatedby = usernote.userid" +
-                    " left join userinfo on usernote.userid = userinfo.userinfoid";
+    private static final String PSI_EVENT_COMMENT_QUERY = "select psic.programstageinstanceid    as psic_id," +
+        " psinote.trackedentitycommentid as psinote_id," +
+        " psinote.commenttext            as psinote_value," +
+        " psinote.created                as psinote_storeddate," +
+        " psinote.creator                as psinote_storedby," +
+        " psinote.uid                    as psinote_uid," +
+        " psinote.lastupdated            as psinote_lastupdated," +
+        " usernote.userid                as usernote_id," +
+        " usernote.code                  as usernote_code," +
+        " usernote.uid                   as usernote_uid," +
+        " usernote.username              as usernote_username," +
+        " userinfo.firstname             as userinfo_firstname," +
+        " userinfo.surname               as userinfo_surname" +
+        " from programstageinstancecomments psic" +
+        " inner join trackedentitycomment psinote" +
+        " on psic.trackedentitycommentid = psinote.trackedentitycommentid" +
+        " left join users usernote on psinote.lastupdatedby = usernote.userid" +
+        " left join userinfo on usernote.userid = userinfo.userinfoid";
 
     private static final String PSI_STATUS_EQ = " psi.status = '";
 
@@ -177,7 +175,7 @@ public class JdbcEventStore implements EventStore
         .put( "orgUnitName", "ou_name" ).put( "trackedEntityInstance", "tei_uid" )
         .put( "eventDate", "psi_executiondate" ).put( "followup", "pi_followup" ).put( "status", "psi_status" )
         .put( "dueDate", "psi_duedate" ).put( "storedBy", "psi_storedby" )
-        .put( "lastUpdatedByUserInfo", "psi_lastupdatedbyuserinfo" ).put( "createdByUserInfo", "psi_createdbyuserinfo")
+        .put( "lastUpdatedByUserInfo", "psi_lastupdatedbyuserinfo" ).put( "createdByUserInfo", "psi_createdbyuserinfo" )
         .put( "created", "psi_created" )
         .put( "lastUpdated", "psi_lastupdated" ).put( "completedBy", "psi_completedby" )
         .put( "attributeOptionCombo", "psi_aoc" ).put( "completedDate", "psi_completeddate" )
@@ -239,10 +237,10 @@ public class JdbcEventStore implements EventStore
     // @formatter:on
 
     /**
-     * Updates Tracked Entity Instance after an event update. In order to prevent
-     * deadlocks, SELECT ... FOR UPDATE SKIP LOCKED is used before the actual UPDATE
-     * statement. This prevents deadlocks when Postgres tries to update the same
-     * TEI.
+     * Updates Tracked Entity Instance after an event update. In order to
+     * prevent deadlocks, SELECT ... FOR UPDATE SKIP LOCKED is used before the
+     * actual UPDATE statement. This prevents deadlocks when Postgres tries to
+     * update the same TEI.
      */
     private final static String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (?) FOR UPDATE %s;" +
         "update trackedentityinstance set lastupdated = ?, lastupdatedby = ? where uid in (?)";
@@ -251,9 +249,12 @@ public class JdbcEventStore implements EventStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    // Cannot use DefaultRenderService mapper. Does not work properly - DHIS2-6102
+    // Cannot use DefaultRenderService mapper. Does not work properly -
+    // DHIS2-6102
     private static final ObjectReader eventDataValueJsonReader = JsonEventDataValueSetBinaryType.MAPPER
-        .readerFor( new TypeReference<Map<String, EventDataValue>>() {} );
+        .readerFor( new TypeReference<Map<String, EventDataValue>>()
+        {
+        } );
 
     private final StatementBuilder statementBuilder;
 
@@ -368,7 +369,8 @@ public class JdbcEventStore implements EventStore
                 event.setCreated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_created" ) ) );
                 event.setCreatedByUserInfo( jsonToUserInfo( rowSet.getString( "psi_createdbyuserinfo" ), jsonMapper ) );
                 event.setLastUpdated( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_lastupdated" ) ) );
-                event.setLastUpdatedByUserInfo( jsonToUserInfo( rowSet.getString( "psi_lastupdatedbyuserinfo" ), jsonMapper ) );
+                event.setLastUpdatedByUserInfo(
+                    jsonToUserInfo( rowSet.getString( "psi_lastupdatedbyuserinfo" ), jsonMapper ) );
 
                 event.setCompletedBy( rowSet.getString( "psi_completedby" ) );
                 event.setCompletedDate( DateUtils.getIso8601NoTz( rowSet.getDate( "psi_completeddate" ) ) );
@@ -487,6 +489,7 @@ public class JdbcEventStore implements EventStore
         return events;
     }
 
+    @Override
     public List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> events )
     {
         try
@@ -810,8 +813,10 @@ public class JdbcEventStore implements EventStore
         StringBuilder sqlBuilder = new StringBuilder().append( "select psi.uid as " + EVENT_ID + ", "
             + "psi.created as " + EVENT_CREATED_ID + ", "
             + "psi.lastupdated as " + EVENT_LAST_UPDATED_ID + ", " + "psi.storedby as " + EVENT_STORED_BY_ID + ", "
-            + "psi.createdbyuserinfo as " + EVENT_CREATED_BY_USER_INFO_ID + ", " + "psi.lastupdatedbyuserinfo as " + EVENT_LAST_UPDATED_BY_USER_INFO_ID + ", "
-            + "psi.completedby as " + EVENT_COMPLETED_BY_ID + ", " + "psi.completeddate as " + EVENT_COMPLETED_DATE_ID + ", "
+            + "psi.createdbyuserinfo as " + EVENT_CREATED_BY_USER_INFO_ID + ", " + "psi.lastupdatedbyuserinfo as "
+            + EVENT_LAST_UPDATED_BY_USER_INFO_ID + ", "
+            + "psi.completedby as " + EVENT_COMPLETED_BY_ID + ", " + "psi.completeddate as " + EVENT_COMPLETED_DATE_ID
+            + ", "
             + "psi.duedate as " + EVENT_DUE_DATE_ID + ", " + "psi.executiondate as " + EVENT_EXECUTION_DATE_ID + ", "
             + "ou.uid as " + EVENT_ORG_UNIT_ID + ", " + "ou.name as " + EVENT_ORG_UNIT_NAME + ", "
             + "psi.status as " + EVENT_STATUS_ID + ", "
@@ -857,9 +862,9 @@ public class JdbcEventStore implements EventStore
     }
 
     /**
-     * Query is based on three sub queries on event, data value and comment, which
-     * are joined using program stage instance id. The purpose of the separate
-     * queries is to be able to page properly on events.
+     * Query is based on three sub queries on event, data value and comment,
+     * which are joined using program stage instance id. The purpose of the
+     * separate queries is to be able to page properly on events.
      */
     private String buildSql( EventSearchParams params, List<OrganisationUnit> organisationUnits, User user )
     {
@@ -985,15 +990,17 @@ public class JdbcEventStore implements EventStore
                         else
                         {
                             eventDataValuesWhereSql += " " + queryCol + " " + filter.getSqlOperator() + " "
-                                + StringUtils.lowerCase( item.isNumeric() ? encodedFilter :
-                                filter.getSqlFilter( encodedFilter ) ) + " ";
+                                + StringUtils.lowerCase(
+                                    item.isNumeric() ? encodedFilter : filter.getSqlFilter( encodedFilter ) )
+                                + " ";
                         }
                     }
                     else if ( QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                     {
                         sqlBuilder.append( "and " + queryCol + " " + filter.getSqlOperator() + " "
-                            + StringUtils.lowerCase( item.isNumeric() ? encodedFilter :
-                            filter.getSqlFilter( encodedFilter ) ) + " " );
+                            + StringUtils.lowerCase(
+                                item.isNumeric() ? encodedFilter : filter.getSqlFilter( encodedFilter ) )
+                            + " " );
                     }
                     else if ( QueryOperator.LIKE.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                     {
@@ -1003,8 +1010,9 @@ public class JdbcEventStore implements EventStore
                     else
                     {
                         sqlBuilder.append( "and lower(" + optCol + DOT_NAME + " " + filter.getSqlOperator() + " "
-                            + StringUtils.lowerCase( item.isNumeric() ? encodedFilter :
-                            filter.getSqlFilter( encodedFilter ) ) + " " );
+                            + StringUtils.lowerCase(
+                                item.isNumeric() ? encodedFilter : filter.getSqlFilter( encodedFilter ) )
+                            + " " );
                     }
                 }
             }
@@ -1158,8 +1166,8 @@ public class JdbcEventStore implements EventStore
     }
 
     /**
-     * From, join and where clause. For dataElement params, restriction is set in
-     * inner join. For query params, restriction is set in where clause.
+     * From, join and where clause. For dataElement params, restriction is set
+     * in inner join. For query params, restriction is set in where clause.
      */
     private String getFromWhereClause( EventSearchParams params, SqlHelper hlp,
         List<OrganisationUnit> organisationUnits )
@@ -1533,14 +1541,14 @@ public class JdbcEventStore implements EventStore
 
     /**
      * Saves a list of {@see ProgramStageInstance} using JDBC batch update.
-     *
-     * Note that this method is using JdbcTemplate to execute the batch operation,
-     * therefore it's able to participate in any Spring-initiated transaction
+     * <p>
+     * Note that this method is using JdbcTemplate to execute the batch
+     * operation, therefore it's able to participate in any Spring-initiated
+     * transaction
      *
      * @param batch the list of {@see ProgramStageInstance}
      * @return the list of created {@see ProgramStageInstance} with primary keys
      *         assigned
-     *
      */
     private List<ProgramStageInstance> saveAllEvents( List<ProgramStageInstance> batch )
     {
@@ -1577,9 +1585,10 @@ public class JdbcEventStore implements EventStore
         /*
          * Assign the generated event PKs to the batch.
          *
-         * If the generate event PKs size doesn't match the batch size, one or more PSI
-         * were not persisted. Run an additional query to fetch the persisted PSI and
-         * return only the PSI from the batch which are persisted.
+         * If the generate event PKs size doesn't match the batch size, one or
+         * more PSI were not persisted. Run an additional query to fetch the
+         * persisted PSI and return only the PSI from the batch which are
+         * persisted.
          *
          */
         if ( eventIds.size() != batch.size() )
@@ -1617,6 +1626,7 @@ public class JdbcEventStore implements EventStore
         return batch.stream().sorted( Comparator.comparing( ProgramStageInstance::getUid ) ).collect( toList() );
     }
 
+    @Override
     public void updateTrackedEntityInstances( List<String> teiUids, User user )
     {
         if ( teiUids.isEmpty() )
@@ -1653,9 +1663,9 @@ public class JdbcEventStore implements EventStore
     }
 
     /**
-     * Awful hack required for the H2-based tests to pass. H2 does not support the
-     * "SKIP LOCKED" clause, therefore we need to remove it from the SQL statement
-     * when executing the H2 tests.
+     * Awful hack required for the H2-based tests to pass. H2 does not support
+     * the "SKIP LOCKED" clause, therefore we need to remove it from the SQL
+     * statement when executing the H2 tests.
      *
      * @return a SQL String
      */
@@ -1758,7 +1768,11 @@ public class JdbcEventStore implements EventStore
         }
 
         return AccessStringHelper.isEnabled( rowSet.getString( "deco_publicaccess" ),
-            AccessStringHelper.Permission.DATA_READ );
+            AccessStringHelper.Permission.DATA_READ )
+            || AccessStringHelper.isEnabled( rowSet.getString( "uga_access" ),
+                AccessStringHelper.Permission.DATA_READ )
+            || AccessStringHelper.isEnabled( rowSet.getString( "ua_access" ),
+                AccessStringHelper.Permission.DATA_READ );
     }
 
     private Set<EventDataValue> convertEventDataValueJsonIntoSet( String jsonString )
@@ -1834,12 +1848,14 @@ public class JdbcEventStore implements EventStore
         }
     }
 
+    @Override
     public void delete( final List<Event> events )
     {
         if ( isNotEmpty( events ) )
         {
-            final List<String> psiUids = events.stream().map( event-> "'" + event.getEvent() + "'" ).collect( toList() );
-            final String uids = Joiner.on( "," ).join( psiUids ) ;
+            final List<String> psiUids = events.stream().map( event -> "'" + event.getEvent() + "'" )
+                .collect( toList() );
+            final String uids = Joiner.on( "," ).join( psiUids );
 
             jdbcTemplate.execute( "DELETE FROM programstageinstancecomments where programstageinstanceid in "
                 + "(select programstageinstanceid from programstageinstance where uid in (" + uids + ") )" );

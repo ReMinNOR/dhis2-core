@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.oidc.provider;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,7 @@ package org.hisp.dhis.security.oidc.provider;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.core.AuthenticationMethod;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
-
-import java.util.Objects;
+package org.hisp.dhis.security.oidc.provider;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_CLIENT_ID;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_CLIENT_SECRET;
@@ -46,10 +34,22 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_EN
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_MAPPING_CLAIM;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_SERVER_URL;
 
+import java.util.Objects;
+
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.core.AuthenticationMethod;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+
+import com.google.common.collect.ImmutableMap;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class Wso2Provider extends DhisOidcProvider
+public class Wso2Provider extends AbstractOidcProvider
 {
     public static final String REGISTRATION_ID = "wso2";
 

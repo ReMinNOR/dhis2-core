@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,13 @@ package org.hisp.dhis.security.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.config;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.setHttpHeaders;
+
+import java.util.Arrays;
+import java.util.List;
+
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
@@ -60,6 +61,7 @@ import org.springframework.mobile.device.LiteDeviceResolver;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.access.vote.UnanimousBased;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -72,10 +74,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.setHttpHeaders;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -87,7 +88,8 @@ import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.s
 public class DhisWebCommonsWebSecurityConfig
 {
     /**
-     * This configuration class is responsible for setting up the session management.
+     * This configuration class is responsible for setting up the session
+     * management.
      */
     @Configuration
     @Order( 3300 )
@@ -105,6 +107,7 @@ public class DhisWebCommonsWebSecurityConfig
         {
             http
                 .sessionManagement()
+                .sessionFixation().migrateSession()
                 .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
                 .enableSessionUrlRewriting( false )
                 .maximumSessions( 10 )
@@ -114,7 +117,8 @@ public class DhisWebCommonsWebSecurityConfig
     }
 
     /**
-     * This configuration class is responsible for setting up the form login and everything related to the web pages.
+     * This configuration class is responsible for setting up the form login and
+     * everything related to the web pages.
      */
     @Configuration
     @Order( 2200 )
@@ -142,11 +146,16 @@ public class DhisWebCommonsWebSecurityConfig
         @Qualifier( "customLdapAuthenticationProvider" )
         CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
 
+        @Autowired
+        private DefaultAuthenticationEventPublisher authenticationEventPublisher;
+
         public void configure( AuthenticationManagerBuilder auth )
             throws Exception
         {
-            auth.authenticationProvider( twoFactorAuthenticationProvider );
             auth.authenticationProvider( customLdapAuthenticationProvider );
+            auth.authenticationProvider( twoFactorAuthenticationProvider );
+
+            auth.authenticationEventPublisher( authenticationEventPublisher );
         }
 
         @Override
@@ -243,7 +252,8 @@ public class DhisWebCommonsWebSecurityConfig
         @Bean
         public Http401LoginUrlAuthenticationEntryPoint entryPoint()
         {
-            // Converts to a HTTP basic login if  "XMLHttpRequest".equals( request.getHeader( "X-Requested-With" ) )
+            // Converts to a HTTP basic login if "XMLHttpRequest".equals(
+            // request.getHeader( "X-Requested-With" ) )
             return new Http401LoginUrlAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
         }
 
@@ -274,10 +284,11 @@ public class DhisWebCommonsWebSecurityConfig
         @Bean
         public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
         {
-            CustomExceptionMappingAuthenticationFailureHandler handler =
-                new CustomExceptionMappingAuthenticationFailureHandler( i18nManager );
+            CustomExceptionMappingAuthenticationFailureHandler handler = new CustomExceptionMappingAuthenticationFailureHandler(
+                i18nManager );
 
-            // Handles the special case when a user failed to login because it has expired...
+            // Handles the special case when a user failed to login because it
+            // has expired...
             handler.setExceptionMappings(
                 ImmutableMap.of(
                     "org.springframework.security.authentication.CredentialsExpiredException",
@@ -324,8 +335,7 @@ public class DhisWebCommonsWebSecurityConfig
                 "dhis-web-apps",
                 "dhis-web-api-mobile",
                 "dhis-web-portal",
-                "dhis-web-uaa"
-            ) );
+                "dhis-web-uaa" ) );
             return voter;
         }
 
@@ -357,8 +367,7 @@ public class DhisWebCommonsWebSecurityConfig
                 new UnanimousBased( ImmutableList.of( actionAccessVoter(), moduleAccessVoter() ) ),
                 new UnanimousBased( ImmutableList.of( webExpressionVoter() ) ),
                 new UnanimousBased( ImmutableList.of( externalAccessVoter ) ),
-                new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) )
-            );
+                new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) ) );
             return new LogicalOrAccessDecisionManager( decisionVoters );
         }
     }

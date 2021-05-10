@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -53,7 +52,6 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -103,7 +101,7 @@ public class JacksonEventService extends AbstractEventService
         SchemaService schemaService, QueryService queryService, TrackerAccessManager trackerAccessManager,
         TrackerOwnershipManager trackerOwnershipAccessManager, RelationshipService relationshipService,
         UserService userService, EventSyncService eventSyncService, ObjectMapper jsonMapper,
-        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
+        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper, EventServiceContextBuilder eventServiceContextBuilder )
     {
         checkNotNull( eventImporter );
         checkNotNull( eventManager );
@@ -130,6 +128,7 @@ public class JacksonEventService extends AbstractEventService
         checkNotNull( eventSyncService );
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
+        checkNotNull( eventServiceContextBuilder );
 
         this.eventImporter = eventImporter;
         this.eventManager = eventManager;
@@ -157,6 +156,7 @@ public class JacksonEventService extends AbstractEventService
         this.eventSyncService = eventSyncService;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
+        this.eventServiceContextBuilder = eventServiceContextBuilder;
     }
 
     @SuppressWarnings( "unchecked" )

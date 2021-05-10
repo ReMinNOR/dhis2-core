@@ -1,7 +1,5 @@
-package org.hisp.dhis.fileresource;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,15 @@ package org.hisp.dhis.fileresource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fileresource;
 
-import static junit.framework.TestCase.*;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 import org.hisp.dhis.IntegrationTestBase;
@@ -51,7 +55,11 @@ import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -60,7 +68,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class FileResourceCleanUpJobTest
     extends IntegrationTestBase
 {
-    @Autowired
     private FileResourceCleanUpJob cleanUpJob;
 
     @Autowired
@@ -87,7 +94,11 @@ public class FileResourceCleanUpJobTest
     @Autowired
     private ExternalFileResourceService externalFileResourceService;
 
-    public static Period PERIOD = createPeriod( PeriodType.getPeriodTypeByName( "Monthly" ), new Date(), new Date() );
+    @Mock
+    private FileResourceContentStore fileResourceContentStore;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private DataValue dataValueA;
 
@@ -95,16 +106,24 @@ public class FileResourceCleanUpJobTest
 
     private byte[] content;
 
+    private Period period;
+
     @Before
     public void init()
     {
-        periodService.addPeriod( PERIOD );
+        cleanUpJob = new FileResourceCleanUpJob( fileResourceService, systemSettingManager, fileResourceContentStore );
+
+        period = createPeriod( PeriodType.getPeriodTypeByName( "Monthly" ), new Date(), new Date() );
+        periodService.addPeriod( period );
     }
 
     @Test
     public void testNoRetention()
     {
-        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.NONE );
+        when( fileResourceContentStore.fileResourceContentExists( any( String.class ) ) ).thenReturn( true );
+
+        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
+            FileResourceRetentionStrategy.NONE );
 
         content = "filecontentA".getBytes();
         dataValueA = createFileResourceDataValue( 'A', content );
@@ -120,7 +139,10 @@ public class FileResourceCleanUpJobTest
     @Test
     public void testRetention()
     {
-        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS );
+        when( fileResourceContentStore.fileResourceContentExists( any( String.class ) ) ).thenReturn( true );
+
+        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
+            FileResourceRetentionStrategy.THREE_MONTHS );
 
         content = "filecontentA".getBytes();
         dataValueA = createFileResourceDataValue( 'A', content );
@@ -139,20 +161,41 @@ public class FileResourceCleanUpJobTest
         dataValueAuditService.getDataValueAudits( dataValueB ).get( 0 )
             .setCreated( getDate( 2000, 1, 1 ) );
 
-
         cleanUpJob.execute( null );
 
         assertNotNull( fileResourceService.getFileResource( dataValueA.getValue() ) );
         assertTrue( fileResourceService.getFileResource( dataValueA.getValue() ).isAssigned() );
-        assertNull( dataValueService.getDataValue( dataValueA.getDataElement(), dataValueA.getPeriod(), dataValueA.getSource(), null ) );
+        assertNull( dataValueService.getDataValue( dataValueA.getDataElement(), dataValueA.getPeriod(),
+            dataValueA.getSource(), null ) );
         assertNull( fileResourceService.getFileResource( dataValueB.getValue() ) );
+    }
+
+    @Test
+    public void testOrphan()
+    {
+        when( fileResourceContentStore.fileResourceContentExists( any( String.class ) ) ).thenReturn( false );
+
+        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
+            FileResourceRetentionStrategy.NONE );
+
+        content = "filecontentA".getBytes( StandardCharsets.UTF_8 );
+        FileResource fileResource = createFileResource( 'A', content );
+        fileResource.setCreated( DateTime.now().minus( Days.ONE ).toDate() );
+        String uid = fileResourceService.saveFileResource( fileResource, content );
+
+        assertNotNull( fileResourceService.getFileResource( uid ) );
+
+        cleanUpJob.execute( null );
+
+        assertNull( fileResourceService.getFileResource( uid ) );
     }
 
     @Test
     @Ignore
     public void testFalsePositive()
     {
-        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS );
+        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
+            FileResourceRetentionStrategy.THREE_MONTHS );
 
         content = "externalA".getBytes();
         ExternalFileResource ex = createExternal( 'A', content );
@@ -172,7 +215,8 @@ public class FileResourceCleanUpJobTest
     @Ignore
     public void testFailedUpload()
     {
-        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS );
+        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
+            FileResourceRetentionStrategy.THREE_MONTHS );
 
         content = "externalA".getBytes();
         ExternalFileResource ex = createExternal( 'A', content );
@@ -198,7 +242,7 @@ public class FileResourceCleanUpJobTest
         FileResource fileResource = createFileResource( uniqueChar, content );
         String uid = fileResourceService.saveFileResource( fileResource, content );
 
-        DataValue dataValue = createDataValue( fileElement, PERIOD, orgUnit, uid, null );
+        DataValue dataValue = createDataValue( fileElement, period, orgUnit, uid, null );
         fileResource.setAssigned( true );
         fileResource.setCreated( DateTime.now().minus( Days.ONE ).toDate() );
         fileResource.setStorageStatus( FileResourceStorageStatus.STORED );
@@ -209,9 +253,9 @@ public class FileResourceCleanUpJobTest
         return dataValue;
     }
 
-    private ExternalFileResource createExternal( char uniqueeChar, byte[] constant )
+    private ExternalFileResource createExternal( char uniqueChar, byte[] content )
     {
-        ExternalFileResource externalFileResource = createExternalFileResource( uniqueeChar, content );
+        ExternalFileResource externalFileResource = createExternalFileResource( uniqueChar, content );
 
         fileResourceService.saveFileResource( externalFileResource.getFileResource(), content );
         externalFileResourceService.saveExternalFileResource( externalFileResource );
@@ -224,7 +268,8 @@ public class FileResourceCleanUpJobTest
         return externalFileResource;
     }
 
-    @Override public boolean emptyDatabaseAfterTest()
+    @Override
+    public boolean emptyDatabaseAfterTest()
     {
         return true;
     }

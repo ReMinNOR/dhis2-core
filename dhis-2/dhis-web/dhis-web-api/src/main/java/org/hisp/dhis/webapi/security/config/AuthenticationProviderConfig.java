@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.security.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,30 +25,32 @@ package org.hisp.dhis.webapi.security.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.security.config;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.AuthenticationLoggerListener;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator;
-import org.hisp.dhis.security.oauth2.DefaultClientDetailsUserDetailsService;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.UserDetailsServiceLdapAuthoritiesPopulator;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -68,7 +68,8 @@ public class AuthenticationProviderConfig
     TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
     @Autowired
-    DefaultClientDetailsUserDetailsService defaultClientDetailsUserDetailsService;
+    @Qualifier( "ldapUserDetailsService" )
+    UserDetailsService ldapUserDetailsService;
 
     @Bean
     public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource()
@@ -76,11 +77,11 @@ public class AuthenticationProviderConfig
         return new TwoFactorWebAuthenticationDetailsSource();
     }
 
-    @Bean(name ="customLdapAuthenticationProvider")
+    @Bean( name = "customLdapAuthenticationProvider" )
     CustomLdapAuthenticationProvider customLdapAuthenticationProvider()
     {
         return new CustomLdapAuthenticationProvider( dhisBindAuthenticator(),
-            userDetailsServiceLdapAuthoritiesPopulator( defaultClientDetailsUserDetailsService ),
+            userDetailsServiceLdapAuthoritiesPopulator( ldapUserDetailsService ),
             configurationProvider );
     }
 
@@ -124,7 +125,10 @@ public class AuthenticationProviderConfig
     @Bean
     public DefaultAuthenticationEventPublisher authenticationEventPublisher()
     {
-        return new DefaultAuthenticationEventPublisher();
+        DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher = new DefaultAuthenticationEventPublisher();
+        defaultAuthenticationEventPublisher.setAdditionalExceptionMappings(
+            ImmutableMap.of( OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class ) );
+        return defaultAuthenticationEventPublisher;
     }
 
     @Bean

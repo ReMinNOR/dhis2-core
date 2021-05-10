@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +25,78 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.springframework.context.event.EventListener;
 
-public interface ImplementableRuleService
+import com.google.common.collect.ImmutableList;
+
+abstract class ImplementableRuleService
 {
-    List<ProgramRule> getImplementableRules( Program program );
+    private final ProgramRuleService programRuleService;
+
+    public ImplementableRuleService( ProgramRuleService programRuleService )
+    {
+        this.programRuleService = programRuleService;
+    }
+
+    abstract List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid );
+
+    abstract Cache<Boolean> getProgramHasRulesCache();
+
+    protected List<ProgramRule> getProgramRulesByActionTypes( Program program,
+        Set<ProgramRuleActionType> types, String programStageUid )
+    {
+        if ( programStageUid == null )
+        {
+            return programRuleService.getProgramRulesByActionTypes( program, types );
+        }
+        else
+        {
+            return programRuleService.getProgramRulesByActionTypes( program, types, programStageUid );
+        }
+
+    }
+
+    public List<ProgramRule> getProgramRules( Program program, String programStageUid )
+    {
+        Optional<Boolean> optionalCacheValue = getProgramHasRulesCache().get( program.getUid() );
+
+        if ( optionalCacheValue.isPresent() && Boolean.FALSE.equals( optionalCacheValue.get() ) )
+        {
+            return ImmutableList.of();
+        }
+
+        List<ProgramRule> programRulesByActionTypes = getProgramRulesByActionTypes( program, programStageUid );
+
+        if ( programStageUid == null ) // To populate programHasRulesCache at
+        // enrollment
+        {
+            getProgramHasRulesCache().put( program.getUid(), !programRulesByActionTypes.isEmpty() );
+
+            // At enrollment, only those rules should be selected for execution
+            // which are not associated with any ProgramStage.
+            return programRulesByActionTypes.stream().filter( rule -> rule.getProgramStage() == null )
+                .collect( Collectors.toList() );
+        }
+        return programRulesByActionTypes;
+    }
+
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        getProgramHasRulesCache().invalidateAll();
+    }
+
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.sms;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms;
 
-import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -48,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.hisp.dhis.sms.config.ContentType;
 import org.hisp.dhis.sms.config.GenericGatewayParameter;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
@@ -74,10 +72,7 @@ import org.springframework.web.client.RestTemplate;
 import org.testcontainers.shaded.org.apache.commons.lang.StringUtils;
 import org.testcontainers.shaded.org.apache.commons.lang.text.StrSubstitutor;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import com.google.common.collect.Sets;
 
 /**
  * @Author Zubair Asghar.
@@ -85,12 +80,17 @@ import static org.mockito.Mockito.when;
 public class GenericSmsGatewayTest
 {
     private static final String GATEWAY_URL = "http://gateway.com/messages";
+
     private static final String UID = "UID-123";
+
     private static final String CONFIG_TEMPLATE_JSON = "{\"to\": \"${recipients}\",\"body\": \"${text}\"}";
+
     private static final String CONFIG_TEMPLATE_URL_ENCODED = "to=${recipients}&message=${text}&user=${user}&pass=${password}";
 
     private static final String TEXT = "HI DHIS2";
+
     private static final String SUBJECT = "Greeting";
+
     private static final Set<String> RECIPIENTS = Sets.newHashSet( "4033XXYY, 404YYXXX" );
 
     @Rule
@@ -119,6 +119,8 @@ public class GenericSmsGatewayTest
 
     private GenericGatewayParameter password;
 
+    private GenericGatewayParameter authorization;
+
     private StrSubstitutor strSubstitutor;
 
     private String body;
@@ -141,7 +143,7 @@ public class GenericSmsGatewayTest
         username.setKey( "user" );
         username.setValue( "user_uio" );
         username.setEncode( false );
-        username.setHeader( true );
+        username.setHeader( false );
         username.setConfidential( false );
 
         password = new GenericGatewayParameter();
@@ -150,6 +152,13 @@ public class GenericSmsGatewayTest
         password.setEncode( false );
         password.setHeader( true );
         password.setConfidential( true );
+
+        authorization = new GenericGatewayParameter();
+        authorization.setKey( "Authorization" );
+        authorization.setValue( "user_uio:abc123" );
+        authorization.setEncode( true );
+        authorization.setHeader( true );
+        authorization.setConfidential( true );
 
         valueStore.put( SmsGateway.KEY_TEXT, SmsUtils.encode( TEXT ) );
         valueStore.put( SmsGateway.KEY_RECIPIENT, StringUtils.join( RECIPIENTS, "," ) );
@@ -162,18 +171,22 @@ public class GenericSmsGatewayTest
         body = strSubstitutor.replace( CONFIG_TEMPLATE_JSON );
 
         gatewayConfig.getParameters().clear();
-        gatewayConfig.setParameters( Arrays.asList( username, password ) );
+        gatewayConfig.setParameters( Arrays.asList( username, password, authorization ) );
         gatewayConfig.setContentType( ContentType.APPLICATION_JSON );
         gatewayConfig.setConfigurationTemplate( CONFIG_TEMPLATE_JSON );
 
         ResponseEntity<String> responseEntity = new ResponseEntity<>( "success", HttpStatus.OK );
 
-        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenReturn( responseEntity );
+        when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( "decryptedText" );
+
+        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ),
+            eq( String.class ) ) )
+                .thenReturn( responseEntity );
 
         assertThat( subject.send( SUBJECT, TEXT, RECIPIENTS, gatewayConfig ).isOk(), is( true ) );
 
-        verify( restTemplate ).exchange( any( URI.class ), httpMethodArgumentCaptor.capture() , httpEntityArgumentCaptor.capture(), eq( String.class ) );
+        verify( restTemplate ).exchange( any( URI.class ), httpMethodArgumentCaptor.capture(),
+            httpEntityArgumentCaptor.capture(), eq( String.class ) );
 
         assertNotNull( httpEntityArgumentCaptor.getValue() );
         assertNotNull( httpMethodArgumentCaptor.getValue() );
@@ -190,14 +203,10 @@ public class GenericSmsGatewayTest
 
         List<GenericGatewayParameter> parameters = gatewayConfig.getParameters();
 
-        for ( GenericGatewayParameter parameter : parameters )
-        {
-            if ( parameter.isHeader() )
-            {
-                assertTrue( httpHeaders.containsKey( parameter.getKey() ) );
-                assertEquals( parameter.getValue(), httpHeaders.get( parameter.getKey() ).get( 0 ) );
-            }
-        }
+        parameters.stream().filter( p -> p.isEncode() && p.isConfidential() && p.isHeader() ).forEach( p -> {
+            assertTrue( httpHeaders.containsKey( p.getKey() ) );
+            assertEquals( " Basic ZGVjcnlwdGVkVGV4dA==", httpHeaders.get( p.getKey() ).get( 0 ) );
+        } );
     }
 
     @Test
@@ -222,12 +231,14 @@ public class GenericSmsGatewayTest
         ResponseEntity<String> responseEntity = new ResponseEntity<>( "success", HttpStatus.OK );
 
         when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( password.getValue() );
-        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
-            .thenReturn( responseEntity );
+        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ),
+            eq( String.class ) ) )
+                .thenReturn( responseEntity );
 
         assertThat( subject.send( SUBJECT, TEXT, RECIPIENTS, gatewayConfig ).isOk(), is( true ) );
 
-        verify( restTemplate ).exchange( any( URI.class ), httpMethodArgumentCaptor.capture() , httpEntityArgumentCaptor.capture(), eq( String.class ) );
+        verify( restTemplate ).exchange( any( URI.class ), httpMethodArgumentCaptor.capture(),
+            httpEntityArgumentCaptor.capture(), eq( String.class ) );
 
         assertNotNull( httpEntityArgumentCaptor.getValue() );
         assertNotNull( httpMethodArgumentCaptor.getValue() );

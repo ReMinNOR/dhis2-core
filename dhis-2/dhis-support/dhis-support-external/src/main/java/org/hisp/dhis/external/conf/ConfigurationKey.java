@@ -1,7 +1,5 @@
-package org.hisp.dhis.external.conf;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.external.conf;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.external.conf;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -43,6 +42,7 @@ public enum ConfigurationKey
     SYSTEM_MONITORING_USERNAME( "system.monitoring.username" ),
     SYSTEM_MONITORING_PASSWORD( "system.monitoring.password" ),
     SYSTEM_SQL_VIEW_TABLE_PROTECTION( "system.sql_view_table_protection", Constants.ON, false ),
+    SYSTEM_PROGRAM_RULE_SERVER_EXECUTION( "system.program_rule.server_execution", Constants.ON, false ),
     NODE_ID( "node.id", "", false ),
     ENCRYPTION_PASSWORD( "encryption.password", "", true ),
     CONNECTION_DIALECT( "connection.dialect", "", false ),
@@ -94,6 +94,7 @@ public enum ConfigurationKey
     ARTEMIS_PASSWORD( "artemis.password", "guest", true ),
     ARTEMIS_EMBEDDED_SECURITY( "artemis.embedded.security", Constants.FALSE ),
     ARTEMIS_EMBEDDED_PERSISTENCE( "artemis.embedded.persistence", Constants.FALSE ),
+    ARTEMIS_EMBEDDED_THREADS( "artemis.embedded.threads", "5" ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "1" ),
     SERVER_BASE_URL( "server.base.url", "", false ),
@@ -113,13 +114,14 @@ public enum ConfigurationKey
     CHANGELOG_AGGREGATE( "changelog.aggregate", Constants.ON ),
     CHANGELOG_TRACKER( "changelog.tracker", Constants.ON ),
     AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", Constants.OFF ),
+    AUDIT_USE_IN_MEMORY_QUEUE_ENABLED( "audit.in_memory_queue.enabled", Constants.OFF ),
     AUDIT_LOGGER( "audit.logger", Constants.OFF, false ),
     AUDIT_DATABASE( "audit.database", Constants.ON, false ),
     AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
     AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
     AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
     OIDC_OAUTH2_LOGIN_ENABLED( "oidc.oauth2.login.enabled", Constants.OFF, false ),
-    OIDC_LOGOUT_REDIRECT_URL( "oidc.logout.redirect_url", "http://localhost:8080", false ),
+    OIDC_LOGOUT_REDIRECT_URL( "oidc.logout.redirect_url", "", false ),
     OIDC_PROVIDER_GOOGLE_CLIENT_ID( "oidc.provider.google.client_id", "", true ),
     OIDC_PROVIDER_GOOGLE_CLIENT_SECRET( "oidc.provider.google.client_secret", "", true ),
     OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "email", true ),
@@ -129,7 +131,6 @@ public enum ConfigurationKey
     OIDC_PROVIDER_WSO2_SERVER_URL( "oidc.provider.wso2.server_url", "", false ),
     OIDC_PROVIDER_WSO2_DISPLAY_ALIAS( "oidc.provider.wso2.display_alias", "", false ),
     OIDC_PROVIDER_WSO2_ENABLE_LOGOUT( "oidc.provider.wso2.enable_logout", Constants.TRUE, false );
-
 
     private final String key;
 

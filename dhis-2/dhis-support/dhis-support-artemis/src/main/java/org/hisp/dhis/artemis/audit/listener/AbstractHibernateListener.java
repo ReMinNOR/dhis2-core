@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis.audit.listener;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,21 @@ package org.hisp.dhis.artemis.audit.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.audit.listener;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.Hibernate;
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.PostDeleteEvent;
@@ -50,16 +61,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Luciano Fiandesio
  */
@@ -67,8 +68,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class AbstractHibernateListener
 {
     protected final AuditManager auditManager;
+
     protected final AuditObjectFactory objectFactory;
+
     private final UsernameSupplier usernameSupplier;
+
     private final SchemaService schemaService;
 
     public AbstractHibernateListener(
@@ -114,19 +118,20 @@ public abstract class AbstractHibernateListener
     abstract AuditType getAuditType();
 
     /**
-     * Create serializable Map<String, Object> for delete event
-     * Because the entity has already been deleted and transaction is committed
-     * all lazy collections or properties that haven't been loaded will be ignored.
+     * Create serializable Map<String, Object> for delete event Because the
+     * entity has already been deleted and transaction is committed all lazy
+     * collections or properties that haven't been loaded will be ignored.
      *
-     * @return Map<String, Object> with key is property name and value is property value.
+     * @return Map<String, Object> with key is property name and value is
+     *         property value.
      */
     protected Object createAuditEntry( PostDeleteEvent event )
     {
-        Map<String,Object> objectMap = new HashMap<>();
+        Map<String, Object> objectMap = new HashMap<>();
         Schema schema = schemaService.getDynamicSchema( event.getEntity().getClass() );
         Map<String, Property> properties = schema.getFieldNameMapProperties();
 
-        for ( int i = 0; i< event.getDeletedState().length; i++ )
+        for ( int i = 0; i < event.getDeletedState().length; i++ )
         {
             if ( event.getDeletedState()[i] == null )
             {
@@ -142,11 +147,12 @@ public abstract class AbstractHibernateListener
                 continue;
             }
 
-            if ( Hibernate.isInitialized( value )  )
+            if ( Hibernate.isInitialized( value ) )
             {
-                if ( property.isCollection() && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
+                if ( property.isCollection()
+                    && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
                 {
-                    objectMap.put( pName, IdentifiableObjectUtils.getUids( ( Collection ) value ) );
+                    objectMap.put( pName, IdentifiableObjectUtils.getUids( (Collection) value ) );
                 }
                 else
                 {
@@ -158,17 +164,20 @@ public abstract class AbstractHibernateListener
     }
 
     /**
-     * Create serializable Map<String, Object> based on given Audit Entity and related objects that are produced by
-     * {@link PostUpdateEvent} or {@link PostInsertEvent}
-     * The returned object must comply with below rules:
-     *  1. Only includes referenced properties that are owned by the current Audit Entity.
-     *  Means that the property's schema has attribute "owner = true"
-     *  2. Do not include any lazy HibernateProxy or PersistentCollection that is not loaded.
-     *  3. All referenced properties that extend BaseIdentifiableObject should be mapped to only UID string
+     * Create serializable Map<String, Object> based on given Audit Entity and
+     * related objects that are produced by {@link PostUpdateEvent} or
+     * {@link PostInsertEvent} The returned object must comply with below rules:
+     * 1. Only includes referenced properties that are owned by the current
+     * Audit Entity. Means that the property's schema has attribute "owner =
+     * true" 2. Do not include any lazy HibernateProxy or PersistentCollection
+     * that is not loaded. 3. All referenced properties that extend
+     * BaseIdentifiableObject should be mapped to only UID string
      *
-     * @return Map<String, Object> with key is property name and value is property value.
+     * @return Map<String, Object> with key is property name and value is
+     *         property value.
      */
-    protected Object createAuditEntry( Object entity, Object[] state, EventSource session, Serializable id, EntityPersister persister )
+    protected Object createAuditEntry( Object entity, Object[] state, EventSource session, Serializable id,
+        EntityPersister persister )
     {
         Map<String, Object> objectMap = new HashMap<>();
         Schema schema = schemaService.getDynamicSchema( entity.getClass() );
@@ -178,19 +187,20 @@ public abstract class AbstractHibernateListener
 
         for ( int i = 0; i < state.length; i++ )
         {
-            if ( state[i] == null ) continue;
+            if ( state[i] == null )
+                continue;
 
             Object value = state[i];
 
             String pName = persister.getPropertyNames()[i];
             Property property = properties.get( pName );
 
-            if ( property == null || !property.isOwner() )
+            if ( property == null || (!property.isOwner() && !property.isEmbeddedObject()) )
             {
                 continue;
             }
 
-            if ( shouldInitializeProxy( value ) || ( property != null && property.isEmbeddedObject() ) )
+            if ( shouldInitializeProxy( value ) || property.isEmbeddedObject() )
             {
                 if ( entityProxy == null )
                 {
@@ -205,12 +215,6 @@ public abstract class AbstractHibernateListener
                 continue;
             }
 
-            if ( property != null && property.isEmbeddedObject() )
-            {
-                handleEmbeddedObject( property, value, objectMap );
-                continue;
-            }
-
             putValueToMap( property, objectMap, value );
         }
 
@@ -221,7 +225,7 @@ public abstract class AbstractHibernateListener
     {
         try
         {
-            return ( HibernateProxy ) persister.createProxy( id, session );
+            return (HibernateProxy) persister.createProxy( id, session );
         }
         catch ( Exception ex )
         {
@@ -231,28 +235,57 @@ public abstract class AbstractHibernateListener
         return null;
     }
 
+    private void handleNonIdentifiableCollection( Property property, Object value, Map<String, Object> objectMap )
+    {
+        if ( value == null )
+            return;
+
+        Schema schema = schemaService.getSchema( property.getItemKlass() );
+
+        if ( schema == null )
+        {
+            objectMap.put( property.getFieldName(), value );
+            return;
+        }
+
+        List<Map<String, Object>> listProperties = new ArrayList<>();
+
+        List<Property> properties = schema.getProperties();
+        Collection collection = (Collection) value;
+        collection.forEach( item -> {
+            Map<String, Object> propertyMap = new HashMap<>();
+            properties.forEach( prop -> putValueToMap( prop, propertyMap,
+                ReflectionUtils.invokeGetterMethod( prop.getFieldName(), item ) ) );
+            listProperties.add( propertyMap );
+        } );
+
+        objectMap.put( property.getFieldName(), listProperties );
+    }
+
     private void putValueToMap( Property property, Map<String, Object> objectMap, Object value )
     {
-        if ( value == null ) return;
+        if ( value == null )
+            return;
 
         if ( property.isCollection() )
         {
-            Collection collection = ( Collection ) value;
+            Collection collection = (Collection) value;
 
-            if ( collection.isEmpty() ) return;
+            if ( collection.isEmpty() )
+                return;
 
             if ( BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
             {
                 List<String> uids = IdentifiableObjectUtils.getUids( collection );
 
-                if ( uids != null || !uids.isEmpty() )
+                if ( uids != null && !uids.isEmpty() )
                 {
                     objectMap.put( property.getFieldName(), uids );
                 }
             }
             else
             {
-                objectMap.put( property.getFieldName(), collection );
+                handleNonIdentifiableCollection( property, value, objectMap );
             }
         }
         else
@@ -261,33 +294,17 @@ public abstract class AbstractHibernateListener
         }
     }
 
-    private void handleEmbeddedObject( Property property, Object value, Map<String, Object> objectMap )
-    {
-        if ( value == null ) return;
-
-        Schema embeddedSchema = schemaService.getSchema( value.getClass() );
-        if ( embeddedSchema == null )
-        {
-            putValueToMap( property, objectMap, value );
-            return;
-        }
-
-        Map<String, Property> properties = embeddedSchema.getPersistedProperties();
-        properties.forEach( (pName, prop) -> {
-            putValueToMap( prop, objectMap, ReflectionUtils.invokeMethod( value, prop.getGetterMethod() ) );
-        } );
-    }
-
     private Object getPropertyValue( HibernateProxy entityProxy, EntityPersister persister, String pName )
     {
         try
         {
-            return  persister.getPropertyValue( entityProxy, pName );
+            return persister.getPropertyValue( entityProxy, pName );
         }
         catch ( Exception ex )
         {
-            // Ignore if couldn't find property reference object, maybe it was deleted.
-            log.debug( "Couldn't get property: " + pName + " from " + entityProxy, DebugUtils.getStackTrace( ex ) );
+            // Ignore if couldn't find property reference object, maybe it was
+            // deleted.
+            log.debug( "Couldn't get value of property: " + pName, DebugUtils.getStackTrace( ex ) );
         }
 
         return null;
@@ -307,7 +324,7 @@ public abstract class AbstractHibernateListener
     {
         if ( BaseIdentifiableObject.class.isAssignableFrom( object.getClass() ) )
         {
-            return ( ( BaseIdentifiableObject ) object ).getUid();
+            return ((BaseIdentifiableObject) object).getUid();
         }
 
         return object;

@@ -1,7 +1,5 @@
-package org.hisp.dhis.appmanager;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.appmanager;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -230,7 +229,7 @@ public class DefaultAppManager
                 throw new QueryParserException( INVALID_FILTER_MSG + filter );
             }
 
-            if ( "isBundled".equalsIgnoreCase( split[0] ) && !"true".equalsIgnoreCase( split[2] )
+            if ( "bundled".equalsIgnoreCase( split[0] ) && !"true".equalsIgnoreCase( split[2] )
                 && !"false".equalsIgnoreCase( split[2] ) )
             {
                 throw new QueryParserException( INVALID_FILTER_MSG + filter );

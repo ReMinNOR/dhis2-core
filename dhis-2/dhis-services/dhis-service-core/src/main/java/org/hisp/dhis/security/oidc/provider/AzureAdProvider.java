@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.oidc.provider;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,12 @@ package org.hisp.dhis.security.oidc.provider;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.oidc.provider;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -39,17 +39,18 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
- * <p>
- * Well known url for reference. In a perfect world we would dynamically parse this.
- * https://login.microsoftonline.com/"+tenant+"/v2.0/.well-known/openid-configuration
+ *         <p>
+ *         Well known url for reference. In a perfect world we would dynamically
+ *         parse this.
+ *         https://login.microsoftonline.com/"+tenant+"/v2.0/.well-known/openid-configuration
  */
-public class AzureAdProvider extends DhisOidcProvider
+public class AzureAdProvider extends AbstractOidcProvider
 {
     public static final int MAX_AZURE_TENANTS = 10;
 

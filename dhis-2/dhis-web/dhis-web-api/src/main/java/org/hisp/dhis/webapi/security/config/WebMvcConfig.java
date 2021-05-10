@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.security.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,11 @@ package org.hisp.dhis.webapi.security.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.security.config;
 
 import static org.springframework.http.MediaType.parseMediaType;
 
+import java.nio.charset.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -161,7 +161,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         converters.add( new PdfMessageConverter( nodeService() ) );
         converters.add( new ExcelMessageConverter( nodeService() ) );
 
-        converters.add( new StringHttpMessageConverter() );
+        converters.add( new StringHttpMessageConverter( StandardCharsets.UTF_8 ) );
         converters.add( new ByteArrayHttpMessageConverter() );
         converters.add( new FormHttpMessageConverter() );
 
@@ -173,8 +173,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     @Override
     public ContentNegotiationManager mvcContentNegotiationManager()
     {
-        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-            new CustomPathExtensionContentNegotiationStrategy( mediaTypeMap );
+        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
+            mediaTypeMap );
         pathExtensionNegotiationStrategy.setUseJaf( false );
 
         String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls", "pdf", "csv" };
